@@ -11,6 +11,14 @@
     #tvShips { background-image:url("ships-bridge.jpg"); }
     #tvWater { background-image:url("ocean-water.gif"); }
     .tv-layer.tv-on { opacity:1; }
+
+    /* Mouse ripple, just over the content: small expanding rings that follow
+       the pointer (the water ripple she likes from the test-signin-water
+       page). pointer-events:none so it never blocks clicks. z-index sits
+       above the content layers and below the command palette. */
+    #nvRippleLayer { position:fixed; inset:0; z-index:6; pointer-events:none; overflow:hidden; }
+    .nv-ripple-ring { position:absolute; width:12px; height:12px; margin:-6px 0 0 -6px; border:1px solid rgba(167,139,250,.55); border-radius:50%; pointer-events:none; animation:nv-ripple-expand .9s ease-out forwards; }
+    @keyframes nv-ripple-expand { 0% { transform:scale(1); opacity:.8; } 100% { transform:scale(8); opacity:0; } }
     .static-top { position:fixed; inset:0; z-index:2; pointer-events:none; opacity:.38; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.25' numOctaves='3'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E"); }
     .static-burst { position:fixed; inset:0; z-index:2; pointer-events:none; opacity:0; transition:opacity .6s ease; background-color:rgba(255,255,255,.12); background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.25' numOctaves='3'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E"); }
     .static-burst.burst-on { opacity:1; }
@@ -61,6 +69,7 @@
   <div class="scrim" aria-hidden="true"></div>
   <div class="static-top" aria-hidden="true"></div>
   <div class="static-burst" id="staticBurst" aria-hidden="true"></div>
+  <div id="nvRippleLayer" aria-hidden="true"></div>
   <div class="ticker"><span class="hub-label">Hub Status:</span> <span class="await-track"><span class="await-static">Awaiting Sync</span></span></div>
   <main>
     <model-viewer id="nwdLogo" src="nwd-logo-test.glb" alt="New World Dysorder logo" camera-controls style="width:100%; height:209px; background:transparent;"></model-viewer>
@@ -317,6 +326,36 @@
       window.addEventListener('devicemotion', onMotion);
     }
   })();
+</script>
+
+<script>
+/* Mouse ripple just over the content: a small expanding ring trails the
+   pointer as it moves, and a tap spawns one too (touch). pointer-events:none,
+   so it never blocks hub links, radio, Options, or sign-in buttons. */
+(function () {
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var layer = document.getElementById('nvRippleLayer');
+  if (!layer) return;
+  var lastSpawn = 0;
+  function spawn(x, y) {
+    var now = Date.now();
+    if (now - lastSpawn < 120) return; /* one ring per 120ms while moving */
+    lastSpawn = now;
+    var ring = document.createElement('div');
+    ring.className = 'nv-ripple-ring';
+    ring.style.left = x + 'px';
+    ring.style.top = y + 'px';
+    layer.appendChild(ring);
+    setTimeout(function () { if (ring.parentNode) ring.parentNode.removeChild(ring); }, 950);
+  }
+  window.addEventListener('pointermove', function (e) {
+    if (e.pointerType === 'touch') return;
+    spawn(e.clientX, e.clientY);
+  }, { passive: true });
+  window.addEventListener('pointerdown', function (e) {
+    if (e.pointerType === 'touch') spawn(e.clientX, e.clientY);
+  }, { passive: true });
+})();
 </script>
 </body>
 </html>

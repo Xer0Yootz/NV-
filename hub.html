@@ -13,6 +13,14 @@
        (z-index 0) and UNDERNEATH everything else on the hub — terminal box
        (z-index 2), radio footer (z-index 3), ticker (z-index 4), palette
        (z-index 10) — so it never covers any hub information. */
+
+    /* Mouse ripple, just over the content: small expanding rings that follow
+       the pointer (the water ripple she likes from the test-signin-water
+       page). pointer-events:none so it never blocks clicks. z-index sits
+       above the content layers and below the command palette. */
+    #nvRippleLayer { position:fixed; inset:0; z-index:5; pointer-events:none; overflow:hidden; }
+    .nv-ripple-ring { position:absolute; width:12px; height:12px; margin:-6px 0 0 -6px; border:1px solid rgba(167,139,250,.55); border-radius:50%; pointer-events:none; animation:nv-ripple-expand .9s ease-out forwards; }
+    @keyframes nv-ripple-expand { 0% { transform:scale(1); opacity:.8; } 100% { transform:scale(8); opacity:0; } }
     .static-top { position:fixed; inset:0; z-index:1; pointer-events:none; opacity:.38; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.25' numOctaves='3'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E"); }
     main { position:relative; z-index:2; width:100%; max-width:560px; padding:32px; box-sizing:border-box; text-align:center; border:1px solid #7c3aed; border-radius:16px; background:rgba(18,8,31,.88); }
     button { background:transparent; color:#f5f0ff; border:1px solid #f5f0ff; border-radius:0; padding:10px 18px; font-weight:700; cursor:pointer; }
@@ -51,6 +59,7 @@
 <body>
   <div class="bg" aria-hidden="true"></div>
   <div class="static-top" aria-hidden="true"></div>
+  <div id="nvRippleLayer" aria-hidden="true"></div>
   <div class="ticker"><span id="tickerInfo">LOADING TIME · DATE · LOCATION · WEATHER · TIDES</span></div>
   <main>
     <h1>Infinity 6 Terminal</h1>
@@ -345,6 +354,36 @@
     var sx = Math.floor(Math.random() * 240), sy = Math.floor(Math.random() * 240);
     topStatic.style.backgroundPosition = sx + 'px ' + sy + 'px';
   }, 90);
+})();
+</script>
+
+<script>
+/* Mouse ripple just over the content: a small expanding ring trails the
+   pointer as it moves, and a tap spawns one too (touch). pointer-events:none,
+   so it never blocks hub links, radio, Options, or sign-in buttons. */
+(function () {
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var layer = document.getElementById('nvRippleLayer');
+  if (!layer) return;
+  var lastSpawn = 0;
+  function spawn(x, y) {
+    var now = Date.now();
+    if (now - lastSpawn < 120) return; /* one ring per 120ms while moving */
+    lastSpawn = now;
+    var ring = document.createElement('div');
+    ring.className = 'nv-ripple-ring';
+    ring.style.left = x + 'px';
+    ring.style.top = y + 'px';
+    layer.appendChild(ring);
+    setTimeout(function () { if (ring.parentNode) ring.parentNode.removeChild(ring); }, 950);
+  }
+  window.addEventListener('pointermove', function (e) {
+    if (e.pointerType === 'touch') return;
+    spawn(e.clientX, e.clientY);
+  }, { passive: true });
+  window.addEventListener('pointerdown', function (e) {
+    if (e.pointerType === 'touch') spawn(e.clientX, e.clientY);
+  }, { passive: true });
 })();
 </script>
 </body>
