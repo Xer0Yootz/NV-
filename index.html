@@ -40,6 +40,11 @@
     /* NWD logo hop — same 1s up/down as Baby Pigek's locked hop-bob. */
     @keyframes nv-logo-hop { 0%{transform:translateY(0)} 50%{transform:translateY(-18px)} 100%{transform:translateY(0)} }
     model-viewer.nwd-logo-hop { animation:nv-logo-hop 1s ease-in-out; }
+    /* NWD logo spin-out — when a sign-in button is clicked the logo spins out of
+       the scene (two full turns, shrinking and fading) over 0.7s, while the
+       OAuth redirect is starting. It never delays sign-in. */
+    @keyframes nv-logo-spinout { 0%{transform:rotate(0deg) scale(1); opacity:1} 100%{transform:rotate(720deg) scale(.15); opacity:0} }
+    model-viewer.nwd-logo-spinout { animation:nv-logo-spinout .7s ease-in forwards; pointer-events:none; }
 .cookie-banner { position:fixed; left:12px; right:12px; bottom:12px; z-index:5; max-width:560px; margin:0 auto; padding:14px 16px; text-align:center; border:1px solid #7c3aed; border-radius:16px; background:rgba(18,8,31,.95); color:#f5f0ff; }
     .cookie-banner p { margin:0 0 10px; color:#f5f0ff; }
     #cookieBlocker { position:fixed; inset:0; z-index:4; background:transparent; }
@@ -67,6 +72,22 @@
   <script src="./auth.js"></script>
   <script>
     checkSessionAndRedirect('hub.html');
+    /* Spin the NWD logo out of the scene when a sign-in button is clicked.
+       Registered before the OAuth handlers so the spin starts first; it never
+       blocks or delays sign-in — the redirect starts right after, and the
+       0.7s animation plays while the page is leaving. */
+    (function () {
+      var logo = document.getElementById('nwdLogo');
+      function spinOut() {
+        if (!logo) return;
+        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        logo.classList.remove('nwd-logo-hop');
+        void logo.offsetWidth; /* restart the animation */
+        logo.classList.add('nwd-logo-spinout');
+      }
+      document.getElementById('githubBtn').addEventListener('click', spinOut);
+      document.getElementById('googleBtn').addEventListener('click', spinOut);
+    })();
     document.getElementById('githubBtn').addEventListener('click', signInWithGitHub);
     document.getElementById('googleBtn').addEventListener('click', signInWithGoogle);
   </script>
