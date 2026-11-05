@@ -20,7 +20,7 @@
   <main>
     <h1>Infinity 6 Terminal</h1>
     <p id="who">Checking your sign-in…</p>
-    <p id="nameEdit" hidden><input id="nameInput" maxlength="60" aria-label="Display name"> <button id="saveNameBtn">Save name</button> <button id="cancelNameBtn">Cancel</button> <button id="resetNameBtn">Use sign-in name</button></p>
+    <p id="nameEdit" hidden><input id="nameInput" maxlength="60" placeholder="Put your name here" aria-label="Display name"> <button id="saveNameBtn">Save name</button> <button id="cancelNameBtn">Cancel</button></p>
     <p><button id="signOutBtn">Sign out</button></p>
     <nav>
       <a href="https://xer0yootz.github.io/neon-vigil-oauth/gigas-garden/">Game — Gigas Garden</a>
@@ -30,39 +30,40 @@
   </main>
   <script src="./auth.js"></script>
   <script>
-    var signInName = '';
     function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
-    function displayName() { return localStorage.getItem('nv_display_name') || signInName; }
+    function savedName() { return localStorage.getItem('nv_display_name') || ''; }
     function renderName() {
-      document.getElementById('who').innerHTML =
-        'User: ' + esc(displayName()) + '<span class="cursor-blink">_</span> <button id="editNameBtn">Change name</button>';
-      document.getElementById('editNameBtn').addEventListener('click', function () {
-        document.getElementById('nameInput').value = displayName();
-        document.getElementById('nameEdit').hidden = false;
-        document.getElementById('nameInput').focus();
-      });
+      var name = savedName();
+      var edit = document.getElementById('nameEdit');
+      if (name) {
+        edit.hidden = true;
+        document.getElementById('who').innerHTML = 'User: ' + esc(name) + '<span class="cursor-blink">_</span> <button id="editNameBtn">Change name</button> <button id="deleteNameBtn">Delete name</button>';
+        document.getElementById('editNameBtn').addEventListener('click', function () {
+          document.getElementById('nameInput').value = name;
+          edit.hidden = false;
+          document.getElementById('nameInput').focus();
+        });
+        document.getElementById('deleteNameBtn').addEventListener('click', function () {
+          localStorage.removeItem('nv_display_name');
+          renderName();
+        });
+      } else {
+        document.getElementById('who').innerHTML = 'User: <span class="cursor-blink">_</span>';
+        document.getElementById('nameInput').value = '';
+        edit.hidden = false;
+      }
     }
     requireSession('index.html').then(function (user) {
-      if (user) {
-        signInName = (user.user_metadata && (user.user_metadata.user_name || user.user_metadata.preferred_username || user.email) || user.email || 'you');
-        renderName();
-      }
+      if (user) { renderName(); }
     });
     document.getElementById('saveNameBtn').addEventListener('click', function () {
       var v = document.getElementById('nameInput').value.trim();
       if (v) { localStorage.setItem('nv_display_name', v); } else { localStorage.removeItem('nv_display_name'); }
-      document.getElementById('nameEdit').hidden = true;
       renderName();
     });
     document.getElementById('cancelNameBtn').addEventListener('click', function () {
-      document.getElementById('nameEdit').hidden = true;
+      document.getElementById('nameEdit').hidden = !!savedName();
     });
-    document.getElementById('resetNameBtn').addEventListener('click', function () {
-      localStorage.removeItem('nv_display_name');
-      document.getElementById('nameEdit').hidden = true;
-      renderName();
-    });
-    document.getElementById('signOutBtn').addEventListener('click', signOut);
   </script>
 </body>
 </html>
