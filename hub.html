@@ -31,7 +31,7 @@
   <script src="./config.js"></script>
 </head>
 <body>
-  <div class="ticker"><span>Hub Status:</span> Awaiting Sync · <span id="tickerInfo">LOADING TIME · DATE · LOCATION · WEATHER · TIDES</span></div>
+  <div class="ticker"><span id="tickerInfo">LOADING TIME · DATE · LOCATION · WEATHER · TIDES</span></div>
   <main>
     <h1>Infinity 6 Terminal</h1>
     <p id="who">Checking your sign-in…</p>
@@ -148,7 +148,14 @@
       fetch('https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json?type=tidepredictions&lat=' + lat + '&lon=' + lon)
         .then(function (r) { return r.json(); })
         .then(function (d) {
-          var st = d.stations && d.stations[0];
+          var list = (d.stations || []).filter(function (s) { return s.lat && s.lng; });
+          if (!list.length) throw new Error('no station');
+          var best = null, bestD = Infinity;
+          list.forEach(function (s) {
+            var dd = (s.lat - parseFloat(lat)) * (s.lat - parseFloat(lat)) + (s.lng - parseFloat(lon)) * (s.lng - parseFloat(lon));
+            if (dd < bestD) { bestD = dd; best = s; }
+          });
+          var st = best;
           if (!st) throw new Error('no station');
           return fetch('https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=today&range=24&station=' + st.id + '&product=predictions&datum=MLLW&time_zone=lst_ldt&interval=hilo&units=english&format=json')
             .then(function (r) { return r.json(); });
