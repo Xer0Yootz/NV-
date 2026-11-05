@@ -8,7 +8,6 @@
     body { background:#05010f; color:#f5f0ff; font-family: "VT323", "Share Tech Mono", monospace; font-size: 18px; margin:0; min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:56px 12px 24px; box-sizing:border-box; overflow-x:hidden; }
     .bg { position:fixed; inset:0; background-image:url("ships-bridge.jpg"); background-size:cover; background-position:center; z-index:0; }
     .scrim { position:fixed; inset:0; background:linear-gradient(rgba(5,1,15,.35),rgba(5,1,15,.75)); z-index:1; }
-    .water-frame { position:fixed; left:50%; top:13%; transform:translateX(-50%); width:min(88vw,980px); height:30vh; background-image:url("ocean-water.gif"); background-size:cover; background-position:center; border:1px solid #7c3aed; border-radius:50%; z-index:1; }
     .ticker { position:fixed; top:0; left:0; right:0; z-index:4; overflow:hidden; white-space:nowrap; padding:10px 12px; font-size:13px; letter-spacing:2px; background:rgba(5,1,15,.72); border-bottom:1px solid #7c3aed; color:#f5f0ff; }
     .hub-label { color:#ffffff; }
     .await-track { display:inline-block; padding-left:0; }
@@ -39,7 +38,6 @@
 <body>
   <div class="bg" aria-hidden="true"></div>
   <div class="scrim" aria-hidden="true"></div>
-  <div class="water-frame" aria-hidden="true"></div>
   <div class="ticker"><span class="hub-label">Hub Status:</span> <span class="await-track"><span class="await-static">Awaiting Sync</span></span></div>
   <main>
 <audio id="logoDragAudio" src="sounds/neon-vigil-logo-drag.wav" preload="none"></audio>
