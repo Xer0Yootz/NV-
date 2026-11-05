@@ -77,19 +77,19 @@
       if (user) { renderName(user); }
     });
   </script>
-<audio id="nvSoundBed1" src="sounds/neon-vigil-sound-bed-1-landing-workpage.wav" loop preload="none"></audio>
-<button type="button" id="nvSoundBed1Btn" class="nv-sound-btn" aria-label="Play Sound Bed 1" title="Play Sound Bed 1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg></button>
+<audio id="nvSoundBed3" src="sounds/neon-vigil-sound-bed-3-loop.wav" loop preload="none"></audio>
+<button type="button" id="nvSoundBed3Btn" class="nv-sound-btn" aria-label="Play Sound Bed 3" title="Play Sound Bed 3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg></button>
 <script>
 (function () {
-  var a = document.getElementById('nvSoundBed1');
-  var b = document.getElementById('nvSoundBed1Btn');
+  var a = document.getElementById('nvSoundBed3');
+  var b = document.getElementById('nvSoundBed3Btn');
   if (!a || !b) return;
   var playSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>';
-  var pauseSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
+  var stopSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="6" width="12" height="12"/></svg>';
   function sync() {
-    b.innerHTML = a.paused ? playSvg : pauseSvg;
-    b.setAttribute('aria-label', a.paused ? 'Play Sound Bed 1' : 'Pause Sound Bed 1');
-    b.setAttribute('title', a.paused ? 'Play Sound Bed 1' : 'Pause Sound Bed 1');
+    b.innerHTML = a.paused ? playSvg : stopSvg;
+    b.setAttribute('aria-label', a.paused ? 'Play Sound Bed 3' : 'Stop Sound Bed 3');
+    b.setAttribute('title', a.paused ? 'Play Sound Bed 3' : 'Stop Sound Bed 3');
   }
   function locked() { return document.body.classList.contains('cookie-locked'); }
   b.addEventListener('click', function () {
