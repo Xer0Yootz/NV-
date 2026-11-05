@@ -31,7 +31,7 @@
   <script src="./config.js"></script>
 </head>
 <body>
-  <div class="ticker"><span>Hub Status:</span> Awaiting Sync · <span id="clock"></span></div>
+  <div class="ticker"><span>Hub Status:</span> Awaiting Sync · <span id="tickerInfo">LOADING TIME · DATE · LOCATION · WEATHER · TIDES</span></div>
   <main>
     <h1>Infinity 6 Terminal</h1>
     <p id="who">Checking your sign-in…</p>
@@ -42,7 +42,7 @@
       <a href="https://neonvigil.app/test-web-bible-neon-ultra">Character Sheets — Neon Ultra (test)</a>
     </nav>
   </main>
-  <div class="options-footer"><span class="footer-cell"><span id="radio">Radio: <button id="radioToggleBtn">Play</button> <select id="stationSelect" aria-label="Radio station"><option value="0">Atmospheric Haze</option><option value="1">Sound Bed 1</option><option value="2">Sound Bed 2</option><option value="3">Sound Bed 3</option></select></span></span><span class="footer-cell"><a href="options.html">Options</a></span></div>
+  <div class="options-footer"><span class="footer-cell"><span id="radio">Radio: <button id="radioToggleBtn">Play</button> <select id="stationSelect" aria-label="Radio station"><option value="0">Atmospheric Haze</option><option value="1">Sound Bed 1</option><option value="2">Sound Bed 2</option><option value="3">Sound Bed 3</option></select></span></span><span class="footer-cell"><a href="options.html" aria-label="Options" title="Options"><svg width="28" height="28" viewBox="0 0 100 100" fill="none" stroke="#f5f0ff" stroke-width="3" aria-hidden="true"><circle cx="50" cy="50" r="10"/><circle cx="50" cy="50" r="26"/><circle cx="50" cy="50" r="42"/><ellipse cx="50" cy="50" rx="42" ry="16" transform="rotate(60 50 50)"/><ellipse cx="50" cy="50" rx="42" ry="16" transform="rotate(120 50 50)"/><circle cx="50" cy="8" r="4" fill="#f5f0ff" stroke="none"/><circle cx="86" cy="71" r="4" fill="#f5f0ff" stroke="none"/><circle cx="14" cy="71" r="4" fill="#f5f0ff" stroke="none"/><path d="M50 44v12M44 50h12" stroke-width="4"/></svg><br>Options</a></span></div>
   <script src="./auth.js"></script>
   <script>
     function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
@@ -104,8 +104,76 @@
       radioAudio.src = radioStations[Number(this.value)];
       radioPlay();
     });
-    function tickClock() { var el = document.getElementById('clock'); if (el) { el.textContent = new Date().toLocaleTimeString(); } }
-    tickClock(); setInterval(tickClock, 1000);
+    /* Hub ticker: time + date + location + weather + tides.
+       Time/date/location/weather reuse the Gigas Garden game ticker (Task 3, neon-vigil-oauth).
+       Tides are new: NOAA CO-OPS, nearest tide station to your location, next high/low. */
+    var tickerState = { weather: 'WEATHER STANDBY', place: '', tides: 'TIDES STANDBY', coords: null, requested: false };
+    function tickerLocale() { return (navigator.languages && navigator.languages[0]) || navigator.language || 'en-US'; }
+    function tickerDateTime() {
+      var d = new Date(), loc = tickerLocale();
+      var date = d.toLocaleDateString(loc, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase();
+      var time = d.toLocaleTimeString(loc, { hour: 'numeric', minute: '2-digit', second: '2-digit' });
+      return date + ' · ' + time;
+    }
+    var WMO = [[0, 'CLEAR'], [1, 'MOSTLY CLEAR'], [2, 'PARTLY CLOUDY'], [3, 'OVERCAST'], [48, 'FOG'], [57, 'DRIZZLE'], [67, 'RAIN'], [77, 'SNOW'], [82, 'SHOWERS'], [86, 'SNOW SHOWERS'], [99, 'THUNDERSTORM']];
+    function wxCondition(code) { for (var i = 0; i < WMO.length; i++) if (code <= WMO[i][0]) return WMO[i][1]; return 'SKY UNKNOWN'; }
+    function useFahrenheit() {
+      var region = '';
+      try { region = new Intl.Locale(tickerLocale()).maximize().region || ''; } catch (e) { region = (tickerLocale().split('-')[1] || '').toUpperCase(); }
+      return ['US', 'LR', 'MM', 'BS', 'BZ', 'KY', 'PW', 'FM', 'MH'].indexOf(region) !== -1;
+    }
+    function renderTicker() {
+      var el = document.getElementById('tickerInfo');
+      if (!el) return;
+      var parts = [tickerDateTime(), tickerState.place || 'LOCATION —', tickerState.weather, tickerState.tides];
+      el.textContent = parts.join(' · ');
+    }
+    function fetchWeatherAndTides() {
+      var c = tickerState.coords;
+      if (!c) return;
+      var f = useFahrenheit();
+      var lat = c.latitude.toFixed(3), lon = c.longitude.toFixed(3);
+      fetch('https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon + '&current=temperature_2m,weather_code&temperature_unit=' + (f ? 'fahrenheit' : 'celsius'))
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          var cur = d && d.current;
+          if (!cur || typeof cur.temperature_2m !== 'number') throw new Error('no weather');
+          tickerState.weather = Math.round(cur.temperature_2m) + '°' + (f ? 'F' : 'C') + ' ' + wxCondition(cur.weather_code);
+          renderTicker();
+        }).catch(function () { tickerState.weather = 'WEATHER OFFLINE'; renderTicker(); });
+      fetch('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=' + lat + '&longitude=' + lon + '&localityLanguage=' + encodeURIComponent(tickerLocale().split('-')[0] || 'en'))
+        .then(function (r) { return r.json(); })
+        .then(function (g) { tickerState.place = (g.city || g.locality || g.principalSubdivision || '').toUpperCase(); renderTicker(); })
+        .catch(function () {});
+      fetch('https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json?type=tidepredictions&lat=' + lat + '&lon=' + lon)
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          var st = d.stations && d.stations[0];
+          if (!st) throw new Error('no station');
+          return fetch('https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=today&range=24&station=' + st.id + '&product=predictions&datum=MLLW&time_zone=lst_ldt&interval=hilo&units=english&format=json')
+            .then(function (r) { return r.json(); });
+        })
+        .then(function (d) {
+          var now = new Date(), next = null;
+          (d.predictions || []).forEach(function (pr) {
+            var tt = new Date(pr.t.replace(' ', 'T'));
+            if (tt > now && !next) next = { type: pr.type, t: tt };
+          });
+          tickerState.tides = next ? ('TIDE ' + (next.type === 'H' ? 'HIGH' : 'LOW') + ' ' + next.t.toLocaleTimeString(tickerLocale(), { hour: 'numeric', minute: '2-digit' })) : 'TIDES —';
+          renderTicker();
+        }).catch(function () { tickerState.tides = 'TIDES OFFLINE'; renderTicker(); });
+    }
+    function requestTickerLocation() {
+      if (tickerState.requested) return; tickerState.requested = true;
+      try {
+        if (!navigator.geolocation || !window.fetch) { tickerState.weather = 'WEATHER OFFLINE'; tickerState.tides = 'TIDES OFFLINE'; renderTicker(); return; }
+        navigator.geolocation.getCurrentPosition(function (pos) {
+          tickerState.coords = pos.coords; fetchWeatherAndTides();
+          setInterval(fetchWeatherAndTides, 15 * 60 * 1000);
+        }, function () { tickerState.weather = 'WEATHER OFFLINE'; tickerState.tides = 'TIDES OFFLINE'; renderTicker(); }, { enableHighAccuracy: false, timeout: 8000, maximumAge: 15 * 60 * 1000 });
+      } catch (e) { tickerState.weather = 'WEATHER OFFLINE'; tickerState.tides = 'TIDES OFFLINE'; renderTicker(); }
+    }
+    renderTicker(); setInterval(renderTicker, 1000); requestTickerLocation();
     requireSession('index.html').then(function (user) {
       if (user) { renderName(user); }
     });
