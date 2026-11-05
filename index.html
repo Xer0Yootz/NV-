@@ -7,12 +7,12 @@
   <style>
     body { background:#05010f; color:#f5f0ff; font-family: "VT323", "Share Tech Mono", monospace; font-size: 18px; margin:0; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:56px 12px 24px; box-sizing:border-box; overflow-x:hidden; }
     .bg { position:fixed; inset:0; z-index:0; transform:scale(1.12); will-change:transform; transition:transform .35s ease-out; pointer-events:none; overflow:hidden; }
-    .tv-layer { position:absolute; inset:0; background-size:cover; background-position:center; opacity:0; transition:opacity .5s ease; }
+    .tv-layer { position:absolute; inset:0; background-size:cover; background-position:center; opacity:0; transition:opacity 1.8s ease-in-out; }
     #tvShips { background-image:url("ships-bridge.jpg"); }
     #tvWater { background-image:url("ocean-water.gif"); }
     .tv-layer.tv-on { opacity:1; }
     .static-top { position:fixed; inset:0; z-index:2; pointer-events:none; opacity:.38; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.25' numOctaves='3'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E"); }
-    .static-burst { position:fixed; inset:0; z-index:2; pointer-events:none; opacity:0; background-color:rgba(255,255,255,.12); background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.25' numOctaves='3'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E"); }
+    .static-burst { position:fixed; inset:0; z-index:2; pointer-events:none; opacity:0; transition:opacity .6s ease; background-color:rgba(255,255,255,.12); background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.25' numOctaves='3'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E"); }
     .static-burst.burst-on { opacity:1; }
     .scrim { position:fixed; inset:0; background:linear-gradient(rgba(5,1,15,.35),rgba(5,1,15,.75)); z-index:1; }
     .ticker { position:fixed; top:0; left:0; right:0; z-index:4; overflow:hidden; white-space:nowrap; padding:10px 12px; font-size:13px; letter-spacing:2px; background:rgba(5,1,15,.72); border:1px solid #7c3aed; box-sizing:border-box; color:#f5f0ff; }
@@ -234,7 +234,7 @@
 </script>
 
 <script>
-  /* TV picture cycle — live on the main sign-in page, Nov 5 2026. Ships Bridge (8s) -> static burst (1s) -> water (8s) -> static burst -> loop. Static sits over the background, under the sign-in box. */
+  /* TV picture cycle — live on the main sign-in page, Nov 5 2026. Ships Bridge (8s) -> water (8s) -> loop, fading in and out: each change is a slow 1.8s crossfade (outgoing melts out while the incoming melts in), with the static burst fading in and out in the middle of the fade instead of snapping. Static sits over the background, under the sign-in box. */
   (function () {
     var channels = [
       document.getElementById('tvShips'),
@@ -243,7 +243,7 @@
     var burst = document.getElementById('staticBurst');
     var topStatic = document.querySelector('.static-top');
     var current = 0;
-    var HOLD_MS = 8000, BURST_MS = 1000;
+    var HOLD_MS = 8000, FADE_MS = 1800;
     setInterval(function () {
       var sx = Math.floor(Math.random() * 240), sy = Math.floor(Math.random() * 240);
       if (topStatic) topStatic.style.backgroundPosition = sx + 'px ' + sy + 'px';
@@ -254,12 +254,12 @@
       current = i;
     }
     function next() {
-      if (burst) burst.classList.add('burst-on');
+      if (burst) burst.classList.add('burst-on'); /* burst fades in over .6s */
+      show((current + 1) % channels.length); /* pictures crossfade over 1.8s */
       setTimeout(function () {
-        if (burst) burst.classList.remove('burst-on');
-        show((current + 1) % channels.length);
-        setTimeout(next, HOLD_MS);
-      }, BURST_MS);
+        if (burst) burst.classList.remove('burst-on'); /* burst fades out mid-crossfade */
+      }, 900);
+      setTimeout(next, HOLD_MS + FADE_MS);
     }
     show(0);
     setTimeout(next, HOLD_MS);
