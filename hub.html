@@ -37,7 +37,7 @@
     .palette-item .hint { float:right; color:#a78bfa; font-size:13px; }
     .palette-item.selected { background:#7c3aed; }
     @keyframes nv-blink { 50% { opacity:0; } }
-    .nv-sound-btn{position:fixed;right:16px;bottom:70px;z-index:6;width:44px;height:44px;padding:0;display:flex;align-items:center;justify-content:center;background:rgba(18,8,31,.88);color:#f5f0ff;border:1px solid #f5f0ff;border-radius:0;cursor:pointer}.nv-sound-btn svg{width:20px;height:20px;display:block}.nv-sound-btn:disabled{opacity:.5;cursor:wait}
+    #radioToggleBtn{width:32px;height:32px;padding:0;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;background:transparent;color:#f5f0ff;border:1px solid #f5f0ff;border-radius:0;cursor:pointer}#radioToggleBtn svg{width:16px;height:16px;display:block}
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./config.js"></script>
@@ -56,8 +56,7 @@
     </nav>
     <p class="palette-hint" id="paletteHint">Press ⌘K for commands</p>
   </main>
-  <div class="options-footer"><span class="footer-cell"><span id="radio">Radio: <button id="radioToggleBtn">Play</button> <select id="stationSelect" aria-label="Radio station"><option value="0">Atmospheric Haze</option><option value="1">Sound Bed 1</option><option value="2">Sound Bed 2</option><option value="3">Sound Bed 3</option></select></span></span><span class="footer-cell"><button type="button" id="optionsBtn" class="options-icon-btn" aria-label="Options — open commands" title="Options — open commands (⌘K)"><svg width="28" height="28" viewBox="0 0 100 100" fill="none" stroke="#f5f0ff" stroke-width="3" aria-hidden="true"><circle cx="50" cy="50" r="10"/><circle cx="50" cy="50" r="26"/><circle cx="50" cy="50" r="42"/><ellipse cx="50" cy="50" rx="42" ry="16" transform="rotate(60 50 50)"/><ellipse cx="50" cy="50" rx="42" ry="16" transform="rotate(120 50 50)"/><circle cx="50" cy="8" r="4" fill="#f5f0ff" stroke="none"/><circle cx="86" cy="71" r="4" fill="#f5f0ff" stroke="none"/><circle cx="14" cy="71" r="4" fill="#f5f0ff" stroke="none"/><path d="M50 44v12M44 50h12" stroke-width="4"/></svg></button></span></div>
-<button type="button" id="nvSoundBed1Btn" class="nv-sound-btn" aria-label="Play Sound Bed 1" title="Play Sound Bed 1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg></button>
+  <div class="options-footer"><span class="footer-cell"><span id="radio">Radio: <button type="button" id="radioToggleBtn" aria-label="Play Atmospheric Haze" title="Play Atmospheric Haze"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg></button> <select id="stationSelect" aria-label="Radio station"><option value="0">Atmospheric Haze</option><option value="1">Sound Bed 1</option><option value="2">Sound Bed 2</option><option value="3">Sound Bed 3</option></select></span></span><span class="footer-cell"><button type="button" id="optionsBtn" class="options-icon-btn" aria-label="Options — open commands" title="Options — open commands (⌘K)"><svg width="28" height="28" viewBox="0 0 100 100" fill="none" stroke="#f5f0ff" stroke-width="3" aria-hidden="true"><circle cx="50" cy="50" r="10"/><circle cx="50" cy="50" r="26"/><circle cx="50" cy="50" r="42"/><ellipse cx="50" cy="50" rx="42" ry="16" transform="rotate(60 50 50)"/><ellipse cx="50" cy="50" rx="42" ry="16" transform="rotate(120 50 50)"/><circle cx="50" cy="8" r="4" fill="#f5f0ff" stroke="none"/><circle cx="86" cy="71" r="4" fill="#f5f0ff" stroke="none"/><circle cx="14" cy="71" r="4" fill="#f5f0ff" stroke="none"/><path d="M50 44v12M44 50h12" stroke-width="4"/></svg></button></span></div>
   <div class="palette-overlay" id="paletteOverlay"><div class="palette"><input id="paletteInput" placeholder="Type a command…" autocomplete="off" aria-label="Commands"><ul class="palette-list" id="paletteList"></ul></div></div>
   <script src="./auth.js"></script>
   <script>
@@ -106,49 +105,42 @@
       'sounds/neon-vigil-sound-bed-2-practice-page.wav',
       'sounds/neon-vigil-sound-bed-3-about-page.wav'
     ];
+    /* Radio + play button, unified: one icon-only play/stop button drives the
+       radio; the station picker next to it is the option to change station
+       (after sign-in, on the hub). Changing station while playing switches
+       what plays; while paused it just picks the next station. */
     var radioAudio = document.getElementById('radioAudio');
     var radioStarted = false;
+    var radioToggleBtn = document.getElementById('radioToggleBtn');
+    var stationSelect = document.getElementById('stationSelect');
+    var radioPlaySvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>';
+    var radioStopSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="6" width="12" height="12"/></svg>';
+    function syncRadioBtn() {
+      var playing = !radioAudio.paused;
+      var name = stationSelect.options[stationSelect.selectedIndex].text;
+      radioToggleBtn.innerHTML = playing ? radioStopSvg : radioPlaySvg;
+      radioToggleBtn.setAttribute('aria-label', (playing ? 'Stop ' : 'Play ') + name);
+      radioToggleBtn.setAttribute('title', (playing ? 'Stop ' : 'Play ') + name);
+    }
     function radioPlay() {
       radioStarted = true;
       radioAudio.play().catch(function () {});
-      document.getElementById('radioToggleBtn').textContent = 'Pause';
+      syncRadioBtn();
     }
-    document.getElementById('radioToggleBtn').addEventListener('click', function () {
-      if (radioAudio.paused) { radioPlay(); } else { radioAudio.pause(); this.textContent = 'Play'; }
+    function radioPause() { radioAudio.pause(); syncRadioBtn(); }
+    radioToggleBtn.addEventListener('click', function () {
+      if (radioAudio.paused) { radioPlay(); } else { radioPause(); }
     });
-    document.getElementById('stationSelect').addEventListener('change', function () {
+    stationSelect.addEventListener('change', function () {
+      var wasPlaying = !radioAudio.paused;
       radioAudio.src = radioStations[Number(this.value)];
-      radioPlay();
+      if (wasPlaying) { radioAudio.play().catch(function () {}); }
+      syncRadioBtn();
     });
+    radioAudio.addEventListener('play', syncRadioBtn);
+    radioAudio.addEventListener('pause', syncRadioBtn);
+    syncRadioBtn();
 
-    /* Sound Bed 1 icon button: drives the existing hub radio to station 1 (Sound Bed 1),
-       so the bed never plays twice at once. Icon only, no text label. */
-    (function () {
-      var b = document.getElementById('nvSoundBed1Btn');
-      var a = document.getElementById('radioAudio');
-      var sel = document.getElementById('stationSelect');
-      var tog = document.getElementById('radioToggleBtn');
-      if (!b || !a) return;
-      var playSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>';
-      var pauseSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
-      function isBed1() { return String(a.src).indexOf('sound-bed-1') !== -1; }
-      function sync() {
-        var playing = !a.paused && isBed1();
-        b.innerHTML = playing ? pauseSvg : playSvg;
-        b.setAttribute('aria-label', playing ? 'Pause Sound Bed 1' : 'Play Sound Bed 1');
-        b.setAttribute('title', playing ? 'Pause Sound Bed 1' : 'Play Sound Bed 1');
-      }
-      b.addEventListener('click', function () {
-        if (!a.paused && isBed1()) { a.pause(); if (tog) tog.textContent = 'Play'; }
-        else { if (sel) sel.value = '1'; a.src = radioStations[1]; a.play().catch(function () {}); if (tog) tog.textContent = 'Pause'; }
-        sync();
-      });
-      a.addEventListener('play', sync);
-      a.addEventListener('pause', sync);
-      if (tog) tog.addEventListener('click', function () { setTimeout(sync, 50); });
-      if (sel) sel.addEventListener('change', function () { setTimeout(sync, 50); });
-      sync();
-    })();
     /* Hub ticker: time + date + location + weather + tides.
        Time/date/location/weather reuse the Gigas Garden game ticker (Task 3, neon-vigil-oauth).
        Tides are new: NOAA CO-OPS, nearest tide station to your location, next high/low. */
@@ -253,7 +245,7 @@
       { name: 'Open Character Sheets — Neon Ultra', hint: 'Character Sheets', keys: 'character sheets neon ultra bible', run: function () { location.href = 'https://neonvigil.app/test-web-bible-neon-ultra'; } },
       { name: 'Open Options', hint: 'Options', keys: 'options settings change name delete name', run: function () { location.href = 'options.html'; } },
       { name: 'Play radio', hint: 'Radio', keys: 'radio play music start', run: function () { radioPlay(); } },
-      { name: 'Pause radio', hint: 'Radio', keys: 'radio pause music stop', run: function () { radioAudio.pause(); document.getElementById('radioToggleBtn').textContent = 'Play'; } },
+      { name: 'Pause radio', hint: 'Radio', keys: 'radio pause music stop', run: function () { radioPause(); } },
       { name: 'Radio: Atmospheric Haze', hint: 'Radio station', keys: 'radio station atmospheric haze theme', run: function () { document.getElementById('stationSelect').value = '0'; radioAudio.src = radioStations[0]; radioPlay(); } },
       { name: 'Radio: Sound Bed 1', hint: 'Radio station', keys: 'radio station sound bed 1', run: function () { document.getElementById('stationSelect').value = '1'; radioAudio.src = radioStations[1]; radioPlay(); } },
       { name: 'Radio: Sound Bed 2', hint: 'Radio station', keys: 'radio station sound bed 2', run: function () { document.getElementById('stationSelect').value = '2'; radioAudio.src = radioStations[2]; radioPlay(); } },
