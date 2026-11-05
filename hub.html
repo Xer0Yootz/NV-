@@ -33,7 +33,18 @@
     button { background:transparent; color:#f5f0ff; border:1px solid #f5f0ff; border-radius:0; padding:10px 18px; font-weight:700; cursor:pointer; }
     a { color:#a78bfa; }
     .cursor-blink { display:inline-block; animation:nv-blink 1.2s steps(2,start) infinite; color:#ffffff; }
-    .ticker { position:fixed; top:0; left:0; right:0; z-index:4; overflow:hidden; white-space:nowrap; padding:10px 12px; font-size:13px; letter-spacing:2px; background:rgba(5,1,15,.72); border:1px solid #7c3aed; box-sizing:border-box; color:#f5f0ff; }
+    /* Hub ticker (Nov 5, Jasmine's order): full width across the entire top,
+       scrolling once location is accepted and it is showing time/date/
+       location/weather/tides. Before location resolves it sits still — it
+       never scrolls empty/loading content. VT323 18px, same 1px purple
+       border and colours as before. The track holds the text twice so the
+       -50% loop is seamless; renderTicker() keeps both copies in sync. */
+    .ticker { position:fixed; top:0; left:0; right:0; z-index:4; overflow:hidden; white-space:nowrap; padding:10px 0; font-size:18px; letter-spacing:2px; background:rgba(5,1,15,.72); border:1px solid #7c3aed; box-sizing:border-box; color:#f5f0ff; }
+    .ticker-track { display:inline-flex; white-space:nowrap; will-change:transform; }
+    .ticker-track span { padding-right:3em; }
+    .ticker.scrolling .ticker-track { animation:nv-ticker-scroll 30s linear infinite; }
+    @keyframes nv-ticker-scroll { from { transform:translateX(0); } to { transform:translateX(-50%); } }
+    @media (prefers-reduced-motion: reduce) { .ticker.scrolling .ticker-track { animation:none; } }
     .options-footer { position:fixed; bottom:8px; left:8px; right:8px; z-index:3; display:grid; grid-template-columns:1fr auto; gap:8px; font-size:15px; border:1px solid #7c3aed; box-sizing:border-box; background:rgba(18,8,31,.88); }
     .footer-cell { border:1px solid #7c3aed; background:rgba(18,8,31,.88); padding:6px 10px; text-align:center; }
     .options-footer a { color:#a78bfa; }
@@ -76,7 +87,7 @@
   <div class="bg" aria-hidden="true"></div>
   <div class="static-top" aria-hidden="true"></div>
   <div id="nvRippleLayer" aria-hidden="true"></div>
-  <div class="ticker"><span id="tickerInfo">LOADING TIME · DATE · LOCATION · WEATHER · TIDES</span></div>
+  <div class="ticker"><div class="ticker-track"><span id="tickerInfo">LOADING TIME · DATE · LOCATION · WEATHER · TIDES</span><span id="tickerInfo2" aria-hidden="true">LOADING TIME · DATE · LOCATION · WEATHER · TIDES</span></div></div>
   <div class="hub-col">
   <div class="title-box"><h1>Infinity 6 Terminal</h1></div>
   <main>
@@ -194,7 +205,10 @@
       var el = document.getElementById('tickerInfo');
       if (!el) return;
       var parts = [tickerDateTime(), tickerState.place || 'LOCATION —', tickerState.weather, tickerState.tides];
-      el.textContent = parts.join(' · ');
+      var text = parts.join(' · ');
+      el.textContent = text;
+      var el2 = document.getElementById('tickerInfo2');
+      if (el2) el2.textContent = text;
     }
     function fetchWeatherAndTides() {
       var c = tickerState.coords;
@@ -242,6 +256,11 @@
     function useCoords(lat, lon, place) {
       tickerState.coords = { latitude: lat, longitude: lon };
       if (place) tickerState.place = String(place).toUpperCase();
+      /* Location accepted (browser, IP fallback, or Oakland default) — the
+         ticker now has real time/date/location/weather/tides to show, so
+         start it scrolling across the top. Before this it sits still. */
+      var ticker = document.querySelector('.ticker');
+      if (ticker) ticker.classList.add('scrolling');
       fetchWeatherAndTides();
       setInterval(fetchWeatherAndTides, 15 * 60 * 1000);
     }
