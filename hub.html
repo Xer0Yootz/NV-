@@ -141,25 +141,26 @@
           tickerState.weather = Math.round(cur.temperature_2m) + '°' + (f ? 'F' : 'C') + ' ' + wxCondition(cur.weather_code);
           renderTicker();
         }).catch(function () { tickerState.weather = 'WEATHER OFFLINE'; renderTicker(); });
-      fetch('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=' + lat + '&longitude=' + lon + '&localityLanguage=' + encodeURIComponent(tickerLocale().split('-')[0] || 'en'))
+      if (!tickerState.place) {
+        fetch('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=' + lat + '&longitude=' + lon + '&localityLanguage=' + encodeURIComponent(tickerLocale().split('-')[0] || 'en'))
+          .then(function (r) { return r.json(); })
+          .then(function (g) { var nm = g.city || g.locality || g.principalSubdivision || ''; if (nm) { tickerState.place = String(nm).toUpperCase(); renderTicker(); } })
+          .catch(function () {});
+      }
+      /* Tides: NOAA station list is a 2 MB download, so use the Bay stations and pick the nearest. */
+      var BAY_STATIONS = [
+        { id: '9414290', lat: 37.8063, lon: -122.4659 },
+        { id: '9414750', lat: 37.7717, lon: -122.3017 },
+        { id: '9414863', lat: 37.9197, lon: -122.4000 },
+        { id: '9415144', lat: 38.0480, lon: -122.0380 }
+      ];
+      var best = BAY_STATIONS[0], bestD = Infinity;
+      BAY_STATIONS.forEach(function (s) {
+        var dd = (s.lat - parseFloat(lat)) * (s.lat - parseFloat(lat)) + (s.lon - parseFloat(lon)) * (s.lon - parseFloat(lon));
+        if (dd < bestD) { bestD = dd; best = s; }
+      });
+      fetch('https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=today&range=24&station=' + best.id + '&product=predictions&datum=MLLW&time_zone=lst_ldt&interval=hilo&units=english&format=json')
         .then(function (r) { return r.json(); })
-        .then(function (g) { tickerState.place = (g.city || g.locality || g.principalSubdivision || '').toUpperCase(); renderTicker(); })
-        .catch(function () {});
-      fetch('https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json?type=tidepredictions&lat=' + lat + '&lon=' + lon)
-        .then(function (r) { return r.json(); })
-        .then(function (d) {
-          var list = (d.stations || []).filter(function (s) { return s.lat && s.lng; });
-          if (!list.length) throw new Error('no station');
-          var best = null, bestD = Infinity;
-          list.forEach(function (s) {
-            var dd = (s.lat - parseFloat(lat)) * (s.lat - parseFloat(lat)) + (s.lng - parseFloat(lon)) * (s.lng - parseFloat(lon));
-            if (dd < bestD) { bestD = dd; best = s; }
-          });
-          var st = best;
-          if (!st) throw new Error('no station');
-          return fetch('https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=today&range=24&station=' + st.id + '&product=predictions&datum=MLLW&time_zone=lst_ldt&interval=hilo&units=english&format=json')
-            .then(function (r) { return r.json(); });
-        })
         .then(function (d) {
           var now = new Date(), next = null;
           (d.predictions || []).forEach(function (pr) {
@@ -170,15 +171,35 @@
           renderTicker();
         }).catch(function () { tickerState.tides = 'TIDES OFFLINE'; renderTicker(); });
     }
+    function useCoords(lat, lon, place) {
+      tickerState.coords = { latitude: lat, longitude: lon };
+      if (place) tickerState.place = String(place).toUpperCase();
+      fetchWeatherAndTides();
+      setInterval(fetchWeatherAndTides, 15 * 60 * 1000);
+    }
     function requestTickerLocation() {
       if (tickerState.requested) return; tickerState.requested = true;
+      function fallback() {
+        /* Browser location blocked or timed out: try IP location, then Oakland as home default. */
+        fetch('https://ipwho.is/')
+          .then(function (r) { return r.json(); })
+          .then(function (g) {
+            if (g && g.success && g.latitude && g.longitude) useCoords(g.latitude, g.longitude, g.city || '');
+            else useCoords(37.8207, -122.2716, 'Oakland');
+          })
+          .catch(function () { useCoords(37.8207, -122.2716, 'Oakland'); });
+      }
       try {
-        if (!navigator.geolocation || !window.fetch) { tickerState.weather = 'WEATHER OFFLINE'; tickerState.tides = 'TIDES OFFLINE'; renderTicker(); return; }
+        if (!navigator.geolocation || !window.fetch) { fallback(); return; }
+        var done = false;
+        var hard = setTimeout(function () { if (!done) { done = true; fallback(); } }, 8000);
         navigator.geolocation.getCurrentPosition(function (pos) {
-          tickerState.coords = pos.coords; fetchWeatherAndTides();
-          setInterval(fetchWeatherAndTides, 15 * 60 * 1000);
-        }, function () { tickerState.weather = 'WEATHER OFFLINE'; tickerState.tides = 'TIDES OFFLINE'; renderTicker(); }, { enableHighAccuracy: false, timeout: 8000, maximumAge: 15 * 60 * 1000 });
-      } catch (e) { tickerState.weather = 'WEATHER OFFLINE'; tickerState.tides = 'TIDES OFFLINE'; renderTicker(); }
+          if (done) return; done = true; clearTimeout(hard);
+          useCoords(pos.coords.latitude, pos.coords.longitude, '');
+        }, function () {
+          if (done) return; done = true; clearTimeout(hard); fallback();
+        }, { enableHighAccuracy: false, timeout: 7000, maximumAge: 15 * 60 * 1000 });
+      } catch (e) { fallback(); }
     }
     renderTicker(); setInterval(renderTicker, 1000); requestTickerLocation();
     requireSession('index.html').then(function (user) {
