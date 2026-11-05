@@ -11,12 +11,11 @@
     #tvWater { background-image:url("ocean-water.gif"); }
     .tv-layer.tv-on { opacity:1; }
     .static-top { position:fixed; inset:0; z-index:2; pointer-events:none; opacity:.38; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.55' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23n)'/%3E%3C/svg%3E"); }
-    .static-burst { position:fixed; inset:0; z-index:5; pointer-events:none; opacity:0; background-color:rgba(255,255,255,.12); background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.55' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23n)'/%3E%3C/svg%3E"); }
+    .static-burst { position:fixed; inset:0; z-index:2; pointer-events:none; opacity:0; background-color:rgba(255,255,255,.12); background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.55' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23n)'/%3E%3C/svg%3E"); }
     .static-burst.burst-on { opacity:1; }
     .test-label { position:fixed; top:44px; left:0; right:0; z-index:4; text-align:center; letter-spacing:2px; color:#f5f0ff; background:rgba(5,1,15,.72); padding:6px 12px; }
     .scanlines { position:fixed; inset:0; z-index:2; pointer-events:none; background:repeating-linear-gradient(0deg, rgba(0,0,0,.25) 0 1px, transparent 1px 3px); }
     .crt { position:fixed; inset:0; z-index:2; pointer-events:none; border-radius:34px; background:radial-gradient(ellipse at center, transparent 52%, rgba(0,0,0,.28) 82%, rgba(0,0,0,.62) 100%); box-shadow:inset 0 0 90px rgba(0,0,0,.55); }
-    .tv-bezel { position:fixed; inset:0; z-index:6; pointer-events:none; border:16px solid #0d0714; border-radius:34px; box-shadow:inset 0 0 0 2px #7c3aed, inset 0 0 80px rgba(0,0,0,.85); }
     .scrim { position:fixed; inset:0; background:linear-gradient(rgba(5,1,15,.35),rgba(5,1,15,.75)); z-index:1; }
     .ticker { position:fixed; top:0; left:0; right:0; z-index:4; overflow:hidden; white-space:nowrap; padding:10px 12px; font-size:13px; letter-spacing:2px; background:rgba(5,1,15,.72); border-bottom:1px solid #7c3aed; color:#f5f0ff; }
     .hub-label { color:#ffffff; }
@@ -27,7 +26,7 @@
     @keyframes nv-scroll { from{transform:translateX(0)} to{transform:translateX(-100%)} }
     @keyframes nv-blink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
     @keyframes nv-colors { 0%{color:#00f0ff} 25%{color:#ff4fd8} 50%{color:#9d4edd} 75%{color:#f5f0ff} 100%{color:#00f0ff} }
-    main { position:relative; z-index:2; width:100%; max-width:560px; margin-top:40px; padding:24px; box-sizing:border-box; text-align:center; border:1px solid #7c3aed; border-radius:16px; background:rgba(18,8,31,.82); }
+    main { position:relative; z-index:3; width:100%; max-width:560px; margin-top:40px; padding:24px; box-sizing:border-box; text-align:center; border:1px solid #7c3aed; border-radius:16px; background:rgba(18,8,31,.82); }
     h1 { margin:0 0 8px; } p { color:#c4b5fd; }
     button { background:#f5f0ff; color:#05010f; border:0; padding:12px 20px; border-radius:999px; font-weight:700; cursor:pointer; font-size:16px; transition:background .6s; }
     button:active { background:#000000; color:#f5f0ff; }
@@ -60,7 +59,6 @@
   <div class="test-label">TEST ONLY — TV CYCLE — NOT THE LIVE SIGN-IN</div>
   <div class="scanlines" aria-hidden="true"></div>
   <div class="crt" aria-hidden="true"></div>
-  <div class="tv-bezel" aria-hidden="true"></div>
   <div class="ticker"><span class="hub-label">Hub Status:</span> <span class="await-track"><span class="await-static">Awaiting Sync</span></span></div>
   <main>
 <audio id="logoDragAudio" src="sounds/neon-vigil-logo-drag.wav" preload="none"></audio>
