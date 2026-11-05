@@ -25,6 +25,15 @@
     .name-cell { grid-column:2; white-space:nowrap; }
     .save-cell { grid-column:2; }
     #nameEdit { display:inline; }
+    .palette-hint { font-size:13px; color:#a78bfa; margin-top:18px; cursor:pointer; }
+    .palette-overlay { position:fixed; inset:0; z-index:10; background:rgba(5,1,15,.72); display:none; }
+    .palette-overlay.open { display:block; }
+    .palette { max-width:560px; margin:15vh auto 0; border:1px solid #7c3aed; background:rgba(18,8,31,.97); text-align:left; }
+    #paletteInput { width:100%; box-sizing:border-box; background:transparent; border:0; border-bottom:1px solid #7c3aed; outline:none; color:#f5f0ff; font-family:inherit; font-size:20px; padding:14px 16px; }
+    .palette-list { list-style:none; margin:0; padding:6px 0; max-height:50vh; overflow:auto; }
+    .palette-item { padding:10px 16px; cursor:pointer; }
+    .palette-item .hint { float:right; color:#a78bfa; font-size:13px; }
+    .palette-item.selected { background:#7c3aed; }
     @keyframes nv-blink { 50% { opacity:0; } }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -41,8 +50,10 @@
       <a href="https://neonvigil.app/test-pet-game-baby-pigek">Pet game — Baby Pigek (test)</a>
       <a href="https://neonvigil.app/test-web-bible-neon-ultra">Character Sheets — Neon Ultra (test)</a>
     </nav>
+    <p class="palette-hint" id="paletteHint">Press ⌘K for commands</p>
   </main>
   <div class="options-footer"><span class="footer-cell"><span id="radio">Radio: <button id="radioToggleBtn">Play</button> <select id="stationSelect" aria-label="Radio station"><option value="0">Atmospheric Haze</option><option value="1">Sound Bed 1</option><option value="2">Sound Bed 2</option><option value="3">Sound Bed 3</option></select></span></span><span class="footer-cell"><a href="options.html" aria-label="Options" title="Options"><svg width="28" height="28" viewBox="0 0 100 100" fill="none" stroke="#f5f0ff" stroke-width="3" aria-hidden="true"><circle cx="50" cy="50" r="10"/><circle cx="50" cy="50" r="26"/><circle cx="50" cy="50" r="42"/><ellipse cx="50" cy="50" rx="42" ry="16" transform="rotate(60 50 50)"/><ellipse cx="50" cy="50" rx="42" ry="16" transform="rotate(120 50 50)"/><circle cx="50" cy="8" r="4" fill="#f5f0ff" stroke="none"/><circle cx="86" cy="71" r="4" fill="#f5f0ff" stroke="none"/><circle cx="14" cy="71" r="4" fill="#f5f0ff" stroke="none"/><path d="M50 44v12M44 50h12" stroke-width="4"/></svg><br>Options</a></span></div>
+  <div class="palette-overlay" id="paletteOverlay"><div class="palette"><input id="paletteInput" placeholder="Type a command…" autocomplete="off" aria-label="Commands"><ul class="palette-list" id="paletteList"></ul></div></div>
   <script src="./auth.js"></script>
   <script>
     function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
@@ -202,6 +213,53 @@
       } catch (e) { fallback(); }
     }
     renderTicker(); setInterval(renderTicker, 1000); requestTickerLocation();
+    /* Raycast-style command palette: Cmd/Ctrl+K, type to filter, arrows + Enter to run. */
+    var paletteCommands = [
+      { name: 'Play Gigas Garden', hint: 'Game', keys: 'game gigas garden play', run: function () { location.href = 'https://xer0yootz.github.io/neon-vigil-oauth/gigas-garden/'; } },
+      { name: 'Open Baby Pigek pet game', hint: 'Pet game', keys: 'pet baby pigek game', run: function () { location.href = 'https://neonvigil.app/test-pet-game-baby-pigek'; } },
+      { name: 'Open Character Sheets — Neon Ultra', hint: 'Character Sheets', keys: 'character sheets neon ultra bible', run: function () { location.href = 'https://neonvigil.app/test-web-bible-neon-ultra'; } },
+      { name: 'Open Options', hint: 'Options', keys: 'options settings change name delete name', run: function () { location.href = 'options.html'; } },
+      { name: 'Play radio', hint: 'Radio', keys: 'radio play music start', run: function () { radioPlay(); } },
+      { name: 'Pause radio', hint: 'Radio', keys: 'radio pause music stop', run: function () { radioAudio.pause(); document.getElementById('radioToggleBtn').textContent = 'Play'; } },
+      { name: 'Radio: Atmospheric Haze', hint: 'Radio station', keys: 'radio station atmospheric haze theme', run: function () { document.getElementById('stationSelect').value = '0'; radioAudio.src = radioStations[0]; radioPlay(); } },
+      { name: 'Radio: Sound Bed 1', hint: 'Radio station', keys: 'radio station sound bed 1', run: function () { document.getElementById('stationSelect').value = '1'; radioAudio.src = radioStations[1]; radioPlay(); } },
+      { name: 'Radio: Sound Bed 2', hint: 'Radio station', keys: 'radio station sound bed 2', run: function () { document.getElementById('stationSelect').value = '2'; radioAudio.src = radioStations[2]; radioPlay(); } },
+      { name: 'Radio: Sound Bed 3', hint: 'Radio station', keys: 'radio station sound bed 3', run: function () { document.getElementById('stationSelect').value = '3'; radioAudio.src = radioStations[3]; radioPlay(); } },
+      { name: 'Sign out', hint: 'Account', keys: 'sign out log out exit', run: function () { signOut(); } }
+    ];
+    var paletteOpen = false, paletteSel = 0, paletteFiltered = paletteCommands.slice();
+    function renderPalette() {
+      var list = document.getElementById('paletteList');
+      var q = document.getElementById('paletteInput').value.trim().toLowerCase();
+      var words = q ? q.split(/\s+/) : [];
+      paletteFiltered = paletteCommands.filter(function (c) {
+        var hay = (c.name + ' ' + c.keys).toLowerCase();
+        return words.every(function (w) { return hay.indexOf(w) !== -1; });
+      });
+      if (paletteSel >= paletteFiltered.length) paletteSel = Math.max(0, paletteFiltered.length - 1);
+      list.innerHTML = paletteFiltered.map(function (c, i) {
+        return '<li class="palette-item' + (i === paletteSel ? ' selected' : '') + '" data-i="' + i + '">' + esc(c.name) + '<span class="hint">' + esc(c.hint) + '</span></li>';
+      }).join('') || '<li class="palette-item">No command found</li>';
+      list.querySelectorAll('.palette-item[data-i]').forEach(function (el) {
+        el.addEventListener('click', function () { runPalette(Number(el.getAttribute('data-i'))); });
+      });
+    }
+    function openPalette() { paletteOpen = true; paletteSel = 0; document.getElementById('paletteOverlay').classList.add('open'); document.getElementById('paletteInput').value = ''; renderPalette(); document.getElementById('paletteInput').focus(); }
+    function closePalette() { paletteOpen = false; document.getElementById('paletteOverlay').classList.remove('open'); }
+    function runPalette(i) { var c = paletteFiltered[i]; if (!c) return; closePalette(); c.run(); }
+    document.getElementById('paletteInput').addEventListener('input', function () { paletteSel = 0; renderPalette(); });
+    document.getElementById('paletteInput').addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowDown') { e.preventDefault(); paletteSel = Math.min(paletteFiltered.length - 1, paletteSel + 1); renderPalette(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); paletteSel = Math.max(0, paletteSel - 1); renderPalette(); }
+      else if (e.key === 'Enter') { e.preventDefault(); runPalette(paletteSel); }
+      else if (e.key === 'Escape') { closePalette(); }
+    });
+    document.getElementById('paletteOverlay').addEventListener('click', function (e) { if (e.target === this) closePalette(); });
+    document.getElementById('paletteHint').addEventListener('click', openPalette);
+    document.addEventListener('keydown', function (e) {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); if (paletteOpen) closePalette(); else openPalette(); }
+      else if (e.key === 'Escape' && paletteOpen) { closePalette(); }
+    });
     requireSession('index.html').then(function (user) {
       if (user) { renderName(user); }
     });
