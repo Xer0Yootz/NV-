@@ -8,6 +8,12 @@
   <style>
     body { background:#05010f; color:#f5f0ff; font-family:"VT323", "Share Tech Mono", monospace; font-size:18px; margin:0; min-height:100vh; display:grid; place-items:center; }
     .bg { position:fixed; inset:0; background-image:url("ships-bridge.jpg"); background-size:cover; background-position:center; z-index:0; transform:scale(1.12); will-change:transform; transition:transform .35s ease-out; pointer-events:none; }
+    /* Moving TV static, same as the sign-in page: opacity .38, 240px grain,
+       baseFrequency 0.25. z-index 1 puts it over the Ships Bridge background
+       (z-index 0) and UNDERNEATH everything else on the hub — terminal box
+       (z-index 2), radio footer (z-index 3), ticker (z-index 4), palette
+       (z-index 10) — so it never covers any hub information. */
+    .static-top { position:fixed; inset:0; z-index:1; pointer-events:none; opacity:.38; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.25' numOctaves='3'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E"); }
     main { position:relative; z-index:2; width:100%; max-width:560px; padding:32px; box-sizing:border-box; text-align:center; border:1px solid #7c3aed; border-radius:16px; background:rgba(18,8,31,.88); }
     button { background:transparent; color:#f5f0ff; border:1px solid #f5f0ff; border-radius:0; padding:10px 18px; font-weight:700; cursor:pointer; }
     a { color:#a78bfa; }
@@ -44,6 +50,7 @@
 </head>
 <body>
   <div class="bg" aria-hidden="true"></div>
+  <div class="static-top" aria-hidden="true"></div>
   <div class="ticker"><span id="tickerInfo">LOADING TIME · DATE · LOCATION · WEATHER · TIDES</span></div>
   <main>
     <h1>Infinity 6 Terminal</h1>
@@ -326,6 +333,18 @@
   if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission !== 'function') {
     window.addEventListener('deviceorientation', onTilt);
   }
+})();
+</script>
+<script>
+/* Moving TV static over the hub background, underneath everything — same
+   grain as the sign-in page, repositioned every 90ms so it shimmers. */
+(function () {
+  var topStatic = document.querySelector('.static-top');
+  if (!topStatic) return;
+  setInterval(function () {
+    var sx = Math.floor(Math.random() * 240), sy = Math.floor(Math.random() * 240);
+    topStatic.style.backgroundPosition = sx + 'px ' + sy + 'px';
+  }, 90);
 })();
 </script>
 </body>
