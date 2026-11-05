@@ -148,7 +148,7 @@
       'sounds/neon-vigil-sound-bed-3-loop.wav'
     ];
     /* Radio + play button, unified: one icon-only play/stop button drives the
-       radio; the station picker next to it is the option to change station
+       radio; the station picker next to it is the control to change station
        (after sign-in, on the hub). Changing station while playing switches
        what plays; while paused it just picks the next station. */
     var radioAudio = document.getElementById('radioAudio');
@@ -292,9 +292,9 @@
     /* Raycast-style command palette: Cmd/Ctrl+K, type to filter, arrows + Enter to run. */
     var paletteCommands = [
       { name: 'Open Commands', hint: 'Commands', keys: 'commands settings change name delete name', run: function () { location.href = 'options.html'; } },
-      { name: 'Go to Gigas Garden', hint: 'Game', keys: 'gigas garden game play', run: function () { location.href = 'https://xer0yootz.github.io/neon-vigil-oauth/gigas-garden/'; } },
-      { name: 'Go to NV-808', hint: 'NV-808', keys: 'nv-808 nv808 drum machine', run: function () { location.href = '/nv808/'; } },
-      { name: 'Go to Grid Log', hint: 'Grid Log', keys: 'grid log character sheets', run: function () { location.href = 'https://neonvigil.app/test-web-bible-neon-ultra'; } },
+      { name: 'NV_Gigas Garden', hint: 'Game', keys: 'nv_gigas garden gigas garden game play', run: function () { location.href = 'https://xer0yootz.github.io/neon-vigil-oauth/gigas-garden/'; } },
+      { name: 'NV_808', hint: 'NV-808', keys: 'nv_808 nv-808 nv808 drum machine', run: function () { location.href = '/nv808/'; } },
+      { name: 'NV_Gridlog', hint: 'Gridlog', keys: 'nv_gridlog gridlog grid log character sheets', run: function () { location.href = 'https://neonvigil.app/test-web-bible-neon-ultra'; } },
       { name: 'Sign out', hint: 'Account', keys: 'sign out log out exit', run: function () { signOut(); } }
     ];
     var paletteOpen = false, paletteSel = 0, paletteFiltered = paletteCommands.slice();
