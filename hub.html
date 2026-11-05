@@ -14,6 +14,8 @@
     .ticker { position:fixed; top:0; left:0; right:0; z-index:4; overflow:hidden; white-space:nowrap; padding:10px 12px; font-size:13px; letter-spacing:2px; background:rgba(5,1,15,.72); border-bottom:1px solid #7c3aed; color:#f5f0ff; }
     .options-footer { position:fixed; bottom:8px; left:0; right:0; z-index:3; text-align:center; font-size:15px; }
     .options-footer a { color:#a78bfa; }
+    .options-footer button { font-size:13px; padding:4px 8px; }
+    .options-footer p { display:inline; margin:0 8px 0 0; }
     #nameInput { background:transparent; border:0; outline:none; caret-color:transparent; color:#f5f0ff; font-family:inherit; font-size:inherit; padding:0; margin:0; width:1ch; }
     #who { display:grid; grid-template-columns:auto 1fr; gap:4px 8px; text-align:left; max-width:340px; margin:0 auto; }
     .user-label { grid-column:1; }
@@ -31,14 +33,13 @@
     <h1>Infinity 6 Terminal</h1>
     <p id="who">Checking your sign-in…</p>
     <audio id="radioAudio" src="sounds/neon-vigil-theme-atmospheric-haze.mp3" loop preload="none"></audio>
-    <p id="radio">Radio: <button id="radioToggleBtn">Play</button> <button data-station="0">Atmospheric Haze</button> <button data-station="1">Sound Bed 1</button> <button data-station="2">Sound Bed 2</button> <button data-station="3">Sound Bed 3</button></p>
     <nav>
       <a href="https://xer0yootz.github.io/neon-vigil-oauth/gigas-garden/">Game — Gigas Garden</a>
       <a href="https://neonvigil.app/test-pet-game-baby-pigek">Pet game — Baby Pigek (test)</a>
       <a href="https://neonvigil.app/test-web-bible-neon-ultra">Character Sheets — Neon Ultra (test)</a>
     </nav>
   </main>
-  <div class="options-footer"><a href="options.html">Options</a></div>
+  <div class="options-footer"><p id="radio">Radio: <button id="radioToggleBtn">Play</button> <button data-station="0">Atmospheric Haze</button> <button data-station="1">Sound Bed 1</button> <button data-station="2">Sound Bed 2</button> <button data-station="3">Sound Bed 3</button></p><a href="options.html">Options</a></div>
   <script src="./auth.js"></script>
   <script>
     function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
