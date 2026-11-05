@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Neon Vigil — Hub Test: Water Zoom (NOT LIVE)</title>
+  <style>
+    body { background:#05010f; color:#f5f0ff; font-family: system-ui, sans-serif; margin:0; min-height:100vh; display:grid; place-items:center; }
+    .water { position:fixed; inset:0; background-image:url("ocean-water.gif"); background-size:cover; background-position:center; z-index:0; animation:waterZoom 5s ease-out forwards; transform-origin:center; }
+  @keyframes waterZoom { from { transform:scale(1); } to { transform:scale(2.4); } }
+  main { position:relative; z-index:2; max-width:560px; padding:32px; text-align:center; border:1px solid #7c3aed; border-radius:16px; background:rgba(18,8,31,.88); }
+    button { background:#ff4fd8; color:#05010f; border:0; padding:10px 18px; border-radius:999px; font-weight:700; cursor:pointer; }
+    a { color:#a78bfa; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./config.js"></script>
+</head>
+<body>
+  <div class="water" aria-hidden="true"></div>
+  <main>
+    <h1>Neon Vigil Hub</h1>
+    <p>TEST ONLY — WATER ZOOM — NOT THE LIVE HUB</p>
+    <p id="who">Checking your sign-in…</p>
+    <p><button id="signOutBtn">Sign out</button></p>
+  </main>
+  <script src="./auth.js"></script>
+  <script>
+    requireSession('index.html').then(function (user) {
+      if (user) {
+        document.getElementById('who').textContent =
+          'Signed in as ' + (user.user_metadata && (user.user_metadata.user_name || user.user_metadata.preferred_username || user.email) || user.email || 'you') + '.';
+      }
+    });
+    document.getElementById('signOutBtn').addEventListener('click', signOut);
+  </script>
+</body>
+</html>
