@@ -17,6 +17,7 @@
     .footer-cell { border:1px solid #7c3aed; background:rgba(18,8,31,.88); padding:6px 10px; text-align:center; }
     .options-footer a { color:#a78bfa; }
     .options-footer button { font-size:13px; padding:4px 8px; }
+    .options-footer .options-icon-btn { background:transparent; border:0; padding:0; cursor:pointer; line-height:0; }
     #stationSelect { background:transparent; color:#f5f0ff; border:1px solid #f5f0ff; border-radius:0; font-family:inherit; font-size:13px; padding:4px; }
     #stationSelect option { color:#05010f; }
     .options-footer p { display:inline; margin:0 8px 0 0; }
@@ -56,7 +57,7 @@
     <p class="palette-hint" id="paletteHint">Press ⌘K for commands</p>
   </main>
   </div>
-  <div class="options-footer"><span class="footer-cell"><span id="radio">Radio: <button id="radioToggleBtn">Play</button> <select id="stationSelect" aria-label="Radio station"><option value="0">Atmospheric Haze</option><option value="1">Sound Bed 1</option><option value="2">Sound Bed 2</option><option value="3">Sound Bed 3</option></select></span></span><span class="footer-cell"><a href="options.html" aria-label="Options" title="Options"><svg width="28" height="28" viewBox="0 0 100 100" fill="none" stroke="#f5f0ff" stroke-width="3" aria-hidden="true"><circle cx="50" cy="50" r="10"/><circle cx="50" cy="50" r="26"/><circle cx="50" cy="50" r="42"/><ellipse cx="50" cy="50" rx="42" ry="16" transform="rotate(60 50 50)"/><ellipse cx="50" cy="50" rx="42" ry="16" transform="rotate(120 50 50)"/><circle cx="50" cy="8" r="4" fill="#f5f0ff" stroke="none"/><circle cx="86" cy="71" r="4" fill="#f5f0ff" stroke="none"/><circle cx="14" cy="71" r="4" fill="#f5f0ff" stroke="none"/><path d="M50 44v12M44 50h12" stroke-width="4"/></svg><br>Options</a></span></div>
+  <div class="options-footer"><span class="footer-cell"><span id="radio">Radio: <button id="radioToggleBtn">Play</button> <select id="stationSelect" aria-label="Radio station"><option value="0">Atmospheric Haze</option><option value="1">Sound Bed 1</option><option value="2">Sound Bed 2</option><option value="3">Sound Bed 3</option></select></span></span><span class="footer-cell"><button type="button" id="optionsBtn" class="options-icon-btn" aria-label="Options — open commands" title="Options — open commands (⌘K)"><svg width="28" height="28" viewBox="0 0 100 100" fill="none" stroke="#f5f0ff" stroke-width="3" aria-hidden="true"><circle cx="50" cy="50" r="10"/><circle cx="50" cy="50" r="26"/><circle cx="50" cy="50" r="42"/><ellipse cx="50" cy="50" rx="42" ry="16" transform="rotate(60 50 50)"/><ellipse cx="50" cy="50" rx="42" ry="16" transform="rotate(120 50 50)"/><circle cx="50" cy="8" r="4" fill="#f5f0ff" stroke="none"/><circle cx="86" cy="71" r="4" fill="#f5f0ff" stroke="none"/><circle cx="14" cy="71" r="4" fill="#f5f0ff" stroke="none"/><path d="M50 44v12M44 50h12" stroke-width="4"/></svg></button></span></div>
 <button type="button" id="nvSoundBed1Btn" class="nv-sound-btn" aria-label="Play Sound Bed 1" title="Play Sound Bed 1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg></button>
   <div class="palette-overlay" id="paletteOverlay"><div class="palette"><input id="paletteInput" placeholder="Type a command…" autocomplete="off" aria-label="Commands"><ul class="palette-list" id="paletteList"></ul></div></div>
   <script src="./auth.js"></script>
@@ -289,6 +290,7 @@
     });
     document.getElementById('paletteOverlay').addEventListener('click', function (e) { if (e.target === this) closePalette(); });
     document.getElementById('paletteHint').addEventListener('click', openPalette);
+    document.getElementById('optionsBtn').addEventListener('click', function () { if (paletteOpen) closePalette(); else openPalette(); });
     document.addEventListener('keydown', function (e) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); if (paletteOpen) closePalette(); else openPalette(); }
       else if (e.key === 'Escape' && paletteOpen) { closePalette(); }
