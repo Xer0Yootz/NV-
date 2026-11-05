@@ -37,6 +37,9 @@
     body.cookie-locked .nv-sound-btn { pointer-events:none; }
 
     model-viewer { --poster-color: transparent; }
+    /* NWD logo hop — same 1s up/down as Baby Pigek's locked hop-bob. */
+    @keyframes nv-logo-hop { 0%{transform:translateY(0)} 50%{transform:translateY(-18px)} 100%{transform:translateY(0)} }
+    model-viewer.nwd-logo-hop { animation:nv-logo-hop 1s ease-in-out; }
 .cookie-banner { position:fixed; left:12px; right:12px; bottom:12px; z-index:5; max-width:560px; margin:0 auto; padding:14px 16px; text-align:center; border:1px solid #7c3aed; border-radius:16px; background:rgba(18,8,31,.95); color:#f5f0ff; }
     .cookie-banner p { margin:0 0 10px; color:#f5f0ff; }
     #cookieBlocker { position:fixed; inset:0; z-index:4; background:transparent; }
@@ -239,6 +242,59 @@
     }
     show(0);
     setTimeout(next, HOLD_MS);
+  })();
+</script>
+
+<script>
+  /* NWD logo hop — shake your phone up and down (devicemotion) and the logo does
+     one 1s up/down hop, same timing as Baby Pigek's locked hop-bob. Tap the logo
+     as a fallback (desktop / no motion permission). Silent — no sound attached. */
+  (function () {
+    var logo = document.getElementById('nwdLogo');
+    if (!logo) return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var hopping = false, lastHop = 0;
+    function hop() {
+      var now = Date.now();
+      if (hopping || now - lastHop < 1200) return; /* one shake = one hop */
+      hopping = true; lastHop = now;
+      logo.classList.remove('nwd-logo-hop');
+      void logo.offsetWidth; /* restart the animation */
+      logo.classList.add('nwd-logo-hop');
+      setTimeout(function () { logo.classList.remove('nwd-logo-hop'); hopping = false; }, 1000);
+    }
+    /* Tap fallback: a real tap (not a drag) on the logo hops it. */
+    var downX = 0, downY = 0, downT = 0;
+    logo.addEventListener('pointerdown', function (e) { downX = e.clientX; downY = e.clientY; downT = Date.now(); }, { passive: true });
+    logo.addEventListener('pointerup', function (e) {
+      var moved = Math.abs(e.clientX - downX) + Math.abs(e.clientY - downY);
+      if (moved < 8 && Date.now() - downT < 400) hop();
+    }, { passive: true });
+    /* Shake detection: sharp change in acceleration = shaking the phone up/down. */
+    var last = null, lastShake = 0;
+    function onMotion(e) {
+      var a = e.accelerationIncludingGravity;
+      if (!a || a.x == null) return;
+      if (last) {
+        var dx = a.x - last.x, dy = a.y - last.y, dz = a.z - last.z;
+        var delta = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        var now = Date.now();
+        if (delta > 18 && now - lastShake > 1200) { lastShake = now; hop(); }
+      }
+      last = { x: a.x, y: a.y, z: a.z };
+    }
+    function enableMotion() {
+      if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+        DeviceMotionEvent.requestPermission().then(function (r) { if (r === 'granted') window.addEventListener('devicemotion', onMotion); }).catch(function () {});
+      } else {
+        window.addEventListener('devicemotion', onMotion);
+      }
+    }
+    /* Reuse the existing first-tap motion-permission flow (cookie thumbs-up tap). */
+    document.addEventListener('pointerdown', enableMotion, { once: true });
+    if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission !== 'function') {
+      window.addEventListener('devicemotion', onMotion);
+    }
   })();
 </script>
 </body>
