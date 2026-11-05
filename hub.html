@@ -48,7 +48,7 @@
   <main>
     <h1>Infinity 6 Terminal</h1>
     <p id="who">Checking your sign-in…</p>
-    <audio id="radioAudio" src="sounds/neon-vigil-theme-atmospheric-haze.mp3" loop preload="none"></audio>
+    <audio id="radioAudio" src="sounds/neon-vigil-sound-bed-3-loop.wav" loop preload="none"></audio>
     <nav>
       <a href="https://xer0yootz.github.io/neon-vigil-oauth/gigas-garden/">Game — Gigas Garden</a>
       <a href="/nv808/">NV-808</a>
@@ -56,7 +56,7 @@
     </nav>
     <p class="palette-hint" id="paletteHint">Press ⌘K for commands</p>
   </main>
-  <div class="options-footer"><span class="footer-cell"><span id="radio">Radio: <button type="button" id="radioToggleBtn" aria-label="Play Atmospheric Haze" title="Play Atmospheric Haze"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg></button> <select id="stationSelect" aria-label="Radio station"><option value="0">Atmospheric Haze</option><option value="1">Sound Bed 1</option><option value="2">Sound Bed 2</option><option value="3">Sound Bed 3</option></select></span></span><span class="footer-cell"><button type="button" id="optionsBtn" class="options-icon-btn" aria-label="Options — open commands" title="Options — open commands (⌘K)"><svg width="28" height="28" viewBox="0 0 100 100" fill="none" stroke="#f5f0ff" stroke-width="3" aria-hidden="true"><circle cx="50" cy="50" r="10"/><circle cx="50" cy="50" r="26"/><circle cx="50" cy="50" r="42"/><ellipse cx="50" cy="50" rx="42" ry="16" transform="rotate(60 50 50)"/><ellipse cx="50" cy="50" rx="42" ry="16" transform="rotate(120 50 50)"/><circle cx="50" cy="8" r="4" fill="#f5f0ff" stroke="none"/><circle cx="86" cy="71" r="4" fill="#f5f0ff" stroke="none"/><circle cx="14" cy="71" r="4" fill="#f5f0ff" stroke="none"/><path d="M50 44v12M44 50h12" stroke-width="4"/></svg></button></span></div>
+  <div class="options-footer"><span class="footer-cell"><span id="radio">Radio: <button type="button" id="radioToggleBtn" aria-label="Play Sound Bed 3" title="Play Sound Bed 3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg></button> <select id="stationSelect" aria-label="Radio station"><option value="0">Sound Bed 1</option><option value="1">Sound Bed 2</option><option value="2" selected>Sound Bed 3</option></select></span></span><span class="footer-cell"><button type="button" id="optionsBtn" class="options-icon-btn" aria-label="Options — open commands" title="Options — open commands (⌘K)"><svg width="28" height="28" viewBox="0 0 100 100" fill="none" stroke="#f5f0ff" stroke-width="3" aria-hidden="true"><circle cx="50" cy="50" r="10"/><circle cx="50" cy="50" r="26"/><circle cx="50" cy="50" r="42"/><ellipse cx="50" cy="50" rx="42" ry="16" transform="rotate(60 50 50)"/><ellipse cx="50" cy="50" rx="42" ry="16" transform="rotate(120 50 50)"/><circle cx="50" cy="8" r="4" fill="#f5f0ff" stroke="none"/><circle cx="86" cy="71" r="4" fill="#f5f0ff" stroke="none"/><circle cx="14" cy="71" r="4" fill="#f5f0ff" stroke="none"/><path d="M50 44v12M44 50h12" stroke-width="4"/></svg></button></span></div>
   <div class="palette-overlay" id="paletteOverlay"><div class="palette"><input id="paletteInput" placeholder="Type a command…" autocomplete="off" aria-label="Commands"><ul class="palette-list" id="paletteList"></ul></div></div>
   <script src="./auth.js"></script>
   <script>
@@ -100,7 +100,6 @@
     }
 
     var radioStations = [
-      'sounds/neon-vigil-theme-atmospheric-haze.mp3',
       'sounds/neon-vigil-sound-bed-1-landing-workpage.wav',
       'sounds/neon-vigil-sound-bed-2-practice-page.wav',
       'sounds/neon-vigil-sound-bed-3-loop.wav'
@@ -246,10 +245,9 @@
       { name: 'Open Options', hint: 'Options', keys: 'options settings change name delete name', run: function () { location.href = 'options.html'; } },
       { name: 'Play radio', hint: 'Radio', keys: 'radio play music start', run: function () { radioPlay(); } },
       { name: 'Pause radio', hint: 'Radio', keys: 'radio pause music stop', run: function () { radioPause(); } },
-      { name: 'Radio: Atmospheric Haze', hint: 'Radio station', keys: 'radio station atmospheric haze theme', run: function () { document.getElementById('stationSelect').value = '0'; radioAudio.src = radioStations[0]; radioPlay(); } },
-      { name: 'Radio: Sound Bed 1', hint: 'Radio station', keys: 'radio station sound bed 1', run: function () { document.getElementById('stationSelect').value = '1'; radioAudio.src = radioStations[1]; radioPlay(); } },
-      { name: 'Radio: Sound Bed 2', hint: 'Radio station', keys: 'radio station sound bed 2', run: function () { document.getElementById('stationSelect').value = '2'; radioAudio.src = radioStations[2]; radioPlay(); } },
-      { name: 'Radio: Sound Bed 3', hint: 'Radio station', keys: 'radio station sound bed 3', run: function () { document.getElementById('stationSelect').value = '3'; radioAudio.src = radioStations[3]; radioPlay(); } },
+      { name: 'Radio: Sound Bed 1', hint: 'Radio station', keys: 'radio station sound bed 1', run: function () { document.getElementById('stationSelect').value = '0'; radioAudio.src = radioStations[0]; radioPlay(); } },
+      { name: 'Radio: Sound Bed 2', hint: 'Radio station', keys: 'radio station sound bed 2', run: function () { document.getElementById('stationSelect').value = '1'; radioAudio.src = radioStations[1]; radioPlay(); } },
+      { name: 'Radio: Sound Bed 3', hint: 'Radio station', keys: 'radio station sound bed 3', run: function () { document.getElementById('stationSelect').value = '2'; radioAudio.src = radioStations[2]; radioPlay(); } },
       { name: 'Sign out', hint: 'Account', keys: 'sign out log out exit', run: function () { signOut(); } }
     ];
     var paletteOpen = false, paletteSel = 0, paletteFiltered = paletteCommands.slice();
