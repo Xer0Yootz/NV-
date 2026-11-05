@@ -11,6 +11,8 @@
     button { background:transparent; color:#f5f0ff; border:1px solid #f5f0ff; border-radius:0; padding:10px 18px; font-weight:700; cursor:pointer; }
     a { color:#a78bfa; }
     .cursor-blink { display:inline-block; animation:nv-blink 1.2s steps(2,start) infinite; color:#ffffff; }
+    #nameInput { background:transparent; border:0; outline:none; color:#f5f0ff; font-family:inherit; font-size:inherit; padding:0; margin:0; width:1ch; }
+    #nameEdit { display:inline; }
     @keyframes nv-blink { 50% { opacity:0; } }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -20,7 +22,6 @@
   <main>
     <h1>Infinity 6 Terminal</h1>
     <p id="who">Checking your sign-in…</p>
-    <p id="nameEdit" hidden><input id="nameInput" maxlength="60" placeholder="Put your name here" aria-label="Display name"> <button id="saveNameBtn">Save name</button> <button id="cancelNameBtn">Cancel</button></p>
     <p><button id="signOutBtn">Sign out</button></p>
     <nav>
       <a href="https://xer0yootz.github.io/neon-vigil-oauth/gigas-garden/">Game — Gigas Garden</a>
@@ -32,37 +33,39 @@
   <script>
     function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
     function savedName() { return localStorage.getItem('nv_display_name') || ''; }
+    function sizeInput() {
+      var inp = document.getElementById('nameInput');
+      if (inp) { inp.style.width = Math.max(1, inp.value.length + 1) + 'ch'; }
+    }
+    function showEdit(prefill) {
+      document.getElementById('who').innerHTML = 'User: <input id="nameInput" maxlength="60" aria-label="Display name" autocomplete="off"> <span class="cursor-blink">_</span> <button id="saveNameBtn">Save name</button> <button id="cancelNameBtn">Cancel</button>';
+      var inp = document.getElementById('nameInput');
+      inp.value = prefill || '';
+      sizeInput();
+      inp.addEventListener('input', sizeInput);
+      inp.focus();
+      document.getElementById('saveNameBtn').addEventListener('click', function () {
+        var v = inp.value.trim();
+        if (v) { localStorage.setItem('nv_display_name', v); } else { localStorage.removeItem('nv_display_name'); }
+        renderName();
+      });
+      document.getElementById('cancelNameBtn').addEventListener('click', function () { renderName(); });
+    }
     function renderName() {
       var name = savedName();
-      var edit = document.getElementById('nameEdit');
       if (name) {
-        edit.hidden = true;
         document.getElementById('who').innerHTML = 'User: ' + esc(name) + '<span class="cursor-blink">_</span> <button id="editNameBtn">Change name</button> <button id="deleteNameBtn">Delete name</button>';
-        document.getElementById('editNameBtn').addEventListener('click', function () {
-          document.getElementById('nameInput').value = name;
-          edit.hidden = false;
-          document.getElementById('nameInput').focus();
-        });
+        document.getElementById('editNameBtn').addEventListener('click', function () { showEdit(name); });
         document.getElementById('deleteNameBtn').addEventListener('click', function () {
           localStorage.removeItem('nv_display_name');
           renderName();
         });
       } else {
-        document.getElementById('who').innerHTML = 'User: <span class="cursor-blink">_</span>';
-        document.getElementById('nameInput').value = '';
-        edit.hidden = false;
+        showEdit('');
       }
     }
     requireSession('index.html').then(function (user) {
       if (user) { renderName(); }
-    });
-    document.getElementById('saveNameBtn').addEventListener('click', function () {
-      var v = document.getElementById('nameInput').value.trim();
-      if (v) { localStorage.setItem('nv_display_name', v); } else { localStorage.removeItem('nv_display_name'); }
-      renderName();
-    });
-    document.getElementById('cancelNameBtn').addEventListener('click', function () {
-      document.getElementById('nameEdit').hidden = !!savedName();
     });
     document.getElementById('signOutBtn').addEventListener('click', signOut);
   </script>
