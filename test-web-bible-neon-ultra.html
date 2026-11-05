@@ -16,6 +16,7 @@
   a{color:#a78bfa}
   figure{margin:20px 0}
   figure img{width:100%;border:1px solid #7c3aed;display:block}
+  .nv-sound-btn{position:fixed;right:16px;bottom:16px;z-index:6;width:44px;height:44px;padding:0;display:flex;align-items:center;justify-content:center;background:rgba(18,8,31,.88);color:#f5f0ff;border:1px solid #f5f0ff;border-radius:0;cursor:pointer}.nv-sound-btn svg{width:20px;height:20px;display:block}.nv-sound-btn:disabled{opacity:.5;cursor:wait}
 </style>
 </head>
 <body>
@@ -62,5 +63,36 @@
   <figure><img src="portraits/NV-Xero_Portrait.png" alt="Xero approved portrait"></figure>
   <p><a href="/">Back to sign-in</a> · <a href="/hub.html">Hub (sign-in required)</a></p>
 </div></main>
+<audio id="nvSoundBed1" src="sounds/neon-vigil-sound-bed-1-landing-workpage.wav" loop preload="none"></audio>
+<button type="button" id="nvSoundBed1Btn" class="nv-sound-btn" aria-label="Play Sound Bed 1" title="Play Sound Bed 1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg></button>
+<script>
+(function () {
+  var a = document.getElementById('nvSoundBed1');
+  var b = document.getElementById('nvSoundBed1Btn');
+  if (!a || !b) return;
+  var playSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>';
+  var pauseSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
+  function sync() {
+    b.innerHTML = a.paused ? playSvg : pauseSvg;
+    b.setAttribute('aria-label', a.paused ? 'Play Sound Bed 1' : 'Pause Sound Bed 1');
+    b.setAttribute('title', a.paused ? 'Play Sound Bed 1' : 'Pause Sound Bed 1');
+  }
+  function locked() { return document.body.classList.contains('cookie-locked'); }
+  b.addEventListener('click', function () {
+    if (locked()) return;
+    if (a.paused) { a.play().catch(function () {}); } else { a.pause(); }
+  });
+  a.addEventListener('play', sync);
+  a.addEventListener('pause', sync);
+  function onFirstTap(e) {
+    if (locked()) return;
+    if (b.contains(e.target)) return;
+    a.play().catch(function () {});
+    document.removeEventListener('pointerdown', onFirstTap);
+  }
+  document.addEventListener('pointerdown', onFirstTap);
+  sync();
+})();
+</script>
 </body>
 </html>
