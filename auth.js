@@ -38,13 +38,14 @@ async function signInWithGitHub() {
   var btn = document.getElementById('githubBtn');
   var status = document.getElementById('status');
   if (btn) btn.disabled = true;
-  if (status) status.textContent = 'Sending you to GitHub…';
+  if (status) { status.textContent = 'Sending you to GitHub…'; status.style.color = '#32CD32'; }
   var result = await client.auth.signInWithOAuth({
     provider: 'github',
     options: { redirectTo: window.location.origin + '/hub.html' }
   });
   if (result && result.error && status) {
     status.textContent = 'GitHub sign-in error: ' + result.error.message;
+    status.style.color = '';
     if (btn) btn.disabled = false;
   }
 }
@@ -54,13 +55,14 @@ async function signInWithGoogle() {
   var btn = document.getElementById('googleBtn');
   var status = document.getElementById('status');
   if (btn) btn.disabled = true;
-  if (status) status.textContent = 'Sending you to Google…';
+  if (status) { status.textContent = 'Sending you to Google…'; status.style.color = '#32CD32'; }
   var result = await client.auth.signInWithOAuth({
     provider: 'google',
     options: { redirectTo: window.location.origin + '/hub.html' }
   });
   if (result && result.error && status) {
     status.textContent = 'Google sign-in error: ' + result.error.message;
+    status.style.color = '';
     if (btn) btn.disabled = false;
   }
 }
