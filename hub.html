@@ -26,7 +26,6 @@
   <main>
     <h1>Infinity 6 Terminal</h1>
     <p id="who">Checking your sign-in…</p>
-    <p><button id="signOutBtn">Sign out</button></p>
     <nav>
       <a href="https://xer0yootz.github.io/neon-vigil-oauth/gigas-garden/">Game — Gigas Garden</a>
       <a href="https://neonvigil.app/test-pet-game-baby-pigek">Pet game — Baby Pigek (test)</a>
@@ -37,12 +36,19 @@
   <script>
     function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
     function savedName() { return localStorage.getItem('nv_display_name') || ''; }
+    function saveNameToAccount(v) {
+      try {
+        var c = (typeof getClient === 'function') ? getClient() : null;
+        if (c) { c.auth.updateUser({ data: { display_name: v } }).catch(function () {}); }
+      } catch (e) {}
+    }
+    function accountName(user) { return (user && user.user_metadata && user.user_metadata.display_name) ? user.user_metadata.display_name : ''; }
     function sizeInput() {
       var inp = document.getElementById('nameInput');
       if (inp) { inp.style.width = Math.max(1, inp.value.length + 1) + 'ch'; }
     }
     function showEdit(prefill) {
-      document.getElementById('who').innerHTML = '<span class="user-label">User:</span> <span class="name-cell"><input id="nameInput" maxlength="60" aria-label="Display name" autocomplete="off"><span class="cursor-blink">_</span></span> <span class="save-cell"><button id="saveNameBtn">Save name</button></span>';
+      document.getElementById('who').innerHTML = '<span class="user-label">User:</span> <span class="name-cell"><input id="nameInput" maxlength="60" aria-label="Display name" autocomplete="off"><span class="cursor-blink">_</span></span> <span class="save-cell"><button id="saveNameBtn">Save</button></span> <span class="save-cell"><button id="signOutBtn">Sign out</button></span>';
       var inp = document.getElementById('nameInput');
       inp.value = prefill || '';
       sizeInput();
@@ -50,17 +56,21 @@
       inp.focus();
       document.getElementById('saveNameBtn').addEventListener('click', function () {
         var v = inp.value.trim();
-        if (v) { localStorage.setItem('nv_display_name', v); } else { localStorage.removeItem('nv_display_name'); }
+        if (v) { localStorage.setItem('nv_display_name', v); saveNameToAccount(v); } else { localStorage.removeItem('nv_display_name'); saveNameToAccount(null); }
         renderName();
       });
+      document.getElementById('signOutBtn').addEventListener('click', signOut);
     }
-    function renderName() {
-      var name = savedName();
+    function renderName(user) {
+      var name = savedName() || accountName(user);
+      if (name) { localStorage.setItem('nv_display_name', name); }
       if (name) {
-        document.getElementById('who').innerHTML = '<span class="user-label">User:</span> <span class="name-cell">' + esc(name) + '<span class="cursor-blink">_</span></span> <span class="save-cell"><button id="editNameBtn">Change name</button> <button id="deleteNameBtn">Delete name</button></span>';
+        document.getElementById('who').innerHTML = '<span class="user-label">User:</span> <span class="name-cell">' + esc(name) + '<span class="cursor-blink">_</span></span> <span class="save-cell"><button id="editNameBtn">Change name</button> <button id="deleteNameBtn">Delete name</button></span> <span class="save-cell"><button id="signOutBtn">Sign out</button></span>';
+        document.getElementById('signOutBtn').addEventListener('click', signOut);
         document.getElementById('editNameBtn').addEventListener('click', function () { showEdit(name); });
         document.getElementById('deleteNameBtn').addEventListener('click', function () {
           localStorage.removeItem('nv_display_name');
+          saveNameToAccount(null);
           renderName();
         });
       } else {
@@ -68,9 +78,8 @@
       }
     }
     requireSession('index.html').then(function (user) {
-      if (user) { renderName(); }
+      if (user) { renderName(user); }
     });
-    document.getElementById('signOutBtn').addEventListener('click', signOut);
   </script>
 </body>
 </html>
