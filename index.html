@@ -6,7 +6,7 @@
   <title>Neon Vigil — Sign in</title>   <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
   <style>
     body { background:#05010f; color:#f5f0ff; font-family: "VT323", "Share Tech Mono", monospace; font-size: 18px; margin:0; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:56px 12px 24px; box-sizing:border-box; overflow-x:hidden; }
-    .bg { position:fixed; inset:0; background-image:url("ships-bridge.jpg"); background-size:cover; background-position:center; z-index:0; }
+    .bg { position:fixed; inset:0; background-image:url("ships-bridge.jpg"); background-size:cover; background-position:center; z-index:0; transform:scale(1.12); will-change:transform; transition:transform .35s ease-out; pointer-events:none; }
     .scrim { position:fixed; inset:0; background:linear-gradient(rgba(5,1,15,.35),rgba(5,1,15,.75)); z-index:1; }
     .ticker { position:fixed; top:0; left:0; right:0; z-index:4; overflow:hidden; white-space:nowrap; padding:10px 12px; font-size:13px; letter-spacing:2px; background:rgba(5,1,15,.72); border-bottom:1px solid #7c3aed; color:#f5f0ff; }
     .hub-label { color:#ffffff; }
@@ -124,5 +124,45 @@
       });
     })();
   </script>
+<script>
+/* iPhone-style background shift: gyro tilt on phone, mouse parallax on desktop. */
+(function () {
+  var bg = document.querySelector('.bg');
+  if (!bg) return;
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var tx = 0, ty = 0, cx = 0, cy = 0, raf = null;
+  function apply() {
+    cx += (tx - cx) * 0.12; cy += (ty - cy) * 0.12;
+    bg.style.transform = 'translate3d(' + cx.toFixed(2) + 'px,' + cy.toFixed(2) + 'px,0) scale(1.12)';
+    if (Math.abs(tx - cx) > 0.05 || Math.abs(ty - cy) > 0.05) { raf = requestAnimationFrame(apply); } else { raf = null; }
+  }
+  function kick() { if (!raf) raf = requestAnimationFrame(apply); }
+  window.addEventListener('pointermove', function (e) {
+    if (e.pointerType === 'touch') return;
+    var nx = (e.clientX / window.innerWidth - 0.5) * 2;
+    var ny = (e.clientY / window.innerHeight - 0.5) * 2;
+    tx = -nx * 16; ty = -ny * 12; kick();
+  }, { passive: true });
+  function onTilt(e) {
+    if (e.gamma == null || e.beta == null) return;
+    var g = Math.max(-45, Math.min(45, e.gamma));
+    var b = Math.max(-30, Math.min(30, (e.beta || 0) - 45));
+    tx = -(g / 45) * 16; ty = -(b / 30) * 12; kick();
+  }
+  var motionAsked = false;
+  function enableMotion() {
+    if (motionAsked) return; motionAsked = true;
+    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+      DeviceOrientationEvent.requestPermission().then(function (r) { if (r === 'granted') window.addEventListener('deviceorientation', onTilt); }).catch(function () {});
+    } else {
+      window.addEventListener('deviceorientation', onTilt);
+    }
+  }
+  document.addEventListener('pointerdown', enableMotion, { once: true });
+  if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission !== 'function') {
+    window.addEventListener('deviceorientation', onTilt);
+  }
+})();
+</script>
 </body>
 </html>

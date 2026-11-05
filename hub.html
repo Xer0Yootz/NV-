@@ -6,9 +6,10 @@
   <title>Infinity 6 Terminal</title>
   <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
   <style>
-    body { background:#05010f url("ships-bridge.jpg") center/cover no-repeat fixed; color:#f5f0ff; font-family:"VT323", "Share Tech Mono", monospace; font-size:18px; margin:0; min-height:100vh; display:grid; place-items:center; }
-    .hex-frame { width:100%; max-width:560px; padding:1px; box-sizing:border-box; background:#7c3aed; clip-path:polygon(10% 0, 90% 0, 100% 50%, 90% 100%, 10% 100%, 0 50%); }
-    main { width:100%; max-width:560px; padding:32px; box-sizing:border-box; text-align:center; border:0; background:rgba(18,8,31,.88); clip-path:polygon(10% 0, 90% 0, 100% 50%, 90% 100%, 10% 100%, 0 50%); }
+    body { background:#05010f; color:#f5f0ff; font-family:"VT323", "Share Tech Mono", monospace; font-size:18px; margin:0; min-height:100vh; display:grid; place-items:center; }
+    .bg { position:fixed; inset:0; background-image:url("ships-bridge.jpg"); background-size:cover; background-position:center; z-index:0; transform:scale(1.12); will-change:transform; transition:transform .35s ease-out; pointer-events:none; }
+    .hex-frame { position:relative; z-index:2; width:100%; max-width:560px; padding:1px; box-sizing:border-box; background:#7c3aed; clip-path:polygon(10% 0, 90% 0, 100% 50%, 90% 100%, 10% 100%, 0 50%); }
+    main { position:relative; z-index:2; width:100%; max-width:560px; padding:32px; box-sizing:border-box; text-align:center; border:0; background:rgba(18,8,31,.88); clip-path:polygon(10% 0, 90% 0, 100% 50%, 90% 100%, 10% 100%, 0 50%); }
     button { background:transparent; color:#f5f0ff; border:1px solid #f5f0ff; border-radius:0; padding:10px 18px; font-weight:700; cursor:pointer; }
     a { color:#a78bfa; }
     .cursor-blink { display:inline-block; animation:nv-blink 1.2s steps(2,start) infinite; color:#ffffff; }
@@ -43,6 +44,7 @@
   <script src="./config.js"></script>
 </head>
 <body>
+  <div class="bg" aria-hidden="true"></div>
   <div class="ticker"><span id="tickerInfo">LOADING TIME · DATE · LOCATION · WEATHER · TIDES</span></div>
   <div class="hex-frame">
   <main>
@@ -58,7 +60,7 @@
   </main>
   </div>
   <div class="options-footer"><span class="footer-cell"><span id="radio">Radio: <button id="radioToggleBtn">Play</button> <select id="stationSelect" aria-label="Radio station"><option value="0">Atmospheric Haze</option><option value="1">Sound Bed 1</option><option value="2">Sound Bed 2</option><option value="3">Sound Bed 3</option></select></span></span><span class="footer-cell"><button type="button" id="optionsBtn" class="options-icon-btn" aria-label="Options — open commands" title="Options — open commands (⌘K)"><svg width="28" height="28" viewBox="0 0 100 100" fill="none" stroke="#f5f0ff" stroke-width="3" aria-hidden="true"><circle cx="50" cy="50" r="10"/><circle cx="50" cy="50" r="26"/><circle cx="50" cy="50" r="42"/><ellipse cx="50" cy="50" rx="42" ry="16" transform="rotate(60 50 50)"/><ellipse cx="50" cy="50" rx="42" ry="16" transform="rotate(120 50 50)"/><circle cx="50" cy="8" r="4" fill="#f5f0ff" stroke="none"/><circle cx="86" cy="71" r="4" fill="#f5f0ff" stroke="none"/><circle cx="14" cy="71" r="4" fill="#f5f0ff" stroke="none"/><path d="M50 44v12M44 50h12" stroke-width="4"/></svg></button></span></div>
-<button type="button" id="nvSoundBed3Btn" class="nv-sound-btn" aria-label="Play Sound Bed 3" title="Play Sound Bed 3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg></button>
+<button type="button" id="nvSoundBed1Btn" class="nv-sound-btn" aria-label="Play Sound Bed 1" title="Play Sound Bed 1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg></button>
   <div class="palette-overlay" id="paletteOverlay"><div class="palette"><input id="paletteInput" placeholder="Type a command…" autocomplete="off" aria-label="Commands"><ul class="palette-list" id="paletteList"></ul></div></div>
   <script src="./auth.js"></script>
   <script>
@@ -122,26 +124,26 @@
       radioPlay();
     });
 
-    /* Sound Bed 3 loop icon button: drives the existing hub radio to the seamless
-       Sound Bed 3 loop, so the bed never plays twice at once. Icon only, no text label. */
+    /* Sound Bed 1 icon button: drives the existing hub radio to station 1 (Sound Bed 1),
+       so the bed never plays twice at once. Icon only, no text label. */
     (function () {
-      var b = document.getElementById('nvSoundBed3Btn');
+      var b = document.getElementById('nvSoundBed1Btn');
       var a = document.getElementById('radioAudio');
       var sel = document.getElementById('stationSelect');
       var tog = document.getElementById('radioToggleBtn');
       if (!b || !a) return;
       var playSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>';
-      var stopSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="6" width="12" height="12"/></svg>';
-      function isBed3Loop() { return String(a.src).indexOf('sound-bed-3-loop') !== -1; }
+      var pauseSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
+      function isBed1() { return String(a.src).indexOf('sound-bed-1') !== -1; }
       function sync() {
-        var playing = !a.paused && isBed3Loop();
-        b.innerHTML = playing ? stopSvg : playSvg;
-        b.setAttribute('aria-label', playing ? 'Stop Sound Bed 3' : 'Play Sound Bed 3');
-        b.setAttribute('title', playing ? 'Stop Sound Bed 3' : 'Play Sound Bed 3');
+        var playing = !a.paused && isBed1();
+        b.innerHTML = playing ? pauseSvg : playSvg;
+        b.setAttribute('aria-label', playing ? 'Pause Sound Bed 1' : 'Play Sound Bed 1');
+        b.setAttribute('title', playing ? 'Pause Sound Bed 1' : 'Play Sound Bed 1');
       }
       b.addEventListener('click', function () {
-        if (!a.paused && isBed3Loop()) { a.pause(); if (tog) tog.textContent = 'Play'; }
-        else { a.src = 'sounds/neon-vigil-sound-bed-3-loop.wav'; a.play().catch(function () {}); if (tog) tog.textContent = 'Pause'; }
+        if (!a.paused && isBed1()) { a.pause(); if (tog) tog.textContent = 'Play'; }
+        else { if (sel) sel.value = '1'; a.src = radioStations[1]; a.play().catch(function () {}); if (tog) tog.textContent = 'Pause'; }
         sync();
       });
       a.addEventListener('play', sync);
@@ -299,5 +301,45 @@
       if (user) { renderName(user); }
     });
   </script>
+<script>
+/* iPhone-style background shift: gyro tilt on phone, mouse parallax on desktop. */
+(function () {
+  var bg = document.querySelector('.bg');
+  if (!bg) return;
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var tx = 0, ty = 0, cx = 0, cy = 0, raf = null;
+  function apply() {
+    cx += (tx - cx) * 0.12; cy += (ty - cy) * 0.12;
+    bg.style.transform = 'translate3d(' + cx.toFixed(2) + 'px,' + cy.toFixed(2) + 'px,0) scale(1.12)';
+    if (Math.abs(tx - cx) > 0.05 || Math.abs(ty - cy) > 0.05) { raf = requestAnimationFrame(apply); } else { raf = null; }
+  }
+  function kick() { if (!raf) raf = requestAnimationFrame(apply); }
+  window.addEventListener('pointermove', function (e) {
+    if (e.pointerType === 'touch') return;
+    var nx = (e.clientX / window.innerWidth - 0.5) * 2;
+    var ny = (e.clientY / window.innerHeight - 0.5) * 2;
+    tx = -nx * 16; ty = -ny * 12; kick();
+  }, { passive: true });
+  function onTilt(e) {
+    if (e.gamma == null || e.beta == null) return;
+    var g = Math.max(-45, Math.min(45, e.gamma));
+    var b = Math.max(-30, Math.min(30, (e.beta || 0) - 45));
+    tx = -(g / 45) * 16; ty = -(b / 30) * 12; kick();
+  }
+  var motionAsked = false;
+  function enableMotion() {
+    if (motionAsked) return; motionAsked = true;
+    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+      DeviceOrientationEvent.requestPermission().then(function (r) { if (r === 'granted') window.addEventListener('deviceorientation', onTilt); }).catch(function () {});
+    } else {
+      window.addEventListener('deviceorientation', onTilt);
+    }
+  }
+  document.addEventListener('pointerdown', enableMotion, { once: true });
+  if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission !== 'function') {
+    window.addEventListener('deviceorientation', onTilt);
+  }
+})();
+</script>
 </body>
 </html>
