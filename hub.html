@@ -45,14 +45,14 @@
     .ticker.scrolling .ticker-track { animation:nv-ticker-scroll 30s linear infinite; }
     @keyframes nv-ticker-scroll { from { transform:translateX(0); } to { transform:translateX(-50%); } }
     @media (prefers-reduced-motion: reduce) { .ticker.scrolling .ticker-track { animation:none; } }
-    .options-footer { position:fixed; bottom:8px; left:8px; right:8px; z-index:3; display:grid; grid-template-columns:1fr auto; gap:8px; font-size:15px; border:1px solid #7c3aed; box-sizing:border-box; background:rgba(18,8,31,.88); }
+    .commands-footer { position:fixed; bottom:8px; left:8px; right:8px; z-index:3; display:grid; grid-template-columns:1fr auto; gap:8px; font-size:15px; border:1px solid #7c3aed; box-sizing:border-box; background:rgba(18,8,31,.88); }
     .footer-cell { border:1px solid #7c3aed; background:rgba(18,8,31,.88); padding:6px 10px; text-align:center; }
-    .options-footer a { color:#a78bfa; }
-    .options-footer button { font-size:13px; padding:4px 8px; }
-    .options-footer .options-icon-btn { background:transparent; border:0; padding:0; cursor:pointer; line-height:0; }
+    .commands-footer a { color:#a78bfa; }
+    .commands-footer button { font-size:13px; padding:4px 8px; }
+    .commands-footer .commands-icon-btn { background:transparent; border:0; padding:0; cursor:pointer; line-height:0; }
     #stationSelect { background:transparent; color:#f5f0ff; border:1px solid #f5f0ff; border-radius:0; font-family:inherit; font-size:13px; padding:4px; }
     #stationSelect option { color:#05010f; }
-    .options-footer p { display:inline; margin:0 8px 0 0; }
+    .commands-footer p { display:inline; margin:0 8px 0 0; }
     #nameInput { background:transparent; border:0; outline:none; caret-color:transparent; color:#f5f0ff; font-family:inherit; font-size:inherit; padding:0; margin:0; width:1ch; }
     #who { display:grid; grid-template-columns:auto 1fr; gap:4px 8px; text-align:left; max-width:340px; margin:0 auto; }
     .user-label { grid-column:1; }
@@ -101,7 +101,7 @@
     <p class="palette-hint" id="paletteHint">Press ⌘K for commands</p>
   </main>
   </div>
-  <div class="options-footer"><span class="footer-cell"><span id="radio">Radio: <button type="button" id="radioToggleBtn" aria-label="Play Sound Bed 3" title="Play Sound Bed 3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg></button> <select id="stationSelect" aria-label="Radio station"><option value="0">Sound Bed 1</option><option value="1">Sound Bed 2</option><option value="2" selected>Sound Bed 3</option></select></span></span><span class="footer-cell"><button type="button" id="optionsBtn" class="options-icon-btn" aria-label="Options — open commands" title="Options — open commands (⌘K)"><svg width="28" height="28" viewBox="0 0 100 100" fill="none" stroke="#f5f0ff" stroke-width="3" aria-hidden="true"><circle cx="50" cy="50" r="10"/><circle cx="50" cy="50" r="26"/><circle cx="50" cy="50" r="42"/><ellipse cx="50" cy="50" rx="42" ry="16" transform="rotate(60 50 50)"/><ellipse cx="50" cy="50" rx="42" ry="16" transform="rotate(120 50 50)"/><circle cx="50" cy="8" r="4" fill="#f5f0ff" stroke="none"/><circle cx="86" cy="71" r="4" fill="#f5f0ff" stroke="none"/><circle cx="14" cy="71" r="4" fill="#f5f0ff" stroke="none"/><path d="M50 44v12M44 50h12" stroke-width="4"/></svg></button></span></div>
+  <div class="commands-footer"><span class="footer-cell"><span id="radio">Radio: <button type="button" id="radioToggleBtn" aria-label="Play Sound Bed 3" title="Play Sound Bed 3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg></button> <select id="stationSelect" aria-label="Radio station"><option value="0">Sound Bed 1</option><option value="1">Sound Bed 2</option><option value="2" selected>Sound Bed 3</option></select></span></span><span class="footer-cell"><button type="button" id="commandsBtn" class="commands-icon-btn" aria-label="Commands" title="Commands (⌘K)"><svg width="28" height="28" viewBox="0 0 100 100" fill="none" stroke="#f5f0ff" stroke-width="3" aria-hidden="true"><circle cx="50" cy="50" r="10"/><circle cx="50" cy="50" r="26"/><circle cx="50" cy="50" r="42"/><ellipse cx="50" cy="50" rx="42" ry="16" transform="rotate(60 50 50)"/><ellipse cx="50" cy="50" rx="42" ry="16" transform="rotate(120 50 50)"/><circle cx="50" cy="8" r="4" fill="#f5f0ff" stroke="none"/><circle cx="86" cy="71" r="4" fill="#f5f0ff" stroke="none"/><circle cx="14" cy="71" r="4" fill="#f5f0ff" stroke="none"/><path d="M50 44v12M44 50h12" stroke-width="4"/></svg></button></span></div>
   <div class="palette-overlay" id="paletteOverlay"><div class="palette"><input id="paletteInput" placeholder="Type a command…" autocomplete="off" aria-label="Commands"><ul class="palette-list" id="paletteList"></ul></div></div>
   <script src="./auth.js"></script>
   <script>
@@ -291,7 +291,10 @@
     renderTicker(); setInterval(renderTicker, 1000); requestTickerLocation();
     /* Raycast-style command palette: Cmd/Ctrl+K, type to filter, arrows + Enter to run. */
     var paletteCommands = [
-      { name: 'Open Options', hint: 'Options', keys: 'options settings change name delete name', run: function () { location.href = 'options.html'; } },
+      { name: 'Open Commands', hint: 'Commands', keys: 'commands settings change name delete name', run: function () { location.href = 'options.html'; } },
+      { name: 'Go to Gigas Garden', hint: 'Game', keys: 'gigas garden game play', run: function () { location.href = 'https://xer0yootz.github.io/neon-vigil-oauth/gigas-garden/'; } },
+      { name: 'Go to NV-808', hint: 'NV-808', keys: 'nv-808 nv808 drum machine', run: function () { location.href = '/nv808/'; } },
+      { name: 'Go to Grid Log', hint: 'Grid Log', keys: 'grid log character sheets', run: function () { location.href = 'https://neonvigil.app/test-web-bible-neon-ultra'; } },
       { name: 'Sign out', hint: 'Account', keys: 'sign out log out exit', run: function () { signOut(); } }
     ];
     var paletteOpen = false, paletteSel = 0, paletteFiltered = paletteCommands.slice();
@@ -323,7 +326,7 @@
     });
     document.getElementById('paletteOverlay').addEventListener('click', function (e) { if (e.target === this) closePalette(); });
     document.getElementById('paletteHint').addEventListener('click', openPalette);
-    document.getElementById('optionsBtn').addEventListener('click', function () { if (paletteOpen) closePalette(); else openPalette(); });
+    document.getElementById('commandsBtn').addEventListener('click', function () { if (paletteOpen) closePalette(); else openPalette(); });
     document.addEventListener('keydown', function (e) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); if (paletteOpen) closePalette(); else openPalette(); }
       else if (e.key === 'Escape' && paletteOpen) { closePalette(); }
@@ -409,7 +412,7 @@
 <script>
 /* Mouse ripple just over the content: a small expanding ring trails the
    pointer as it moves, and a tap spawns one too (touch). pointer-events:none,
-   so it never blocks hub links, radio, Options, or sign-in buttons. */
+   so it never blocks hub links, radio, Commands, or sign-in buttons. */
 (function () {
   if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   var layer = document.getElementById('nvRippleLayer');
