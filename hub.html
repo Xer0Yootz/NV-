@@ -74,11 +74,6 @@
   <main>
     <p id="who">Checking your sign-in…</p>
     <audio id="radioAudio" src="sounds/neon-vigil-sound-bed-3-loop.wav" loop preload="none"></audio>
-    <nav>
-      <a href="https://xer0yootz.github.io/neon-vigil-oauth/gigas-garden/">Game — Gigas Garden</a>
-      <a href="/nv808/">NV-808</a>
-      <a href="https://neonvigil.app/test-web-bible-neon-ultra">Character Sheets — Neon Ultra (test)</a>
-    </nav>
     <p class="palette-hint" id="paletteHint">Press ⌘K for commands</p>
   </main>
   <div class="signout-row"><button type="button" id="signOutBtn">Sign out</button></div>
@@ -265,8 +260,9 @@
     renderTicker(); setInterval(renderTicker, 1000); requestTickerLocation();
     /* Raycast-style command palette: Cmd/Ctrl+K, type to filter, arrows + Enter to run. */
     var paletteCommands = [
-      { name: 'Play Gigas Garden', hint: 'Game', keys: 'game gigas garden play', run: function () { location.href = 'https://xer0yootz.github.io/neon-vigil-oauth/gigas-garden/'; } },
-      { name: 'Open Character Sheets — Neon Ultra', hint: 'Character Sheets', keys: 'character sheets neon ultra bible', run: function () { location.href = 'https://neonvigil.app/test-web-bible-neon-ultra'; } },
+      { name: 'Go to Gigas Garden', hint: 'Game', keys: 'go gigas garden game play', run: function () { location.href = 'https://xer0yootz.github.io/neon-vigil-oauth/gigas-garden/'; } },
+      { name: 'Go to NV-808', hint: 'NV-808', keys: 'go nv-808 nv808 drum machine', run: function () { location.href = '/nv808/'; } },
+      { name: 'Go to Grid Log', hint: 'Grid Log', keys: 'go grid log character sheets neon ultra bible', run: function () { location.href = 'https://neonvigil.app/test-web-bible-neon-ultra'; } },
       { name: 'Open Options', hint: 'Options', keys: 'options settings change name delete name', run: function () { location.href = 'options.html'; } },
       { name: 'Play radio', hint: 'Radio', keys: 'radio play music start', run: function () { radioPlay(); } },
       { name: 'Pause radio', hint: 'Radio', keys: 'radio pause music stop', run: function () { radioPause(); } },
