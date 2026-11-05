@@ -68,14 +68,8 @@
       var name = savedName() || accountName(user);
       if (name) { localStorage.setItem('nv_display_name', name); }
       if (name) {
-        document.getElementById('who').innerHTML = '<span class="user-label">User:</span> <span class="name-cell">' + esc(name) + '<span class="cursor-blink">_</span></span> <span class="save-cell"><button id="editNameBtn">Change name</button> <button id="deleteNameBtn">Delete name</button></span> <span class="save-cell"><button id="signOutBtn">Sign out</button></span>';
+        document.getElementById('who').innerHTML = '<span class="user-label">User:</span> <span class="name-cell">' + esc(name) + '<span class="cursor-blink">_</span></span> <span class="save-cell"><a href="options.html">Options</a></span> <span class="save-cell"><button id="signOutBtn">Sign out</button></span>';
         document.getElementById('signOutBtn').addEventListener('click', signOut);
-        document.getElementById('editNameBtn').addEventListener('click', function () { showEdit(name); });
-        document.getElementById('deleteNameBtn').addEventListener('click', function () {
-          localStorage.removeItem('nv_display_name');
-          saveNameToAccount(null);
-          renderName();
-        });
       } else {
         showEdit('');
       }
