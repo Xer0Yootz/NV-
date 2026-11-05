@@ -27,7 +27,7 @@
   </main>
   <script src="./auth.js"></script>
   <script>
-    requireSession('index.html').then(function(user) {
+    requireSession('index.html').then(function (user) {
       if (user) {
         document.getElementById('who').textContent =
           'Signed in as ' + (user.user_metadata && (user.user_metadata.user_name || user.user_metadata.preferred_username || user.email) || user.email || 'you') + '.';
