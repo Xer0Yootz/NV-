@@ -11,6 +11,9 @@
     button { background:transparent; color:#f5f0ff; border:1px solid #f5f0ff; border-radius:0; padding:10px 18px; font-weight:700; cursor:pointer; }
     a { color:#a78bfa; }
     .cursor-blink { display:inline-block; animation:nv-blink 1.2s steps(2,start) infinite; color:#ffffff; }
+    .ticker { position:fixed; top:0; left:0; right:0; z-index:4; overflow:hidden; white-space:nowrap; padding:10px 12px; font-size:13px; letter-spacing:2px; background:rgba(5,1,15,.72); border-bottom:1px solid #7c3aed; color:#f5f0ff; }
+    .options-footer { position:fixed; bottom:8px; left:0; right:0; z-index:3; text-align:center; font-size:12px; }
+    .options-footer a { color:#a78bfa; }
     #nameInput { background:transparent; border:0; outline:none; caret-color:transparent; color:#f5f0ff; font-family:inherit; font-size:inherit; padding:0; margin:0; width:1ch; }
     #who { display:grid; grid-template-columns:auto 1fr; gap:4px 8px; text-align:left; max-width:340px; margin:0 auto; }
     .user-label { grid-column:1; }
@@ -23,6 +26,7 @@
   <script src="./config.js"></script>
 </head>
 <body>
+  <div class="ticker"><span>Hub Status:</span> Awaiting Sync · <span id="clock"></span></div>
   <main>
     <h1>Infinity 6 Terminal</h1>
     <p id="who">Checking your sign-in…</p>
@@ -34,6 +38,7 @@
       <a href="https://neonvigil.app/test-web-bible-neon-ultra">Character Sheets — Neon Ultra (test)</a>
     </nav>
   </main>
+  <div class="options-footer"><a href="options.html">Options</a></div>
   <script src="./auth.js"></script>
   <script>
     function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
@@ -68,7 +73,7 @@
       var name = savedName() || accountName(user);
       if (name) { localStorage.setItem('nv_display_name', name); }
       if (name) {
-        document.getElementById('who').innerHTML = '<span class="user-label">User:</span> <span class="name-cell">' + esc(name) + '<span class="cursor-blink">_</span></span> <span class="save-cell"><a href="options.html">Options</a></span> <span class="save-cell"><button id="signOutBtn">Sign out</button></span>';
+        document.getElementById('who').innerHTML = '<span class="user-label">User:</span> <span class="name-cell">' + esc(name) + '<span class="cursor-blink">_</span></span> <span class="save-cell"><button id="signOutBtn">Sign out</button></span>';
         document.getElementById('signOutBtn').addEventListener('click', signOut);
       } else {
         showEdit('');
@@ -97,6 +102,8 @@
         radioPlay();
       });
     });
+    function tickClock() { var el = document.getElementById('clock'); if (el) { el.textContent = new Date().toLocaleTimeString(); } }
+    tickClock(); setInterval(tickClock, 1000);
     requireSession('index.html').then(function (user) {
       if (user) { renderName(user); }
     });
