@@ -16,6 +16,8 @@
     .footer-cell { border:1px solid #7c3aed; background:rgba(18,8,31,.88); padding:6px 10px; text-align:center; }
     .options-footer a { color:#a78bfa; }
     .options-footer button { font-size:13px; padding:4px 8px; }
+    #stationSelect { background:transparent; color:#f5f0ff; border:1px solid #f5f0ff; border-radius:0; font-family:inherit; font-size:13px; padding:4px; }
+    #stationSelect option { color:#05010f; }
     .options-footer p { display:inline; margin:0 8px 0 0; }
     #nameInput { background:transparent; border:0; outline:none; caret-color:transparent; color:#f5f0ff; font-family:inherit; font-size:inherit; padding:0; margin:0; width:1ch; }
     #who { display:grid; grid-template-columns:auto 1fr; gap:4px 8px; text-align:left; max-width:340px; margin:0 auto; }
@@ -40,7 +42,7 @@
       <a href="https://neonvigil.app/test-web-bible-neon-ultra">Character Sheets — Neon Ultra (test)</a>
     </nav>
   </main>
-  <div class="options-footer"><span class="footer-cell"><span id="radio">Radio: <button id="radioToggleBtn">Play</button> <button data-station="0">Atmospheric Haze</button> <button data-station="1">Sound Bed 1</button> <button data-station="2">Sound Bed 2</button> <button data-station="3">Sound Bed 3</button></span></span><span class="footer-cell"><a href="options.html">Options</a></span></div>
+  <div class="options-footer"><span class="footer-cell"><span id="radio">Radio: <button id="radioToggleBtn">Play</button> <select id="stationSelect" aria-label="Radio station"><option value="0">Atmospheric Haze</option><option value="1">Sound Bed 1</option><option value="2">Sound Bed 2</option><option value="3">Sound Bed 3</option></select></span></span><span class="footer-cell"><a href="options.html">Options</a></span></div>
   <script src="./auth.js"></script>
   <script>
     function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
@@ -98,11 +100,9 @@
     document.getElementById('radioToggleBtn').addEventListener('click', function () {
       if (radioAudio.paused) { radioPlay(); } else { radioAudio.pause(); this.textContent = 'Play'; }
     });
-    document.querySelectorAll('#radio [data-station]').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        radioAudio.src = radioStations[Number(btn.getAttribute('data-station'))];
-        radioPlay();
-      });
+    document.getElementById('stationSelect').addEventListener('change', function () {
+      radioAudio.src = radioStations[Number(this.value)];
+      radioPlay();
     });
     function tickClock() { var el = document.getElementById('clock'); if (el) { el.textContent = new Date().toLocaleTimeString(); } }
     tickClock(); setInterval(tickClock, 1000);
