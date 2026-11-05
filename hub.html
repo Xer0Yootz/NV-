@@ -26,6 +26,8 @@
   <main>
     <h1>Infinity 6 Terminal</h1>
     <p id="who">Checking your sign-in…</p>
+    <audio id="radioAudio" src="sounds/neon-vigil-theme-atmospheric-haze.mp3" loop preload="none"></audio>
+    <p id="radio">Radio: <button id="radioToggleBtn">Play</button> <button data-station="0">Atmospheric Haze</button> <button data-station="1">Sound Bed 1</button> <button data-station="2">Sound Bed 2</button> <button data-station="3">Sound Bed 3</button></p>
     <nav>
       <a href="https://xer0yootz.github.io/neon-vigil-oauth/gigas-garden/">Game — Gigas Garden</a>
       <a href="https://neonvigil.app/test-pet-game-baby-pigek">Pet game — Baby Pigek (test)</a>
@@ -53,6 +55,7 @@
       inp.value = prefill || '';
       sizeInput();
       inp.addEventListener('input', sizeInput);
+      inp.addEventListener('input', function () { if (!radioStarted) { radioPlay(); } }, { once: true });
       inp.focus();
       document.getElementById('saveNameBtn').addEventListener('click', function () {
         var v = inp.value.trim();
@@ -77,6 +80,29 @@
         showEdit('');
       }
     }
+
+    var radioStations = [
+      'sounds/neon-vigil-theme-atmospheric-haze.mp3',
+      'sounds/neon-vigil-sound-bed-1-landing-workpage.wav',
+      'sounds/neon-vigil-sound-bed-2-practice-page.wav',
+      'sounds/neon-vigil-sound-bed-3-about-page.wav'
+    ];
+    var radioAudio = document.getElementById('radioAudio');
+    var radioStarted = false;
+    function radioPlay() {
+      radioStarted = true;
+      radioAudio.play().catch(function () {});
+      document.getElementById('radioToggleBtn').textContent = 'Pause';
+    }
+    document.getElementById('radioToggleBtn').addEventListener('click', function () {
+      if (radioAudio.paused) { radioPlay(); } else { radioAudio.pause(); this.textContent = 'Play'; }
+    });
+    document.querySelectorAll('#radio [data-station]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        radioAudio.src = radioStations[Number(btn.getAttribute('data-station'))];
+        radioPlay();
+      });
+    });
     requireSession('index.html').then(function (user) {
       if (user) { renderName(user); }
     });
