@@ -55,7 +55,6 @@
 <body>
   <div class="tv-layer tv-on" id="tvShips" aria-hidden="true"></div>
   <div class="tv-layer" id="tvWater" aria-hidden="true"></div>
-  <video class="tv-layer" id="tvGirls" aria-hidden="true" src="four-girls-on-ship.mp4" muted loop playsinline preload="auto"></video>
   <div class="static-top" aria-hidden="true"></div>
   <div class="static-burst" id="staticBurst" aria-hidden="true"></div>
   <div class="scrim" aria-hidden="true"></div>
@@ -145,12 +144,11 @@
     })();
   </script>
   <script>
-    // TV channel cycle — TEST ONLY. Ships Bridge (8s) -> static burst -> water (8s) -> static burst -> Four Girls on Ship Bridge video (8s) -> static burst -> loop.
+    // TV channel cycle — TEST ONLY. Ships Bridge (8s) -> static burst -> water (8s) -> static burst -> loop. Two channels only until Jasmine picks the third picture.
     (function () {
       var channels = [
         document.getElementById('tvShips'),
-        document.getElementById('tvWater'),
-        document.getElementById('tvGirls')
+        document.getElementById('tvWater')
       ];
       var burst = document.getElementById('staticBurst');
       var topStatic = document.querySelector('.static-top');
@@ -162,7 +160,7 @@
         if (topStatic) topStatic.style.backgroundPosition = sx + 'px ' + sy + 'px';
         if (burst) burst.style.backgroundPosition = Math.floor(Math.random() * 140) + 'px ' + Math.floor(Math.random() * 140) + 'px';
       }, 90);
-      var channelNames = ['CH 01 — SHIPS BRIDGE', 'CH 02 — WATER', 'CH 03 — FOUR GIRLS ON SHIP BRIDGE'];
+      var channelNames = ['CH 01 — SHIPS BRIDGE', 'CH 02 — WATER'];
       var channelLabel = document.getElementById('tvChannel');
       function show(i) {
         if (channelLabel) channelLabel.textContent = channelNames[i];
