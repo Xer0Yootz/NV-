@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Options — Infinity 6 Terminal</title>
+  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+  <style>
+    body { background:#05010f url("ships-bridge.jpg") center/cover no-repeat fixed; color:#f5f0ff; font-family:"VT323", "Share Tech Mono", monospace; font-size:18px; margin:0; min-height:100vh; display:grid; place-items:center; }
+    main { max-width:560px; padding:32px; text-align:center; border:1px solid #7c3aed; border-radius:16px; background:rgba(18,8,31,.88); }
+    button { background:transparent; color:#f5f0ff; border:1px solid #f5f0ff; border-radius:0; padding:10px 18px; font-weight:700; cursor:pointer; }
+    a { color:#a78bfa; }
+    .cursor-blink { display:inline-block; animation:nv-blink 1.2s steps(2,start) infinite; color:#ffffff; }
+    #nameInput { background:transparent; border:0; outline:none; caret-color:transparent; color:#f5f0ff; font-family:inherit; font-size:inherit; padding:0; margin:0; width:1ch; }
+    #who { display:grid; grid-template-columns:auto 1fr; gap:4px 8px; text-align:left; max-width:340px; margin:0 auto; }
+    .user-label { grid-column:1; }
+    .name-cell { grid-column:2; white-space:nowrap; }
+    .save-cell { grid-column:2; }
+    @keyframes nv-blink { 50% { opacity:0; } }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./config.js"></script>
+</head>
+<body>
+  <main>
+    <h1>Options</h1>
+    <p id="who">Checking your sign-in…</p>
+    <p><a href="hub.html">Back to hub</a></p>
+  </main>
+  <script src="./auth.js"></script>
+  <script>
+    function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+    function savedName() { return localStorage.getItem('nv_display_name') || ''; }
+    function saveNameToAccount(v) {
+      try {
+        var c = (typeof getClient === 'function') ? getClient() : null;
+        if (c) { c.auth.updateUser({ data: { display_name: v } }).catch(function () {}); }
+      } catch (e) {}
+    }
+    function accountName(user) { return (user && user.user_metadata && user.user_metadata.display_name) ? user.user_metadata.display_name : ''; }
+    function sizeInput() {
+      var inp = document.getElementById('nameInput');
+      if (inp) { inp.style.width = Math.max(1, inp.value.length + 1) + 'ch'; }
+    }
+    function showEdit(prefill) {
+      document.getElementById('who').innerHTML = '<span class="user-label">User:</span> <span class="name-cell"><input id="nameInput" maxlength="60" aria-label="Display name" autocomplete="off"><span class="cursor-blink">_</span></span> <span class="save-cell"><button id="saveNameBtn">Save</button></span> <span class="save-cell"><button id="signOutBtn">Sign out</button></span>';
+      var inp = document.getElementById('nameInput');
+      inp.value = prefill || '';
+      sizeInput();
+      inp.addEventListener('input', sizeInput);
+      inp.focus();
+      document.getElementById('saveNameBtn').addEventListener('click', function () {
+        var v = inp.value.trim();
+        if (v) { localStorage.setItem('nv_display_name', v); saveNameToAccount(v); } else { localStorage.removeItem('nv_display_name'); saveNameToAccount(null); }
+        renderName();
+      });
+      document.getElementById('signOutBtn').addEventListener('click', signOut);
+    }
+    function renderName(user) {
+      var name = savedName() || accountName(user);
+      if (name) { localStorage.setItem('nv_display_name', name); }
+      if (name) {
+        document.getElementById('who').innerHTML = '<span class="user-label">User:</span> <span class="name-cell">' + esc(name) + '<span class="cursor-blink">_</span></span> <span class="save-cell"><button id="editNameBtn">Change name</button> <button id="deleteNameBtn">Delete name</button></span> <span class="save-cell"><button id="signOutBtn">Sign out</button></span>';
+        document.getElementById('signOutBtn').addEventListener('click', signOut);
+        document.getElementById('editNameBtn').addEventListener('click', function () { showEdit(name); });
+        document.getElementById('deleteNameBtn').addEventListener('click', function () {
+          localStorage.removeItem('nv_display_name');
+          saveNameToAccount(null);
+          renderName();
+        });
+      } else {
+        showEdit('');
+      }
+    }
+    requireSession('index.html').then(function (user) {
+      if (user) { renderName(user); }
+    });
+  </script>
+</body>
+</html>
