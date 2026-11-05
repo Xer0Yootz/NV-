@@ -348,12 +348,25 @@
     layer.appendChild(ring);
     setTimeout(function () { if (ring.parentNode) ring.parentNode.removeChild(ring); }, 950);
   }
+  var lastDragBuzz = 0;
+  function buzz(ms) {
+    /* Haptics: Android Chrome only — iOS Safari has no navigator.vibrate. */
+    if (!('vibrate' in navigator)) return;
+    try { navigator.vibrate(ms); } catch (e) {}
+  }
   window.addEventListener('pointermove', function (e) {
-    if (e.pointerType === 'touch') return;
+    if (e.pointerType === 'touch') {
+      /* Drag across the ripple (touch): longer, harder buzz, throttled so a
+         long drag buzzes in pulses instead of one endless vibration. */
+      spawn(e.clientX, e.clientY);
+      var now = Date.now();
+      if (now - lastDragBuzz >= 300) { lastDragBuzz = now; buzz(60); }
+      return;
+    }
     spawn(e.clientX, e.clientY);
   }, { passive: true });
   window.addEventListener('pointerdown', function (e) {
-    if (e.pointerType === 'touch') spawn(e.clientX, e.clientY);
+    if (e.pointerType === 'touch') { spawn(e.clientX, e.clientY); buzz(10); } /* tap: tiny buzz */
   }, { passive: true });
 })();
 </script>
