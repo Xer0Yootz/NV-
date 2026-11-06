@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Infinity6 Terminal</title>
   <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./nv-ticker.css">
+  <link rel="stylesheet" href="./nv-commands.css">
   <style>
     body { background:#05010f; color:#f5f0ff; font-family:"VT323", "Share Tech Mono", monospace; font-size:18px; margin:0; min-height:100vh; display:grid; place-items:center; }
     .bg { position:fixed; inset:0; background-image:url("ships-bridge.jpg"); background-size:cover; background-position:center; z-index:0; transform:scale(1.12); will-change:transform; transition:transform .35s ease-out; pointer-events:none; }
@@ -24,28 +26,15 @@
     .static-top { position:fixed; inset:0; z-index:1; pointer-events:none; opacity:.38; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.25' numOctaves='3'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E"); }
     main { position:relative; z-index:2; width:100%; max-width:560px; padding:32px; box-sizing:border-box; text-align:center; border:1px solid #7c3aed; border-radius:16px; background:rgba(18,8,31,.88); }
     /* Hub layout (Nov 5, Jasmine's order, corrected to LEFT): the main terminal box stays
-       centred where it is. Only the "Neon Vigil app / Terminal" wording shifts all
+       centred where it is. Only the "Infinity6 Terminal" heading shifts all
        the way to the left side, in its own box above the terminal box.
        Sign out is NOT on the main page — it lives in the Command K palette. */
     .hub-col { position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); z-index:2; width:100%; max-width:560px; max-height:calc(100vh - 120px); overflow-y:auto; }
     .title-box { border:1px solid #7c3aed; border-radius:16px; background:rgba(18,8,31,.88); padding:12px 18px; margin-bottom:12px; text-align:left; box-sizing:border-box; }
     .title-box h1 { margin:0; }
-    .title-box .terminal-enter { margin:6px 0 0; }
     button { background:transparent; color:#f5f0ff; border:1px solid #f5f0ff; border-radius:0; padding:10px 18px; font-weight:700; cursor:pointer; }
     a { color:#a78bfa; }
     .cursor-blink { display:inline-block; animation:nv-blink 1.2s steps(2,start) infinite; color:#ffffff; }
-    /* Hub ticker (Nov 5, Jasmine's order): full width across the entire top,
-       scrolling once location is accepted and it is showing time/date/
-       location/weather/tides. Before location resolves it sits still — it
-       never scrolls empty/loading content. VT323 18px, same 1px purple
-       border and colours as before. The track holds the text twice so the
-       -50% loop is seamless; renderTicker() keeps both copies in sync. */
-    .ticker { position:fixed; top:0; left:0; right:0; z-index:4; overflow:hidden; white-space:nowrap; padding:10px 0; font-size:18px; letter-spacing:2px; background:rgba(5,1,15,.72); border:1px solid #7c3aed; box-sizing:border-box; color:#f5f0ff; }
-    .ticker-track { display:inline-flex; white-space:nowrap; will-change:transform; }
-    .ticker-track span { padding-right:3em; }
-    .ticker.scrolling .ticker-track { animation:nv-ticker-scroll 30s linear infinite; }
-    @keyframes nv-ticker-scroll { from { transform:translateX(0); } to { transform:translateX(-50%); } }
-    @media (prefers-reduced-motion: reduce) { .ticker.scrolling .ticker-track { animation:none; } }
     .commands-footer { position:fixed; bottom:8px; left:8px; right:8px; z-index:3; display:grid; grid-template-columns:1fr auto; gap:8px; font-size:15px; border:1px solid #7c3aed; box-sizing:border-box; background:rgba(18,8,31,.88); }
     .footer-cell { border:1px solid #7c3aed; background:rgba(18,8,31,.88); padding:6px 10px; text-align:center; }
     .commands-footer a { color:#a78bfa; }
@@ -70,14 +59,18 @@
     .nv-chat-input input { flex:1; background:transparent; border:0; outline:none; color:#f5f0ff; font-family:inherit; font-size:16px; padding:10px 12px; }
     .nv-chat-input button { border:0; border-left:1px solid #f5f0ff; }
     .nv-chat-input input:disabled, .nv-chat-input button:disabled { opacity:.5; }
-    .palette-overlay { position:fixed; inset:0; z-index:10; background:rgba(5,1,15,.72); display:none; }
-    .palette-overlay.open { display:block; }
-    .palette { max-width:560px; margin:15vh auto 0; border:1px solid #7c3aed; background:rgba(18,8,31,.97); text-align:left; }
-    #paletteInput { width:100%; box-sizing:border-box; background:transparent; border:0; border-bottom:1px solid #7c3aed; outline:none; color:#f5f0ff; font-family:inherit; font-size:20px; padding:14px 16px; }
-    .palette-list { list-style:none; margin:0; padding:6px 0; max-height:50vh; overflow:auto; }
-    .palette-item { padding:10px 16px; cursor:pointer; }
-    .palette-item .hint { float:right; color:#a78bfa; font-size:13px; }
-    .palette-item.selected { background:#7c3aed; }
+    /* Hub terminal: a working command line for Neon Vigil content — control
+       the radio, load the games, list what's available with help. Same
+       terminal look as the rest of the hub: VT323, 1px #7c3aed border,
+       rgba(18,8,31,.88) panel. The input has a hidden native caret and a
+       blinking underscore that follows behind the typed text, like the
+       name input and the game typing. */
+    .nv-term { margin-top:18px; border:1px solid #7c3aed; background:rgba(18,8,31,.88); text-align:left; }
+    .nv-term-out { min-height:60px; max-height:120px; overflow:auto; padding:10px 12px; font-size:16px; white-space:pre-wrap; word-break:break-word; }
+    .nv-term-out p { margin:0 0 4px; }
+    .nv-term-line { display:flex; align-items:center; gap:6px; border-top:1px solid #7c3aed; padding:10px 12px; }
+    .nv-term-prompt { color:#a78bfa; }
+    #termInput { background:transparent; border:0; outline:none; caret-color:transparent; color:#f5f0ff; font-family:inherit; font-size:16px; padding:0; margin:0; width:1ch; min-width:1ch; flex:0 1 auto; }
     @keyframes nv-blink { 50% { opacity:0; } }
     #radioToggleBtn{width:32px;height:32px;padding:0;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;background:transparent;color:#f5f0ff;border:1px solid #f5f0ff;border-radius:0;cursor:pointer}#radioToggleBtn svg{width:16px;height:16px;display:block}
   </style>
@@ -88,9 +81,8 @@
   <div class="bg" aria-hidden="true"></div>
   <div class="static-top" aria-hidden="true"></div>
   <div id="nvRippleLayer" aria-hidden="true"></div>
-  <div class="ticker"><div class="ticker-track"><span id="tickerInfo">LOADING TIME · DATE · LOCATION · WEATHER · TIDES</span><span id="tickerInfo2" aria-hidden="true">LOADING TIME · DATE · LOCATION · WEATHER · TIDES</span></div></div>
   <div class="hub-col">
-  <div class="title-box"><h1>Neon Vigil app / Terminal</h1><p class="terminal-enter">Enter the Terminal</p></div>
+  <div class="title-box"><h1 id="hubTitle">Infinity6 Terminal</h1></div>
   <main>
     <p id="who">Checking your sign-in…</p>
     <div class="nv-chat" id="nvChatBox">
@@ -98,13 +90,18 @@
       <div class="nv-chat-body" id="nvChatBody"><p class="nv-chat-offline">Chat isn't connected yet — the Neon agent needs deploying before it can talk back. Once it's live, talk here.</p></div>
       <div class="nv-chat-input"><input id="nvChatInput" placeholder="Type to Neon…" disabled aria-label="Chat message"><button type="button" id="nvChatSend" disabled>Send</button></div>
     </div>
+    <div class="nv-term" id="nvTerm">
+      <div class="nv-term-out" id="termOutput"><p>Type 'help' for commands.</p></div>
+      <div class="nv-term-line"><span class="nv-term-prompt">&gt;</span><input id="termInput" autocomplete="off" aria-label="Terminal command" spellcheck="false"><span class="cursor-blink">_</span></div>
+    </div>
     <audio id="radioAudio" src="sounds/neon-vigil-sound-bed-3-loop.wav" loop preload="none"></audio>
-    <p class="palette-hint" id="paletteHint">Press ⌘K for commands</p>
+    <p class="palette-hint" id="paletteHint" data-nv-commands>Press ⌘K for commands</p>
   </main>
   </div>
-  <div class="commands-footer"><span class="footer-cell"><span id="radio">Radio: <button type="button" id="radioToggleBtn" aria-label="Play Sound Bed 3" title="Play Sound Bed 3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg></button> <select id="stationSelect" aria-label="Radio station"><option value="0">Sound Bed 1</option><option value="1">Sound Bed 2</option><option value="2" selected>Sound Bed 3</option></select></span></span><span class="footer-cell"><button type="button" id="commandsBtn" class="commands-icon-btn" aria-label="Commands" title="Commands (⌘K)"><svg width="28" height="28" viewBox="0 0 100 100" fill="none" stroke="#f5f0ff" stroke-width="3" aria-hidden="true"><circle cx="50" cy="50" r="10"/><circle cx="50" cy="50" r="26"/><circle cx="50" cy="50" r="42"/><ellipse cx="50" cy="50" rx="42" ry="16" transform="rotate(60 50 50)"/><ellipse cx="50" cy="50" rx="42" ry="16" transform="rotate(120 50 50)"/><circle cx="50" cy="8" r="4" fill="#f5f0ff" stroke="none"/><circle cx="86" cy="71" r="4" fill="#f5f0ff" stroke="none"/><circle cx="14" cy="71" r="4" fill="#f5f0ff" stroke="none"/><path d="M50 44v12M44 50h12" stroke-width="4"/></svg></button></span></div>
-  <div class="palette-overlay" id="paletteOverlay"><div class="palette"><input id="paletteInput" placeholder="Type a command…" autocomplete="off" aria-label="Commands"><ul class="palette-list" id="paletteList"></ul></div></div>
+  <div class="commands-footer"><span class="footer-cell"><span id="radio">Radio: <button type="button" id="radioToggleBtn" aria-label="Play Sound Bed 3" title="Play Sound Bed 3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg></button> <select id="stationSelect" aria-label="Radio station"><option value="0">Sound Bed 1</option><option value="1">Sound Bed 2</option><option value="2" selected>Sound Bed 3</option></select></span></span><span class="footer-cell"><button type="button" id="commandsBtn" class="commands-icon-btn" data-nv-commands aria-label="Commands" title="Commands (⌘K)"><svg width="28" height="28" viewBox="0 0 100 100" fill="none" stroke="#f5f0ff" stroke-width="3" aria-hidden="true"><circle cx="50" cy="50" r="10"/><circle cx="50" cy="50" r="26"/><circle cx="50" cy="50" r="42"/><ellipse cx="50" cy="50" rx="42" ry="16" transform="rotate(60 50 50)"/><ellipse cx="50" cy="50" rx="42" ry="16" transform="rotate(120 50 50)"/><circle cx="50" cy="8" r="4" fill="#f5f0ff" stroke="none"/><circle cx="86" cy="71" r="4" fill="#f5f0ff" stroke="none"/><circle cx="14" cy="71" r="4" fill="#f5f0ff" stroke="none"/><path d="M50 44v12M44 50h12" stroke-width="4"/></svg></button></span></div>
   <script src="./auth.js"></script>
+  <script src="./nv-ticker.js"></script>
+  <script src="./nv-commands.js"></script>
   <script>
     function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
     function savedName() { return localStorage.getItem('nv_display_name') || ''; }
@@ -142,6 +139,36 @@
         showEdit('');
       }
     }
+
+    /* Hub heading typewriter: "Infinity6 Terminal" types out the same way
+       the game types text — the game's DIALOGUE_CPS is 42 characters per
+       second (~24ms per character), with a blinking underscore caret. The
+       heading is written out in the HTML so it still reads with JS off;
+       this replaces it with the typed version. Reduced motion shows the
+       full heading at once. The underscore stays after the heading — it
+       is the terminal cursor. */
+    (function typeHubTitle() {
+      var h = document.getElementById('hubTitle');
+      if (!h) return;
+      var full = h.textContent;
+      var caret = document.createElement('span');
+      caret.className = 'cursor-blink';
+      caret.textContent = '_';
+      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        h.textContent = '';
+        h.appendChild(document.createTextNode(full));
+        h.appendChild(caret);
+        return;
+      }
+      h.textContent = '';
+      var i = 0;
+      var timer = setInterval(function () {
+        i++;
+        h.textContent = full.slice(0, i);
+        h.appendChild(caret);
+        if (i >= full.length) clearInterval(timer);
+      }, 1000 / 42);
+    })();
 
     var radioStations = [
       'sounds/neon-vigil-sound-bed-1-landing-workpage.wav',
@@ -184,115 +211,10 @@
     radioAudio.addEventListener('pause', syncRadioBtn);
     syncRadioBtn();
 
-    /* Hub ticker: time + date + location + weather + tides.
-       Time/date/location/weather reuse the Gigas Garden game ticker (Task 3, neon-vigil-oauth).
-       Tides are new: NOAA CO-OPS, nearest tide station to your location, next high/low. */
-    var tickerState = { weather: 'WEATHER STANDBY', place: '', tides: 'TIDES STANDBY', coords: null, requested: false };
-    function tickerLocale() { return (navigator.languages && navigator.languages[0]) || navigator.language || 'en-US'; }
-    function tickerDateTime() {
-      var d = new Date(), loc = tickerLocale();
-      var date = d.toLocaleDateString(loc, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase();
-      var time = d.toLocaleTimeString(loc, { hour: 'numeric', minute: '2-digit', second: '2-digit' });
-      return date + ' · ' + time;
-    }
-    var WMO = [[0, 'CLEAR'], [1, 'MOSTLY CLEAR'], [2, 'PARTLY CLOUDY'], [3, 'OVERCAST'], [48, 'FOG'], [57, 'DRIZZLE'], [67, 'RAIN'], [77, 'SNOW'], [82, 'SHOWERS'], [86, 'SNOW SHOWERS'], [99, 'THUNDERSTORM']];
-    function wxCondition(code) { for (var i = 0; i < WMO.length; i++) if (code <= WMO[i][0]) return WMO[i][1]; return 'SKY UNKNOWN'; }
-    function useFahrenheit() {
-      var region = '';
-      try { region = new Intl.Locale(tickerLocale()).maximize().region || ''; } catch (e) { region = (tickerLocale().split('-')[1] || '').toUpperCase(); }
-      return ['US', 'LR', 'MM', 'BS', 'BZ', 'KY', 'PW', 'FM', 'MH'].indexOf(region) !== -1;
-    }
-    function renderTicker() {
-      var el = document.getElementById('tickerInfo');
-      if (!el) return;
-      var parts = [tickerDateTime(), tickerState.place || 'LOCATION —', tickerState.weather, tickerState.tides];
-      var text = parts.join(' · ');
-      el.textContent = text;
-      var el2 = document.getElementById('tickerInfo2');
-      if (el2) el2.textContent = text;
-    }
-    function fetchWeatherAndTides() {
-      var c = tickerState.coords;
-      if (!c) return;
-      var f = useFahrenheit();
-      var lat = c.latitude.toFixed(3), lon = c.longitude.toFixed(3);
-      fetch('https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon + '&current=temperature_2m,weather_code&temperature_unit=' + (f ? 'fahrenheit' : 'celsius'))
-        .then(function (r) { return r.json(); })
-        .then(function (d) {
-          var cur = d && d.current;
-          if (!cur || typeof cur.temperature_2m !== 'number') throw new Error('no weather');
-          tickerState.weather = Math.round(cur.temperature_2m) + '°' + (f ? 'F' : 'C') + ' ' + wxCondition(cur.weather_code);
-          renderTicker();
-        }).catch(function () { tickerState.weather = 'WEATHER OFFLINE'; renderTicker(); });
-      if (!tickerState.place) {
-        fetch('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=' + lat + '&longitude=' + lon + '&localityLanguage=' + encodeURIComponent(tickerLocale().split('-')[0] || 'en'))
-          .then(function (r) { return r.json(); })
-          .then(function (g) { var nm = g.city || g.locality || g.principalSubdivision || ''; if (nm) { tickerState.place = String(nm).toUpperCase(); renderTicker(); } })
-          .catch(function () {});
-      }
-      /* Tides: NOAA station list is a 2 MB download, so use the Bay stations and pick the nearest. */
-      var BAY_STATIONS = [
-        { id: '9414290', lat: 37.8063, lon: -122.4659 },
-        { id: '9414750', lat: 37.7717, lon: -122.3017 },
-        { id: '9414863', lat: 37.9197, lon: -122.4000 },
-        { id: '9415144', lat: 38.0480, lon: -122.0380 }
-      ];
-      var best = BAY_STATIONS[0], bestD = Infinity;
-      BAY_STATIONS.forEach(function (s) {
-        var dd = (s.lat - parseFloat(lat)) * (s.lat - parseFloat(lat)) + (s.lon - parseFloat(lon)) * (s.lon - parseFloat(lon));
-        if (dd < bestD) { bestD = dd; best = s; }
-      });
-      fetch('https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=today&range=24&station=' + best.id + '&product=predictions&datum=MLLW&time_zone=lst_ldt&interval=hilo&units=english&format=json')
-        .then(function (r) { return r.json(); })
-        .then(function (d) {
-          var now = new Date(), next = null;
-          (d.predictions || []).forEach(function (pr) {
-            var tt = new Date(pr.t.replace(' ', 'T'));
-            if (tt > now && !next) next = { type: pr.type, t: tt };
-          });
-          tickerState.tides = next ? ('TIDE ' + (next.type === 'H' ? 'HIGH' : 'LOW') + ' ' + next.t.toLocaleTimeString(tickerLocale(), { hour: 'numeric', minute: '2-digit' })) : 'TIDES —';
-          renderTicker();
-        }).catch(function () { tickerState.tides = 'TIDES OFFLINE'; renderTicker(); });
-    }
-    function useCoords(lat, lon, place) {
-      tickerState.coords = { latitude: lat, longitude: lon };
-      if (place) tickerState.place = String(place).toUpperCase();
-      /* Location accepted (browser, IP fallback, or Oakland default) — the
-         ticker now has real time/date/location/weather/tides to show, so
-         start it scrolling across the top. Before this it sits still. */
-      var ticker = document.querySelector('.ticker');
-      if (ticker) ticker.classList.add('scrolling');
-      fetchWeatherAndTides();
-      setInterval(fetchWeatherAndTides, 15 * 60 * 1000);
-    }
-    function requestTickerLocation() {
-      if (tickerState.requested) return; tickerState.requested = true;
-      function fallback() {
-        /* Browser location blocked or timed out: try IP location, then Oakland as home default. */
-        fetch('https://ipwho.is/')
-          .then(function (r) { return r.json(); })
-          .then(function (g) {
-            if (g && g.success && g.latitude && g.longitude) useCoords(g.latitude, g.longitude, g.city || '');
-            else useCoords(37.8207, -122.2716, 'Oakland');
-          })
-          .catch(function () { useCoords(37.8207, -122.2716, 'Oakland'); });
-      }
-      try {
-        if (!navigator.geolocation || !window.fetch) { fallback(); return; }
-        var done = false;
-        var hard = setTimeout(function () { if (!done) { done = true; fallback(); } }, 8000);
-        navigator.geolocation.getCurrentPosition(function (pos) {
-          if (done) return; done = true; clearTimeout(hard);
-          useCoords(pos.coords.latitude, pos.coords.longitude, '');
-        }, function () {
-          if (done) return; done = true; clearTimeout(hard); fallback();
-        }, { enableHighAccuracy: false, timeout: 7000, maximumAge: 15 * 60 * 1000 });
-      } catch (e) { fallback(); }
-    }
-    renderTicker(); setInterval(renderTicker, 1000); requestTickerLocation();
-    /* Raycast-style command palette: Cmd/Ctrl+K, type to filter, arrows + Enter to run. */
     /* Select sound (Mouse Click 1): plays once when the user picks an option
-       that changes the page. Volume is a UI click, not looped. */
+       that changes the page. Volume is a UI click, not looped. Kept here
+       for the post-login sound below; the Commands popup plays its own
+       copy from the shared module (nv-commands.js). */
     var selectAudio = new Audio('sounds/neon-vigil-mouse-click-1.wav');
     selectAudio.volume = 0.5;
     function playSelect() { try { selectAudio.currentTime = 0; var p = selectAudio.play(); if (p && p.catch) p.catch(function () {}); } catch (e) {} }
@@ -310,52 +232,82 @@
         });
       }
     }
-    var paletteCommands = [
-      { name: 'Open Commands', hint: 'Commands', keys: 'commands settings change name delete name', run: function () { location.href = 'options.html'; } },
-      // IWW: Jasmine wants to rename this to something cooler later. "Virtual world" vs "virtual reality" for the parenthetical is still open. Do not invent a name.
-      { name: 'IWW — Gigas Garden game', hint: 'Game', keys: 'iww gigas garden game play', run: function () { location.href = 'https://xer0yootz.github.io/neon-vigil-oauth/gigas-garden/'; } },
-      { name: 'NV_Gigas Garden — Remix', hint: 'Game', keys: 'nv gigas garden remix remix.gg game play', run: function () { location.href = 'https://remix.gg/g/neon-vigil-gigas-garden'; } },
-      { name: 'NV_808', hint: 'NV-808', keys: 'nv_808 nv-808 nv808 drum machine', run: function () { location.href = '/nv808/'; } },
-      { name: 'NV_Gridlog', hint: 'Gridlog', keys: 'nv_gridlog gridlog grid log character sheets', run: function () { location.href = 'https://neonvigil.app/test-web-bible-neon-ultra'; } },
-      { name: 'Sign out', hint: 'Account', keys: 'sign out log out exit', run: function () { signOut(); } }
-    ];
-    var paletteOpen = false, paletteSel = 0, paletteFiltered = paletteCommands.slice();
-    function renderPalette() {
-      var list = document.getElementById('paletteList');
-      var q = document.getElementById('paletteInput').value.trim().toLowerCase();
-      var words = q ? q.split(/\s+/) : [];
-      paletteFiltered = paletteCommands.filter(function (c) {
-        var hay = (c.name + ' ' + c.keys).toLowerCase();
-        return words.every(function (w) { return hay.indexOf(w) !== -1; });
-      });
-      if (paletteSel >= paletteFiltered.length) paletteSel = Math.max(0, paletteFiltered.length - 1);
-      list.innerHTML = paletteFiltered.map(function (c, i) {
-        return '<li class="palette-item' + (i === paletteSel ? ' selected' : '') + '" data-i="' + i + '">' + esc(c.name) + '<span class="hint">' + esc(c.hint) + '</span></li>';
-      }).join('') || '<li class="palette-item">No command found</li>';
-      list.querySelectorAll('.palette-item[data-i]').forEach(function (el) {
-        el.addEventListener('click', function () { runPalette(Number(el.getAttribute('data-i'))); });
-      });
+
+    /* Hub terminal: a working command line for Neon Vigil content.
+       help — list the commands. radio play / radio stop — start/stop the
+       radio. radio station 1|2|3 (or radio 1|2|3) — switch station.
+       load <game> / open <game> — load a game: iww, remix, nv808, gridlog.
+       commands — open the Command K popup. clear — clear the terminal. */
+    var termOut = document.getElementById('termOutput');
+    var termInput = document.getElementById('termInput');
+    function termPrint(text) {
+      var p = document.createElement('p');
+      p.textContent = text;
+      termOut.appendChild(p);
+      while (termOut.children.length > 8) termOut.removeChild(termOut.firstChild);
+      termOut.scrollTop = termOut.scrollHeight;
     }
-    function openPalette() { paletteOpen = true; paletteSel = 0; document.getElementById('paletteOverlay').classList.add('open'); document.getElementById('paletteInput').value = ''; renderPalette(); document.getElementById('paletteInput').focus(); }
-    function closePalette() { paletteOpen = false; document.getElementById('paletteOverlay').classList.remove('open'); }
-    /* Palette choice changes the page (every entry navigates), so the select
-       sound plays once; a short delay lets the click be heard before the
-       page changes. */
-    function runPalette(i) { var c = paletteFiltered[i]; if (!c) return; closePalette(); playSelect(); setTimeout(function () { c.run(); }, 200); }
-    document.getElementById('paletteInput').addEventListener('input', function () { paletteSel = 0; renderPalette(); });
-    document.getElementById('paletteInput').addEventListener('keydown', function (e) {
-      if (e.key === 'ArrowDown') { e.preventDefault(); paletteSel = Math.min(paletteFiltered.length - 1, paletteSel + 1); renderPalette(); }
-      else if (e.key === 'ArrowUp') { e.preventDefault(); paletteSel = Math.max(0, paletteSel - 1); renderPalette(); }
-      else if (e.key === 'Enter') { e.preventDefault(); runPalette(paletteSel); }
-      else if (e.key === 'Escape') { closePalette(); }
+    function termSize() { termInput.style.width = Math.max(1, termInput.value.length + 1) + 'ch'; }
+    termInput.addEventListener('input', termSize);
+    termSize();
+    var termGames = {
+      'iww': { label: 'IWW — Gigas Garden game', url: 'https://xer0yootz.github.io/neon-vigil-oauth/gigas-garden/' },
+      'gigas': { label: 'IWW — Gigas Garden game', url: 'https://xer0yootz.github.io/neon-vigil-oauth/gigas-garden/' },
+      'remix': { label: 'NV_Gigas Garden — Remix', url: 'https://remix.gg/g/neon-vigil-gigas-garden' },
+      'nv808': { label: 'NV_808', url: '/nv808/' },
+      'nv_808': { label: 'NV_808', url: '/nv808/' },
+      '808': { label: 'NV_808', url: '/nv808/' },
+      'gridlog': { label: 'NV_Gridlog', url: 'https://neonvigil.app/test-web-bible-neon-ultra' },
+      'grid': { label: 'NV_Gridlog', url: 'https://neonvigil.app/test-web-bible-neon-ultra' }
+    };
+    function termHelp() {
+      termPrint('Commands:');
+      termPrint('  radio play / radio stop — start or stop the radio');
+      termPrint('  radio station 1|2|3 — switch station (1 Bed 1, 2 Bed 2, 3 Bed 3)');
+      termPrint('  load iww | load remix | load nv808 | load gridlog — load a game');
+      termPrint('  commands — open the Command K popup');
+      termPrint('  clear — clear the terminal');
+    }
+    function termLoad(key) {
+      var g = termGames[key];
+      if (!g) { termPrint('Unknown game. Try: load iww, load remix, load nv808, load gridlog.'); return; }
+      termPrint('Loading ' + g.label + '…');
+      /* Loading a game changes the page, so the select sound plays once;
+         a short delay lets the click be heard before the page changes. */
+      playSelect();
+      setTimeout(function () { location.href = g.url; }, 200);
+    }
+    function termRun(raw) {
+      var cmd = raw.trim();
+      if (!cmd) return;
+      termPrint('> ' + cmd);
+      var parts = cmd.toLowerCase().split(/\s+/);
+      if (parts[0] === 'help') { termHelp(); return; }
+      if (parts[0] === 'clear') { termOut.innerHTML = ''; return; }
+      if (parts[0] === 'commands') { if (window.NVCommands) window.NVCommands.open(); return; }
+      if (parts[0] === 'radio') {
+        if (parts[1] === 'play') { radioPlay(); termPrint('Radio: playing ' + stationSelect.options[stationSelect.selectedIndex].text + '.'); return; }
+        if (parts[1] === 'stop' || parts[1] === 'pause') { radioPause(); termPrint('Radio: stopped.'); return; }
+        var n = Number(parts[1] === 'station' ? parts[2] : parts[1]);
+        if (n >= 1 && n <= 3) {
+          var wasPlaying = !radioAudio.paused;
+          stationSelect.value = String(n - 1);
+          radioAudio.src = radioStations[n - 1];
+          if (wasPlaying) { radioAudio.play().catch(function () {}); }
+          syncRadioBtn();
+          termPrint('Radio: station ' + n + ' — ' + stationSelect.options[stationSelect.selectedIndex].text + '.');
+          return;
+        }
+        termPrint('Radio: try radio play, radio stop, or radio station 1|2|3.');
+        return;
+      }
+      if (parts[0] === 'load' || parts[0] === 'open') { termLoad(parts.slice(1).join(' ').replace(/[\s_-]/g, '')); return; }
+      termPrint("Unknown command. Type 'help'.");
+    }
+    termInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); var v = termInput.value; termInput.value = ''; termSize(); termRun(v); }
     });
-    document.getElementById('paletteOverlay').addEventListener('click', function (e) { if (e.target === this) closePalette(); });
-    document.getElementById('paletteHint').addEventListener('click', openPalette);
-    document.getElementById('commandsBtn').addEventListener('click', function () { if (paletteOpen) closePalette(); else openPalette(); });
-    document.addEventListener('keydown', function (e) {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); if (paletteOpen) closePalette(); else openPalette(); }
-      else if (e.key === 'Escape' && paletteOpen) { closePalette(); }
-    });
+
     /* Hub chat (bit-chat, Nov 5): the built chat is the Neon test agent
        (~/workspace/cloudflare-agents/nv-neon-test — NeonAgent AIChatAgent,
        Workers AI text + xAI voice). It is NOT deployed, so there is no live
@@ -379,7 +331,7 @@
       if (user) { renderName(user); playSelectAfterLogin(); }
     });
     /* Sign out is palette-only now (Command K) — no Sign out button on the
-       main hub page. The 'Sign out' palette command below calls signOut(). */
+       main hub page. The 'Sign out' palette command calls signOut(). */
   </script>
 <script>
 /* iPhone-style background shift: gyro tilt on phone, mouse parallax on desktop. */
