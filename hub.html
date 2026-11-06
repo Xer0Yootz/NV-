@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Infinity 6 Terminal</title>
+  <title>Infinity6 Terminal</title>
   <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
   <style>
     body { background:#05010f; color:#f5f0ff; font-family:"VT323", "Share Tech Mono", monospace; font-size:18px; margin:0; min-height:100vh; display:grid; place-items:center; }
@@ -24,7 +24,7 @@
     .static-top { position:fixed; inset:0; z-index:1; pointer-events:none; opacity:.38; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.25' numOctaves='3'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E"); }
     main { position:relative; z-index:2; width:100%; max-width:560px; padding:32px; box-sizing:border-box; text-align:center; border:1px solid #7c3aed; border-radius:16px; background:rgba(18,8,31,.88); }
     /* Hub layout (Nov 5, Jasmine's order, corrected to LEFT): the main terminal box stays
-       centred where it is. Only the "Infinity 6 Terminal" wording shifts all
+       centred where it is. Only the "Infinity6 Terminal" wording shifts all
        the way to the left side, in its own box above the terminal box.
        Sign out is NOT on the main page — it lives in the Command K palette. */
     .hub-col { position:relative; z-index:2; width:100%; max-width:560px; }
@@ -89,7 +89,7 @@
   <div id="nvRippleLayer" aria-hidden="true"></div>
   <div class="ticker"><div class="ticker-track"><span id="tickerInfo">LOADING TIME · DATE · LOCATION · WEATHER · TIDES</span><span id="tickerInfo2" aria-hidden="true">LOADING TIME · DATE · LOCATION · WEATHER · TIDES</span></div></div>
   <div class="hub-col">
-  <div class="title-box"><h1>Infinity 6 Terminal</h1></div>
+  <div class="title-box"><h1>Infinity6 Terminal</h1></div>
   <main>
     <p id="who">Checking your sign-in…</p>
     <div class="nv-chat" id="nvChatBox">
@@ -292,7 +292,8 @@
     /* Raycast-style command palette: Cmd/Ctrl+K, type to filter, arrows + Enter to run. */
     var paletteCommands = [
       { name: 'Open Commands', hint: 'Commands', keys: 'commands settings change name delete name', run: function () { location.href = 'options.html'; } },
-      { name: 'NV_Gigas Garden', hint: 'Game', keys: 'nv_gigas garden gigas garden game play', run: function () { location.href = 'https://xer0yootz.github.io/neon-vigil-oauth/gigas-garden/'; } },
+      // IWW: Jasmine wants to rename this to something cooler later. "Virtual world" vs "virtual reality" for the parenthetical is still open. Do not invent a name.
+      { name: 'IWW — Gigas Garden game', hint: 'Game', keys: 'iww gigas garden game play', run: function () { location.href = 'https://xer0yootz.github.io/neon-vigil-oauth/gigas-garden/'; } },
       { name: 'NV_808', hint: 'NV-808', keys: 'nv_808 nv-808 nv808 drum machine', run: function () { location.href = '/nv808/'; } },
       { name: 'NV_Gridlog', hint: 'Gridlog', keys: 'nv_gridlog gridlog grid log character sheets', run: function () { location.href = 'https://neonvigil.app/test-web-bible-neon-ultra'; } },
       { name: 'Sign out', hint: 'Account', keys: 'sign out log out exit', run: function () { signOut(); } }
