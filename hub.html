@@ -24,12 +24,13 @@
     .static-top { position:fixed; inset:0; z-index:1; pointer-events:none; opacity:.38; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.25' numOctaves='3'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E"); }
     main { position:relative; z-index:2; width:100%; max-width:560px; padding:32px; box-sizing:border-box; text-align:center; border:1px solid #7c3aed; border-radius:16px; background:rgba(18,8,31,.88); }
     /* Hub layout (Nov 5, Jasmine's order, corrected to LEFT): the main terminal box stays
-       centred where it is. Only the "Infinity6 Terminal" wording shifts all
+       centred where it is. Only the "Neon Vigil app / Terminal" wording shifts all
        the way to the left side, in its own box above the terminal box.
        Sign out is NOT on the main page — it lives in the Command K palette. */
     .hub-col { position:relative; z-index:2; width:100%; max-width:560px; }
     .title-box { border:1px solid #7c3aed; border-radius:16px; background:rgba(18,8,31,.88); padding:12px 18px; margin-bottom:12px; text-align:left; box-sizing:border-box; }
     .title-box h1 { margin:0; }
+    .title-box .terminal-enter { margin:6px 0 0; }
     button { background:transparent; color:#f5f0ff; border:1px solid #f5f0ff; border-radius:0; padding:10px 18px; font-weight:700; cursor:pointer; }
     a { color:#a78bfa; }
     .cursor-blink { display:inline-block; animation:nv-blink 1.2s steps(2,start) infinite; color:#ffffff; }
@@ -89,7 +90,7 @@
   <div id="nvRippleLayer" aria-hidden="true"></div>
   <div class="ticker"><div class="ticker-track"><span id="tickerInfo">LOADING TIME · DATE · LOCATION · WEATHER · TIDES</span><span id="tickerInfo2" aria-hidden="true">LOADING TIME · DATE · LOCATION · WEATHER · TIDES</span></div></div>
   <div class="hub-col">
-  <div class="title-box"><h1>Infinity6 Terminal</h1></div>
+  <div class="title-box"><h1>Neon Vigil app / Terminal</h1><p class="terminal-enter">Enter the Terminal</p></div>
   <main>
     <p id="who">Checking your sign-in…</p>
     <div class="nv-chat" id="nvChatBox">
