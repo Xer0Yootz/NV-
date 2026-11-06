@@ -291,6 +291,25 @@
     }
     renderTicker(); setInterval(renderTicker, 1000); requestTickerLocation();
     /* Raycast-style command palette: Cmd/Ctrl+K, type to filter, arrows + Enter to run. */
+    /* Select sound (Mouse Click 1): plays once when the user picks an option
+       that changes the page. Volume is a UI click, not looped. */
+    var selectAudio = new Audio('sounds/neon-vigil-mouse-click-1.wav');
+    selectAudio.volume = 0.5;
+    function playSelect() { try { selectAudio.currentTime = 0; var p = selectAudio.play(); if (p && p.catch) p.catch(function () {}); } catch (e) {} }
+    /* Post-login: the page changed from sign-in to hub, so the select sound
+       plays once. Browsers may block audio without a gesture after the
+       redirect, so if the first play is blocked it plays on the first
+       pointer tap instead. */
+    function playSelectAfterLogin() {
+      var p;
+      try { p = selectAudio.play(); } catch (e) { p = null; }
+      if (p && p.catch) {
+        p.catch(function () {
+          var once = function () { playSelect(); document.removeEventListener('pointerdown', once); };
+          document.addEventListener('pointerdown', once);
+        });
+      }
+    }
     var paletteCommands = [
       { name: 'Open Commands', hint: 'Commands', keys: 'commands settings change name delete name', run: function () { location.href = 'options.html'; } },
       // IWW: Jasmine wants to rename this to something cooler later. "Virtual world" vs "virtual reality" for the parenthetical is still open. Do not invent a name.
@@ -318,7 +337,10 @@
     }
     function openPalette() { paletteOpen = true; paletteSel = 0; document.getElementById('paletteOverlay').classList.add('open'); document.getElementById('paletteInput').value = ''; renderPalette(); document.getElementById('paletteInput').focus(); }
     function closePalette() { paletteOpen = false; document.getElementById('paletteOverlay').classList.remove('open'); }
-    function runPalette(i) { var c = paletteFiltered[i]; if (!c) return; closePalette(); c.run(); }
+    /* Palette choice changes the page (every entry navigates), so the select
+       sound plays once; a short delay lets the click be heard before the
+       page changes. */
+    function runPalette(i) { var c = paletteFiltered[i]; if (!c) return; closePalette(); playSelect(); setTimeout(function () { c.run(); }, 200); }
     document.getElementById('paletteInput').addEventListener('input', function () { paletteSel = 0; renderPalette(); });
     document.getElementById('paletteInput').addEventListener('keydown', function (e) {
       if (e.key === 'ArrowDown') { e.preventDefault(); paletteSel = Math.min(paletteFiltered.length - 1, paletteSel + 1); renderPalette(); }
@@ -353,7 +375,7 @@
       body.innerHTML = ''; body.appendChild(frame);
     })();
     requireSession('index.html').then(function (user) {
-      if (user) { renderName(user); }
+      if (user) { renderName(user); playSelectAfterLogin(); }
     });
     /* Sign out is palette-only now (Command K) — no Sign out button on the
        main hub page. The 'Sign out' palette command below calls signOut(). */

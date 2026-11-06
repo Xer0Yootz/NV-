@@ -114,5 +114,23 @@
   sync();
 })();
 </script>
+<script>
+  /* Select sound (Mouse Click 1): plays once when a Commands link is chosen
+     — every link here navigates to another page. A short delay lets the
+     click be heard before the page changes. */
+  (function () {
+    var s = new Audio('sounds/neon-vigil-mouse-click-1.wav');
+    s.volume = 0.5;
+    function playSelect() { try { s.currentTime = 0; var p = s.play(); if (p && p.catch) p.catch(function () {}); } catch (e) {} }
+    document.querySelectorAll('main a').forEach(function (a) {
+      a.addEventListener('click', function (e) {
+        e.preventDefault();
+        playSelect();
+        var href = a.getAttribute('href');
+        setTimeout(function () { location.href = href; }, 200);
+      });
+    });
+  })();
+</script>
 </body>
 </html>

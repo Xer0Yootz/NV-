@@ -99,6 +99,16 @@
     })();
     document.getElementById('githubBtn').addEventListener('click', signInWithGitHub);
     document.getElementById('googleBtn').addEventListener('click', signInWithGoogle);
+    /* Select sound (Mouse Click 1): plays once when a sign-in provider is
+       chosen — the choice navigates to GitHub/Google. No delay: the OAuth
+       redirect starts right after, and the click plays on the gesture. */
+    (function () {
+      var s = new Audio('sounds/neon-vigil-mouse-click-1.wav');
+      s.volume = 0.5;
+      function playSelect() { try { s.currentTime = 0; var p = s.play(); if (p && p.catch) p.catch(function () {}); } catch (e) {} }
+      document.getElementById('githubBtn').addEventListener('click', playSelect);
+      document.getElementById('googleBtn').addEventListener('click', playSelect);
+    })();
   </script>
 <audio id="nvSoundBed3" src="sounds/neon-vigil-sound-bed-3-loop.wav" loop preload="none"></audio>
 <button type="button" id="nvSoundBed3Btn" class="nv-sound-btn" disabled aria-label="Play Sound Bed 3" title="Play Sound Bed 3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg></button>
