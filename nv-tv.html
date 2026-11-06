@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NV-TV — Infinity6 Terminal</title>
+  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./nv-commands.css">
+  <style>
+    /* NV-TV — blank for now. Just the water and the static. This is where
+       the user will watch episodes of the series. */
+    body { background:#05010f; color:#f5f0ff; font-family: "VT323", "Share Tech Mono", monospace; font-size: 18px; margin:0; min-height:100vh; overflow:hidden; }
+    .nv-tv-water { position:fixed; inset:0; z-index:0; background-image:url("ocean-water.gif"); background-size:cover; background-position:center; pointer-events:none; }
+    .static-top { position:fixed; inset:0; z-index:1; pointer-events:none; opacity:.38; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.25' numOctaves='3'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E"); }
+  </style>
+  <script src="./config.js"></script>
+</head>
+<body>
+  <div class="nv-tv-water" aria-hidden="true"></div>
+  <div class="static-top" aria-hidden="true"></div>
+  <script src="./auth.js"></script>
+  <script src="./nv-commands.js"></script>
+  <script>
+    /* NV-TV is a hub page: send anyone who is not signed in back to sign-in. */
+    requireSession('index.html');
+  </script>
+  <script>
+    /* Moving TV static over the water — same grain as the hub, repositioned
+       every 90ms so it shimmers. */
+    (function () {
+      var topStatic = document.querySelector('.static-top');
+      if (!topStatic) return;
+      setInterval(function () {
+        var sx = Math.floor(Math.random() * 240), sy = Math.floor(Math.random() * 240);
+        topStatic.style.backgroundPosition = sx + 'px ' + sy + 'px';
+      }, 90);
+    })();
+  </script>
+</body>
+</html>

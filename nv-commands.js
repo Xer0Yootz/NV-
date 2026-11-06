@@ -31,6 +31,7 @@
     { name: 'NV_Gigas Garden — Remix', hint: 'Game', keys: 'nv gigas garden remix remix.gg game play', run: function () { location.href = 'https://remix.gg/g/neon-vigil-gigas-garden'; } },
     { name: 'NV_808', hint: 'NV-808', keys: 'nv_808 nv-808 nv808 drum machine', run: function () { location.href = '/nv808/'; } },
     { name: 'NV_Gridlog', hint: 'Gridlog', keys: 'nv_gridlog gridlog grid log character sheets', run: function () { location.href = 'https://neonvigil.app/test-web-bible-neon-ultra'; } },
+    { name: 'NV-TV', hint: 'Watch', keys: 'nv-tv nvtv tv watch episodes series', run: function () { location.href = '/nv-tv.html'; } },
     { name: 'Settings', hint: 'Profile', keys: 'settings profile picture username symbiont hexa cyphr', run: function () { location.href = '/settings.html'; } },
     { name: 'Sign out', hint: 'Account', keys: 'sign out log out exit', run: function () { doSignOut(); } }
   ];
