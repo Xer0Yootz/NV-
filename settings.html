@@ -215,7 +215,7 @@
       }
     });
 
-    /* ---- Username (same logic as options.html) ---- */
+    /* ---- Username ---- */
     function savedName() { return localStorage.getItem('nv_display_name') || ''; }
     function saveNameToAccount(v) { saveToAccount({ display_name: v }); }
     function accountName(user) { return (user && user.user_metadata && user.user_metadata.display_name) ? user.user_metadata.display_name : ''; }
