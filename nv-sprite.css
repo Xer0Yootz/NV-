@@ -1,0 +1,71 @@
+/* Symbiont sprite — PLACEHOLDER styles.
+   The real Symbiont sprite comes later; this hexagon is a temporary stand-in.
+   Infinity 6 Terminal / Hex OS: VT323 18px, #05010f, #7c3aed, #a78bfa.
+   No glow, no green. No words or text on the hexagon. */
+
+/* The invisible container: transparent, fixed, 120x120, no background, no
+   border. It is the thing that roams and is dragged; the hexagon is the
+   visible shape inside it. pointer-events:none so the container never
+   blocks page clicks — only the hexagon itself captures input. */
+.nv-sprite {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 120px;
+  height: 120px;
+  background: transparent;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  z-index: 8; /* above hub content (z 2), below the Commands palette (z 10) */
+  pointer-events: none;
+}
+
+/* Dart transition for the tap run-away: only while .nv-sprite-dart is on,
+   so it never smooths the frame-by-frame roaming. */
+.nv-sprite-dart {
+  transition: left .35s ease-out, top .35s ease-out;
+}
+
+/* The hexagon itself: the only part that takes pointer input. */
+.nv-sprite-hex {
+  width: 96px;
+  height: 96px;
+  margin: 12px;
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: none; /* pointer drag must not scroll the page on touch */
+  will-change: transform;
+}
+.nv-sprite-hex svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.nv-sprite-grabbing {
+  cursor: grabbing;
+}
+.nv-sprite-hex:focus-visible {
+  outline: 1px solid #a78bfa;
+  outline-offset: 2px;
+}
+
+/* 1s hop-bob, same timing as Baby Pigek's locked hop-bob. */
+@keyframes nv-sprite-hop {
+  0% { transform: translateY(0); }
+  30% { transform: translateY(-26px); }
+  60% { transform: translateY(0); }
+  80% { transform: translateY(-10px); }
+  100% { transform: translateY(0); }
+}
+.nv-sprite-hop {
+  animation: nv-sprite-hop 1s ease-in-out;
+}
+
+/* Reduced motion: the sprite sits still (no roaming, no hop, no spin)
+   but stays draggable and clickable. */
+@media (prefers-reduced-motion: reduce) {
+  .nv-sprite-hop {
+    animation: none;
+  }
+}
