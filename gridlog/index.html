@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NV_Gridlog — Infinity6 Terminal</title>
+  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../nv-terminal-tokens.css">
+  <link rel="stylesheet" href="../nv-ticker.css">
+  <link rel="stylesheet" href="../nv-commands.css">
+  <link rel="stylesheet" href="../nv-sprite.css">
+  <style>
+    /* NV_Gridlog — the Grid Log (audit fix, Nov 8, 2026). This is the real
+       Gridlog destination: the same creature log as the in-game Grid Log
+       modal (GRID_CREATURES), with the same lock semantics. Praxia is shown
+       — she is unlocked by default in the game. The other four entries show
+       UNSYNCED SIGNAL until they are synced in the Garden, exactly like the
+       in-game modal; their data is not shown here so the unlock progression
+       is not spoiled. Syncing happens in the Garden. */
+    body { background:#05010f; color:#f5f0ff; font-family:"VT323", "Share Tech Mono", monospace; font-size:18px; margin:0; }
+    main { position:relative; z-index:2; max-width:720px; margin:0 auto; padding:0 16px 16px; }
+    .card { border:1px solid #7c3aed; border-radius:16px; background:rgba(18,8,31,.88); padding:28px; }
+    .gridlog-note { color:#a78bfa; }
+    .gridlog-note a { color:#a78bfa; }
+    .log-entry { border:1px solid #00f0ff; padding:8px; background:#0b0414; margin:12px 0; }
+    .log-entry-head { display:flex; justify-content:space-between; color:#ff4fd8; font-weight:bold; }
+    .log-entry-power { color:#00f0ff; margin-top:3px; }
+    .log-entry-desc { color:#c9b8d6; margin-top:3px; }
+  </style>
+  <script src="../config.js"></script>
+</head>
+<body class="nv-shell-page">
+  <header class="nv-shell-head">
+    <a class="nv-shell-head-title" href="/hub.html">Infinity6 Terminal</a>
+    <span class="nv-shell-head-page">NV_Gridlog</span>
+    <span class="nv-shell-head-hint" data-nv-commands>Press ⌘K for commands</span>
+  </header>
+  <main>
+    <div class="card">
+      <h1 style="margin:8px 0">Grid Log</h1>
+      <p class="gridlog-note">The Garden's creature log. Sync in the Garden to log telemetry — <a href="/gigas-garden/">open the Gigas Garden</a>.</p>
+      <div class="log-entry">
+        <div class="log-entry-head"><span>UNSYNCED SIGNAL</span><span>[HAULER]</span></div>
+        <div class="log-entry-power">Sync in the Garden to log telemetry.</div>
+        <div class="log-entry-desc">---</div>
+      </div>
+      <div class="log-entry">
+        <div class="log-entry-head"><span>UNSYNCED SIGNAL</span><span>[WARDEN]</span></div>
+        <div class="log-entry-power">Sync in the Garden to log telemetry.</div>
+        <div class="log-entry-desc">---</div>
+      </div>
+      <div class="log-entry">
+        <div class="log-entry-head"><span>UNSYNCED SIGNAL</span><span>[LUMEN]</span></div>
+        <div class="log-entry-power">Sync in the Garden to log telemetry.</div>
+        <div class="log-entry-desc">---</div>
+      </div>
+      <div class="log-entry">
+        <div class="log-entry-head"><span>UNSYNCED SIGNAL</span><span>[DIVER]</span></div>
+        <div class="log-entry-power">Sync in the Garden to log telemetry.</div>
+        <div class="log-entry-desc">---</div>
+      </div>
+      <div class="log-entry">
+        <div class="log-entry-head"><span>PRAXIA</span><span>[CANNOT SYNC]</span></div>
+        <div class="log-entry-power">Pure Will of the Gigas Garden (Unsyncable)</div>
+        <div class="log-entry-desc">6'3", mantis head, compound pink eyes, no mouth, two tiny antennae, pearlescent chitin, dragonfly wings.</div>
+      </div>
+      <p class="gridlog-note"><a href="/hub.html">Back to hub</a></p>
+    </div>
+  </main>
+  <script src="../auth.js"></script>
+  <script src="../nv-ticker.js"></script>
+  <script src="../nv-commands.js"></script>
+  <script src="../nv-shell.js"></script>
+  <script src="../nv-sprite.js"></script>
+</body>
+</html>

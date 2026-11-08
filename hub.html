@@ -7,6 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./nv-ticker.css">
   <link rel="stylesheet" href="./nv-commands.css">
+  <link rel="stylesheet" href="./nv-terminal-tokens.css">
   <link rel="stylesheet" href="./nv-sprite.css">
   <style>
     body { background:#05010f; color:#f5f0ff; font-family:"VT323", "Share Tech Mono", monospace; font-size:18px; margin:0; min-height:100vh; display:grid; place-items:center; }
@@ -42,7 +43,10 @@
     #stationSelect { background:transparent; color:#f5f0ff; border:1px solid #f5f0ff; border-radius:0; font-family:inherit; font-size:13px; padding:4px; }
     #stationSelect option { color:#05010f; }
     .commands-footer p { display:inline; margin:0 8px 0 0; }
-    #nameInput { background:transparent; border:0; outline:none; caret-color:transparent; color:#f5f0ff; font-family:inherit; font-size:inherit; padding:0; margin:0; width:1ch; }
+    /* Display-name field: styled by nv-terminal-tokens.css (visible 1px
+       violet border, panel background, 16ch minimum width). The old inline
+       rule (border:0, width:1ch) rendered as an unstyled ~4px sliver when
+       empty — audit fix, Nov 8, 2026. #who grid stays here (page layout). */
     #who { display:grid; grid-template-columns:1fr; gap:4px 8px; text-align:left; max-width:340px; margin:0 auto; }
     .name-cell { grid-column:1; white-space:nowrap; }
     .save-cell { grid-column:1; }
@@ -233,27 +237,38 @@
     function termSize() { termInput.style.width = Math.max(1, termInput.value.length + 1) + 'ch'; }
     termInput.addEventListener('input', termSize);
     termSize();
+    /* Audit fix Nov 8, 2026: game links stay inside the app shell — the
+       terminal routes to the same-origin shell wrappers (/gigas-garden/,
+       /remix/) and the real Grid Log page (/gridlog/), never out to an
+       external URL or the Bible test page. Aniimo + NV_Pet Pal added
+       (the pet lives in the Garden — load pet opens the shell-wrapped game). */
     var termGames = {
-      'iww': { label: 'IWW — Gigas Garden game', url: 'https://xer0yootz.github.io/neon-vigil-oauth/gigas-garden/' },
-      'gigas': { label: 'IWW — Gigas Garden game', url: 'https://xer0yootz.github.io/neon-vigil-oauth/gigas-garden/' },
-      'remix': { label: 'NV_Gigas Garden — Remix', url: 'https://remix.gg/g/neon-vigil-gigas-garden' },
+      'iww': { label: 'Virtual IWW: Gigas Garden', url: '/gigas-garden/' },
+      'gigas': { label: 'Virtual IWW: Gigas Garden', url: '/gigas-garden/' },
+      'remix': { label: 'NV_Gigas Garden — Remix', url: '/remix/' },
       'nv808': { label: 'NV_808', url: '/nv808/' },
       'nv_808': { label: 'NV_808', url: '/nv808/' },
       '808': { label: 'NV_808', url: '/nv808/' },
-      'gridlog': { label: 'NV_Gridlog', url: 'https://neonvigil.app/test-web-bible-neon-ultra' },
-      'grid': { label: 'NV_Gridlog', url: 'https://neonvigil.app/test-web-bible-neon-ultra' }
+      'gridlog': { label: 'NV_Gridlog', url: '/gridlog/' },
+      'grid': { label: 'NV_Gridlog', url: '/gridlog/' },
+      'aniimo': { label: 'Aniimo', url: '/aniimo/' },
+      'pet': { label: 'NV_Pet Pal', url: '/gigas-garden/' },
+      'petpal': { label: 'NV_Pet Pal', url: '/gigas-garden/' },
+      'pigek': { label: 'NV_Pet Pal', url: '/gigas-garden/' }
     };
     function termHelp() {
       termPrint('Commands:');
       termPrint('  radio play / radio stop — start or stop the radio');
       termPrint('  radio station 1|2|3 — switch station (1 Bed 1, 2 Bed 2, 3 Bed 3)');
       termPrint('  load iww | load remix | load nv808 | load gridlog — load a game');
+      termPrint('  load aniimo — open the Aniimo Avatar Editor');
+      termPrint('  load pet — open NV_Pet Pal (Baby Pigek, in the Garden)');
       termPrint('  commands — open the Command K popup');
       termPrint('  clear — clear the terminal');
     }
     function termLoad(key) {
       var g = termGames[key];
-      if (!g) { termPrint('Unknown game. Try: load iww, load remix, load nv808, load gridlog.'); return; }
+      if (!g) { termPrint('Unknown game. Try: load iww, load remix, load nv808, load gridlog, load aniimo, load pet.'); return; }
       termPrint('Loading ' + g.label + '…');
       /* Loading a game changes the page, so the select sound plays once;
          a short delay lets the click be heard before the page changes. */

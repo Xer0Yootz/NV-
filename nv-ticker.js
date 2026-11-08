@@ -31,7 +31,11 @@
     var el = document.getElementById('tickerInfo');
     if (!el) return;
     var parts = [tickerDateTime(), tickerState.place || 'LOCATION —', tickerState.weather, tickerState.tides];
-    var text = parts.join(' · ');
+    /* Trailing delimiter: the ticker loops two identical copies for the
+       seamless scroll, so each copy ends with ' · ' — otherwise the seam
+       reads "TIDES STANDBY SUN 8 NOV…" back-to-back with no delimiter
+       (audit fix, Nov 8, 2026). */
+    var text = parts.join(' · ') + ' · ';
     el.textContent = text;
     var el2 = document.getElementById('tickerInfo2');
     if (el2) el2.textContent = text;

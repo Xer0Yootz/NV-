@@ -26,10 +26,16 @@
 
   var paletteCommands = [
     // Renamed Nov 7, 2026 by Jasmine: "Virtual IWW: Gigas Garden".
-    { name: 'Virtual IWW: Gigas Garden', hint: 'Game', keys: 'virtual iww gigas garden game play', run: function () { location.href = 'https://xer0yootz.github.io/neon-vigil-oauth/gigas-garden/'; } },
-    { name: 'NV_Gigas Garden — Remix', hint: 'Game', keys: 'nv gigas garden remix remix.gg game play', run: function () { location.href = 'https://remix.gg/g/neon-vigil-gigas-garden'; } },
+    // Audit fix Nov 8, 2026: game links stay inside the app shell — the
+    // palette routes to the same-origin shell wrappers (/gigas-garden/,
+    // /remix/) instead of leaving neonvigil.app, and NV_Gridlog routes to
+    // the real Grid Log page (/gridlog/) instead of the Bible test page.
+    { name: 'Virtual IWW: Gigas Garden', hint: 'Game', keys: 'virtual iww gigas garden game play', run: function () { location.href = '/gigas-garden/'; } },
+    { name: 'NV_Gigas Garden — Remix', hint: 'Game', keys: 'nv gigas garden remix remix.gg game play', run: function () { location.href = '/remix/'; } },
+    { name: 'Aniimo', hint: 'Avatar Editor', keys: 'aniimo avatar editor console', run: function () { location.href = '/aniimo/'; } },
+    { name: 'NV_Pet Pal', hint: 'Pet', keys: 'nv pet pal baby pigek pet game', run: function () { location.href = '/gigas-garden/'; } },
     { name: 'NV_808', hint: 'NV-808', keys: 'nv_808 nv-808 nv808 drum machine', run: function () { location.href = '/nv808/'; } },
-    { name: 'NV_Gridlog', hint: 'Gridlog', keys: 'nv_gridlog gridlog grid log character sheets', run: function () { location.href = 'https://neonvigil.app/test-web-bible-neon-ultra'; } },
+    { name: 'NV_Gridlog', hint: 'Gridlog', keys: 'nv_gridlog gridlog grid log creatures', run: function () { location.href = '/gridlog/'; } },
     { name: 'NV-TV', hint: 'Watch', keys: 'nv-tv nvtv tv watch episodes series', run: function () { location.href = '/nv-tv.html'; } },
     { name: 'Settings', hint: 'Profile', keys: 'settings profile picture username symbiont hexa cyphr change name delete name', run: function () { location.href = '/settings.html'; } },
     { name: 'Sign out', hint: 'Account', keys: 'sign out log out exit', run: function () { doSignOut(); } }

@@ -1,0 +1,163 @@
+/* nv-terminal-tokens.css — Shared shell tokens for the Neon Vigil web app.
+   Infinity 6 Terminal / Hex OS. Audit fix, Nov 8, 2026.
+   One file, included on every signed-in page (hub, Settings, Commands,
+   NV-808, Bible test page, NV-TV, Gridlog, Gigas Garden + Remix wrappers,
+   Aniimo). The ticker keeps its own file (nv-ticker.css) and the palette
+   keeps its own (nv-commands.css); this file is the design tokens plus the
+   shell chrome they share: the master header wrapper, the bottom Radio/Hexa
+   dock, and the display-name field + buttons.
+   Locks: VT323 18px for sign-in + hub; same ticker + same info on all pages
+   except the main page; 1px obsidian/violet borders; monospace terminal type.
+   Pages add class="nv-shell-page" to <body> so the fixed ticker (top) and
+   the fixed dock (bottom) never cover page content. The hub does NOT use
+   .nv-shell-page — its centred .hub-col already accounts for ticker + dock. */
+
+:root {
+  --nv-bg: #05010f;
+  --nv-panel: rgba(18, 8, 31, .88);
+  --nv-line: #7c3aed;
+  --nv-text: #f5f0ff;
+  --nv-accent: #a78bfa;
+  --nv-font: "VT323", "Share Tech Mono", monospace;
+  --nv-font-size: 18px;
+  --nv-ticker-size: 14px;
+}
+
+/* Page clearance for the fixed ticker (top) and fixed dock (bottom). */
+body.nv-shell-page {
+  padding-top: 46px;
+  padding-bottom: 64px;
+}
+
+/* Master shell header wrapper — the standard header every signed-in page
+   carries under the ticker: "Infinity6 Terminal" (link back to the hub),
+   the page name, and the palette hint. The hub does not use this — its
+   "Infinity6 Terminal" heading lives inside the terminal box (Nov 8 order). */
+.nv-shell-head {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 14px;
+  max-width: 720px;
+  margin: 0 auto 18px;
+  padding: 10px 14px;
+  border: 1px solid var(--nv-line);
+  border-radius: 16px;
+  background: var(--nv-panel);
+  font-family: var(--nv-font);
+  font-size: var(--nv-font-size);
+  color: var(--nv-text);
+  box-sizing: border-box;
+}
+.nv-shell-head-title {
+  color: var(--nv-text);
+  text-decoration: none;
+  font-size: 20px;
+}
+.nv-shell-head-title:hover { text-decoration: underline; }
+.nv-shell-head-page { color: var(--nv-accent); }
+.nv-shell-head-hint {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--nv-accent);
+  cursor: pointer;
+}
+
+/* Bottom Radio/Hexa dock — the standard dock. Same look as the hub's
+   .commands-footer: fixed bottom bar, 1px violet border, panel background,
+   Radio (play/stop + station select) left, Hexa commands button right.
+   Injected by nv-shell.js (Infinity6Shell); these rules style it. */
+.nv-shell-dock {
+  position: fixed;
+  bottom: 8px;
+  left: 8px;
+  right: 8px;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  font-family: var(--nv-font);
+  font-size: 15px;
+  color: var(--nv-text);
+  border: 1px solid var(--nv-line);
+  box-sizing: border-box;
+  background: var(--nv-panel);
+}
+.nv-shell-dock-cell {
+  border: 1px solid var(--nv-line);
+  background: var(--nv-panel);
+  padding: 6px 10px;
+  text-align: center;
+}
+.nv-shell-dock a { color: var(--nv-accent); }
+.nv-shell-dock button {
+  font-family: var(--nv-font);
+  font-size: 13px;
+  padding: 4px 8px;
+  background: transparent;
+  color: var(--nv-text);
+  border: 1px solid var(--nv-text);
+  border-radius: 0;
+  cursor: pointer;
+}
+.nv-shell-dock .nv-shell-commands-btn {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  line-height: 0;
+}
+.nv-shell-dock select {
+  background: transparent;
+  color: var(--nv-text);
+  border: 1px solid var(--nv-text);
+  border-radius: 0;
+  font-family: inherit;
+  font-size: 13px;
+  padding: 4px;
+}
+.nv-shell-dock select option { color: var(--nv-bg); }
+.nv-shell-radio-btn {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+}
+.nv-shell-radio-btn svg { width: 16px; height: 16px; display: block; }
+
+/* Display-name field + buttons — the shell-styled version of the hub's
+   name input. The old rule (width:1ch, border:0, transparent background)
+   rendered as an unstyled ~4px sliver when empty. The field is now a real
+   visible shell control: 1px violet border, panel background, padding, and
+   a 16ch minimum width so it never collapses — the auto-size JS still grows
+   it past 16ch as the name gets longer. The native caret stays hidden; the
+   blinking underscore span beside the input is the cursor (same as hub). */
+#nameInput {
+  background: var(--nv-panel);
+  border: 1px solid var(--nv-line);
+  border-radius: 0;
+  outline: none;
+  caret-color: transparent;
+  color: var(--nv-text);
+  font-family: inherit;
+  font-size: inherit;
+  padding: 6px 8px;
+  margin: 0;
+  min-width: 16ch;
+}
+#saveNameBtn, #editNameBtn, #deleteNameBtn, #signOutBtn {
+  background: transparent;
+  color: var(--nv-text);
+  border: 1px solid var(--nv-text);
+  border-radius: 0;
+  padding: 10px 18px;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}

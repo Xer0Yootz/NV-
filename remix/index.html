@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NV_Gigas Garden — Remix — Infinity6 Terminal</title>
+  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../nv-terminal-tokens.css">
+  <link rel="stylesheet" href="../nv-ticker.css">
+  <link rel="stylesheet" href="../nv-commands.css">
+  <link rel="stylesheet" href="../nv-sprite.css">
+  <style>
+    /* Shell-wrapped game page (audit fix, Nov 8, 2026): the Remix game loads
+       in a full-viewport frame INSIDE the app shell (ticker, header, dock,
+       Cmd+K) instead of navigating out to remix.gg. The frame is deliberately
+       unsandboxed so the game behaves exactly as it does standalone.
+       FRAMING UNVERIFIED: whether remix.gg allows embedding was not
+       checkable from here — if it blocks framing, the frame stays blank
+       and the "Open in Remix" link below is the way in. Needs a live
+       rendered check. */
+    html, body { height: 100%; }
+    body { background:#05010f; color:#f5f0ff; font-family:"VT323", "Share Tech Mono", monospace; font-size:18px; margin:0; display:flex; flex-direction:column; }
+    .nv-shell-head { max-width:none; margin:0 12px 12px; }
+    .nv-frame-wrap { flex:1; min-height:0; margin:0 12px; }
+    .nv-frame-wrap iframe { width:100%; height:100%; border:1px solid #7c3aed; display:block; box-sizing:border-box; background:#05010f; }
+    .nv-frame-fallback { text-align:center; font-size:14px; color:#a78bfa; margin:10px 0 0; }
+    .nv-frame-fallback a { color:#a78bfa; }
+  </style>
+  <script src="../config.js"></script>
+</head>
+<body class="nv-shell-page">
+  <header class="nv-shell-head">
+    <a class="nv-shell-head-title" href="/hub.html">Infinity6 Terminal</a>
+    <span class="nv-shell-head-page">NV_Gigas Garden — Remix</span>
+    <span class="nv-shell-head-hint" data-nv-commands>Press ⌘K for commands</span>
+  </header>
+  <div class="nv-frame-wrap">
+    <iframe src="https://remix.gg/g/neon-vigil-gigas-garden" title="NV_Gigas Garden — Remix" allowfullscreen></iframe>
+  </div>
+  <p class="nv-frame-fallback">If the game does not load in this frame, Remix blocks embedding — <a href="https://remix.gg/g/neon-vigil-gigas-garden" target="_blank" rel="noopener">open it in Remix</a>.</p>
+  <script src="../auth.js"></script>
+  <script src="../nv-ticker.js"></script>
+  <script src="../nv-commands.js"></script>
+  <script src="../nv-shell.js"></script>
+  <script src="../nv-sprite.js"></script>
+</body>
+</html>

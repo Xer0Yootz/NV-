@@ -6,13 +6,18 @@
   <title>Commands — Infinity6 Terminal</title>
   <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./nv-sprite.css">
+  <link rel="stylesheet" href="./nv-terminal-tokens.css">
+  <link rel="stylesheet" href="./nv-ticker.css">
   <style>
     body { background:#05010f url("ships-bridge.jpg") center/cover no-repeat fixed; color:#f5f0ff; font-family:"VT323", "Share Tech Mono", monospace; font-size:18px; margin:0; min-height:100vh; display:grid; place-items:center; }
     main { max-width:560px; padding:32px; text-align:center; border:1px solid #7c3aed; border-radius:16px; background:rgba(18,8,31,.88); }
     button { background:transparent; color:#f5f0ff; border:1px solid #f5f0ff; border-radius:0; padding:10px 18px; font-weight:700; cursor:pointer; }
     a { color:#a78bfa; }
     .cursor-blink { display:inline-block; animation:nv-blink 1.2s steps(2,start) infinite; color:#ffffff; }
-    #nameInput { background:transparent; border:0; outline:none; caret-color:transparent; color:#f5f0ff; font-family:inherit; font-size:inherit; padding:0; margin:0; width:1ch; }
+    /* Display-name field: styled by nv-terminal-tokens.css (visible 1px
+       violet border, panel background, 16ch minimum width). The old inline
+       rule (border:0, width:1ch) rendered as an unstyled ~4px sliver when
+       empty — audit fix, Nov 8, 2026. #who grid + User: label stay here. */
     #who { display:grid; grid-template-columns:auto 1fr; gap:4px 8px; text-align:left; max-width:340px; margin:0 auto; }
     .user-label { grid-column:1; }
     .name-cell { grid-column:2; white-space:nowrap; }
@@ -23,16 +28,21 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./config.js"></script>
 </head>
-<body>
+<body class="nv-shell-page">
   <main>
     <h1>Commands</h1>
     <p id="who">Checking your sign-in…</p>
     <nav class="commands-links" aria-label="Commands">
-      <!-- IWW: Jasmine wants to rename this to something cooler later. "Virtual world" vs "virtual reality" for the parenthetical is still open. Do not invent a name. -->
-      <p><a href="https://xer0yootz.github.io/neon-vigil-oauth/gigas-garden/">IWW — Gigas Garden game</a></p>
-      <p><a href="https://remix.gg/g/neon-vigil-gigas-garden">NV_Gigas Garden — Remix</a></p>
+      <!-- Audit fix Nov 8, 2026: game links stay inside the app shell — the
+           Commands page routes to the same-origin shell wrappers
+           (/gigas-garden/, /remix/) and the real Grid Log page (/gridlog/),
+           never out to an external URL or the Bible test page. -->
+      <p><a href="/gigas-garden/">Virtual IWW: Gigas Garden</a></p>
+      <p><a href="/remix/">NV_Gigas Garden — Remix</a></p>
+      <p><a href="/aniimo/">Aniimo</a></p>
+      <p><a href="/gigas-garden/">NV_Pet Pal</a></p>
       <p><a href="/nv808/">NV_808</a></p>
-      <p><a href="https://neonvigil.app/test-web-bible-neon-ultra">NV_Gridlog</a></p>
+      <p><a href="/gridlog/">NV_Gridlog</a></p>
       <p><a href="/nv-tv.html">NV-TV</a></p>
     </nav>
     <p><a href="hub.html">Back to hub</a></p>
@@ -135,6 +145,7 @@
     });
   })();
 </script>
+<script src="./nv-ticker.js"></script>
 <script src="./nv-sprite.js"></script>
 </body>
 </html>

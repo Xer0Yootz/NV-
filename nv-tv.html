@@ -6,6 +6,8 @@
   <title>NV-TV — Infinity6 Terminal</title>
   <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./nv-commands.css">
+  <link rel="stylesheet" href="./nv-terminal-tokens.css">
+  <link rel="stylesheet" href="./nv-ticker.css">
   <link rel="stylesheet" href="./nv-sprite.css">
   <style>
     /* NV-TV — blank for now. Just the water and the static. This is where
@@ -16,11 +18,21 @@
   </style>
   <script src="./config.js"></script>
 </head>
-<body>
+<body class="nv-shell-page">
   <div class="nv-tv-water" aria-hidden="true"></div>
   <div class="static-top" aria-hidden="true"></div>
+  <!-- App Shell (audit fix, Nov 8, 2026): the standard header wrapper + ticker
+       + bottom dock + Cmd+K. The page itself stays the blank water + static
+       page for now — the fuller NV TV app is a separate port decision. -->
+  <header class="nv-shell-head">
+    <a class="nv-shell-head-title" href="/hub.html">Infinity6 Terminal</a>
+    <span class="nv-shell-head-page">NV-TV</span>
+    <span class="nv-shell-head-hint" data-nv-commands>Press ⌘K for commands</span>
+  </header>
   <script src="./auth.js"></script>
+  <script src="./nv-ticker.js"></script>
   <script src="./nv-commands.js"></script>
+  <script src="./nv-shell.js"></script>
   <script src="./nv-sprite.js"></script>
   <script>
     /* NV-TV is a hub page: send anyone who is not signed in back to sign-in. */

@@ -19,10 +19,17 @@
   .nv-sound-btn{position:fixed;right:16px;bottom:16px;z-index:6;width:44px;height:44px;padding:0;display:flex;align-items:center;justify-content:center;background:rgba(18,8,31,.88);color:#f5f0ff;border:1px solid #f5f0ff;border-radius:0;cursor:pointer}.nv-sound-btn svg{width:20px;height:20px;display:block}.nv-sound-btn:disabled{opacity:.5;cursor:wait}
 </style>
 <link rel="stylesheet" href="./nv-commands.css">
+<link rel="stylesheet" href="./nv-terminal-tokens.css">
+<link rel="stylesheet" href="./nv-ticker.css">
 <link rel="stylesheet" href="./nv-sprite.css">
 </head>
-<body>
+<body class="nv-shell-page">
 <div class="bg" aria-hidden="true"></div><div class="scrim" aria-hidden="true"></div>
+<header class="nv-shell-head">
+  <a class="nv-shell-head-title" href="/hub.html">Infinity6 Terminal</a>
+  <span class="nv-shell-head-page">Bible — Character Sheets (Test)</span>
+  <span class="nv-shell-head-hint" data-nv-commands>Press ⌘K for commands</span>
+</header>
 <main><div class="card">
   <p class="test">TEST ONLY — CHARACTER SHEETS, BUILT FROM SCRATCH IN NV- — NOT THE LIVE HUB YET</p>
   <h1>Character Sheets</h1>
@@ -65,42 +72,13 @@
   <figure><img src="portraits/NV-Xero_Portrait.png" alt="Xero approved portrait"></figure>
   <p><a href="/">Back to sign-in</a> · <a href="/hub.html">Hub (sign-in required)</a></p>
 </div></main>
-<audio id="nvSoundBed3" src="sounds/neon-vigil-sound-bed-3-loop.wav" loop preload="none"></audio>
-<button type="button" id="nvSoundBed3Btn" class="nv-sound-btn" aria-label="Play Sound Bed 3" title="Play Sound Bed 3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg></button>
-<script>
-(function () {
-  var a = document.getElementById('nvSoundBed3');
-  var b = document.getElementById('nvSoundBed3Btn');
-  if (!a || !b) return;
-  var playSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>';
-  var stopSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="6" width="12" height="12"/></svg>';
-  function sync() {
-    b.innerHTML = a.paused ? playSvg : stopSvg;
-    b.setAttribute('aria-label', a.paused ? 'Play Sound Bed 3' : 'Stop Sound Bed 3');
-    b.setAttribute('title', a.paused ? 'Play Sound Bed 3' : 'Stop Sound Bed 3');
-  }
-  function locked() { return document.body.classList.contains('cookie-locked'); }
-  b.addEventListener('click', function () {
-    if (locked()) return;
-    if (a.paused) { a.play().catch(function () {}); } else { a.pause(); }
-  });
-  a.addEventListener('play', sync);
-  a.addEventListener('pause', sync);
-  function onFirstTap(e) {
-    if (locked()) return;
-    if (b.contains(e.target)) return;
-    a.play().catch(function () {});
-    document.removeEventListener('pointerdown', onFirstTap);
-  }
-  document.addEventListener('pointerdown', onFirstTap);
-  sync();
-})();
-</script>
+<!-- Shell dock (nv-shell.js) carries the radio now — the old fixed Sound Bed 3 button + its script were removed. Audit fix, Nov 8, 2026. -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./config.js"></script>
 <script src="./auth.js"></script>
 <script src="./nv-commands.js"></script>
 <script src="./nv-sprite.js"></script>
-<button type="button" data-nv-commands style="position:fixed;left:16px;bottom:16px;z-index:6;font-family:'VT323',monospace;font-size:18px;font-weight:700;background:transparent;color:#f5f0ff;border:1px solid #f5f0ff;border-radius:0;padding:10px 18px;cursor:pointer">⌘K Commands</button>
+<script src="./nv-ticker.js"></script>
+<script src="./nv-shell.js"></script>
 </body>
 </html>
