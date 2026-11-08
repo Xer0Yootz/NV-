@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Commands — Infinity6 Terminal</title>
+  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./nv-sprite.css">
+  <style>
+    body { background:#05010f url("ships-bridge.jpg") center/cover no-repeat fixed; color:#f5f0ff; font-family:"VT323", "Share Tech Mono", monospace; font-size:18px; margin:0; min-height:100vh; display:grid; place-items:center; }
+    main { max-width:560px; padding:32px; text-align:center; border:1px solid #7c3aed; border-radius:16px; background:rgba(18,8,31,.88); }
+    button { background:transparent; color:#f5f0ff; border:1px solid #f5f0ff; border-radius:0; padding:10px 18px; font-weight:700; cursor:pointer; }
+    a { color:#a78bfa; }
+    .cursor-blink { display:inline-block; animation:nv-blink 1.2s steps(2,start) infinite; color:#ffffff; }
+    #nameInput { background:transparent; border:0; outline:none; caret-color:transparent; color:#f5f0ff; font-family:inherit; font-size:inherit; padding:0; margin:0; width:1ch; }
+    #who { display:grid; grid-template-columns:auto 1fr; gap:4px 8px; text-align:left; max-width:340px; margin:0 auto; }
+    .user-label { grid-column:1; }
+    .name-cell { grid-column:2; white-space:nowrap; }
+    .save-cell { grid-column:2; }
+    @keyframes nv-blink { 50% { opacity:0; } }
+    .nv-sound-btn{position:fixed;right:16px;bottom:16px;z-index:6;width:44px;height:44px;padding:0;display:flex;align-items:center;justify-content:center;background:rgba(18,8,31,.88);color:#f5f0ff;border:1px solid #f5f0ff;border-radius:0;cursor:pointer}.nv-sound-btn svg{width:20px;height:20px;display:block}.nv-sound-btn:disabled{opacity:.5;cursor:wait}
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./config.js"></script>
+</head>
+<body>
+  <main>
+    <h1>Commands</h1>
+    <p id="who">Checking your sign-in…</p>
+    <nav class="commands-links" aria-label="Commands">
+      <!-- IWW: Jasmine wants to rename this to something cooler later. "Virtual world" vs "virtual reality" for the parenthetical is still open. Do not invent a name. -->
+      <p><a href="https://xer0yootz.github.io/neon-vigil-oauth/gigas-garden/">IWW — Gigas Garden game</a></p>
+      <p><a href="https://remix.gg/g/neon-vigil-gigas-garden">NV_Gigas Garden — Remix</a></p>
+      <p><a href="/nv808/">NV_808</a></p>
+      <p><a href="https://neonvigil.app/test-web-bible-neon-ultra">NV_Gridlog</a></p>
+      <p><a href="/nv-tv.html">NV-TV</a></p>
+    </nav>
+    <p><a href="hub.html">Back to hub</a></p>
+  </main>
+  <script src="./auth.js"></script>
+  <script>
+    function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+    function savedName() { return localStorage.getItem('nv_display_name') || ''; }
+    function saveNameToAccount(v) {
+      try {
+        var c = (typeof getClient === 'function') ? getClient() : null;
+        if (c) { c.auth.updateUser({ data: { display_name: v } }).catch(function () {}); }
+      } catch (e) {}
+    }
+    function accountName(user) { return (user && user.user_metadata && user.user_metadata.display_name) ? user.user_metadata.display_name : ''; }
+    function sizeInput() {
+      var inp = document.getElementById('nameInput');
+      if (inp) { inp.style.width = Math.max(1, inp.value.length + 1) + 'ch'; }
+    }
+    function showEdit(prefill) {
+      document.getElementById('who').innerHTML = '<span class="user-label">User:</span> <span class="name-cell"><input id="nameInput" maxlength="60" aria-label="Display name" autocomplete="off"><span class="cursor-blink">_</span></span> <span class="save-cell"><button id="saveNameBtn">Save</button></span> <span class="save-cell"><button id="signOutBtn">Sign out</button></span>';
+      var inp = document.getElementById('nameInput');
+      inp.value = prefill || '';
+      sizeInput();
+      inp.addEventListener('input', sizeInput);
+      inp.focus();
+      document.getElementById('saveNameBtn').addEventListener('click', function () {
+        var v = inp.value.trim();
+        if (v) { localStorage.setItem('nv_display_name', v); saveNameToAccount(v); } else { localStorage.removeItem('nv_display_name'); saveNameToAccount(null); }
+        renderName();
+      });
+      document.getElementById('signOutBtn').addEventListener('click', signOut);
+    }
+    function renderName(user) {
+      var name = savedName() || accountName(user);
+      if (name) { localStorage.setItem('nv_display_name', name); }
+      if (name) {
+        document.getElementById('who').innerHTML = '<span class="user-label">User:</span> <span class="name-cell">' + esc(name) + '<span class="cursor-blink">_</span></span> <span class="save-cell"><button id="editNameBtn">Change name</button> <button id="deleteNameBtn">Delete name</button></span> <span class="save-cell"><button id="signOutBtn">Sign out</button></span>';
+        document.getElementById('signOutBtn').addEventListener('click', signOut);
+        document.getElementById('editNameBtn').addEventListener('click', function () { showEdit(name); });
+        document.getElementById('deleteNameBtn').addEventListener('click', function () {
+          localStorage.removeItem('nv_display_name');
+          saveNameToAccount(null);
+          renderName();
+        });
+      } else {
+        showEdit('');
+      }
+    }
+    requireSession('index.html').then(function (user) {
+      if (user) { renderName(user); }
+    });
+  </script>
+<audio id="nvSoundBed3" src="sounds/neon-vigil-sound-bed-3-loop.wav" loop preload="none"></audio>
+<button type="button" id="nvSoundBed3Btn" class="nv-sound-btn" aria-label="Play Sound Bed 3" title="Play Sound Bed 3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg></button>
+<script>
+(function () {
+  var a = document.getElementById('nvSoundBed3');
+  var b = document.getElementById('nvSoundBed3Btn');
+  if (!a || !b) return;
+  var playSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>';
+  var stopSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="6" width="12" height="12"/></svg>';
+  function sync() {
+    b.innerHTML = a.paused ? playSvg : stopSvg;
+    b.setAttribute('aria-label', a.paused ? 'Play Sound Bed 3' : 'Stop Sound Bed 3');
+    b.setAttribute('title', a.paused ? 'Play Sound Bed 3' : 'Stop Sound Bed 3');
+  }
+  function locked() { return document.body.classList.contains('cookie-locked'); }
+  b.addEventListener('click', function () {
+    if (locked()) return;
+    if (a.paused) { a.play().catch(function () {}); } else { a.pause(); }
+  });
+  a.addEventListener('play', sync);
+  a.addEventListener('pause', sync);
+  function onFirstTap(e) {
+    if (locked()) return;
+    if (b.contains(e.target)) return;
+    a.play().catch(function () {});
+    document.removeEventListener('pointerdown', onFirstTap);
+  }
+  document.addEventListener('pointerdown', onFirstTap);
+  sync();
+})();
+</script>
+<script>
+  /* Select sound (Mouse Click 1): plays once when a Commands link is chosen
+     — every link here navigates to another page. A short delay lets the
+     click be heard before the page changes. */
+  (function () {
+    var s = new Audio('sounds/neon-vigil-mouse-click-1.wav');
+    s.volume = 0.5;
+    function playSelect() { try { s.currentTime = 0; var p = s.play(); if (p && p.catch) p.catch(function () {}); } catch (e) {} }
+    document.querySelectorAll('main a').forEach(function (a) {
+      a.addEventListener('click', function (e) {
+        e.preventDefault();
+        playSelect();
+        var href = a.getAttribute('href');
+        setTimeout(function () { location.href = href; }, 200);
+      });
+    });
+  })();
+</script>
+<script src="./nv-sprite.js"></script>
+</body>
+</html>
