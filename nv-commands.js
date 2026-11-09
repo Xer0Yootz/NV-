@@ -40,9 +40,17 @@
     { name: 'NV_808', hint: 'NV-808', keys: 'nv_808 nv-808 nv808 drum machine', run: function () { location.href = '/nv808/'; } },
     { name: 'NV_Gridlog', hint: 'Gridlog', keys: 'nv_gridlog gridlog grid log creatures', run: function () { location.href = '/gridlog/'; } },
     { name: 'NV-TV', hint: 'Watch', keys: 'nv-tv nvtv tv watch episodes series', run: function () { location.href = '/nv-tv.html'; } },
-    { name: 'Settings', hint: 'Profile', keys: 'settings profile picture username symbiont hexa cyphr change name delete name', run: function () { location.href = '/settings.html'; } },
-    { name: 'Sign out', hint: 'Account', keys: 'sign out log out exit', run: function () { doSignOut(); } }
+    { name: 'Settings', hint: 'Profile', keys: 'settings profile picture username symbiont hexa cyphr helix change name delete name', run: function () { location.href = '/settings.html'; } },
+    { name: 'Sign out', hint: 'Account', keys: 'sign out log out exit', icon: 'signout', run: function () { doSignOut(); } }
   ];
+
+  /* Canon rule (Nov 8, 2026): Save is a file-save symbol and Sign Out is
+     a symbol — never the words — wherever either appears. Palette items
+     with an icon render the symbol instead of their name text; search
+     still matches on keys. */
+  var PALETTE_ICONS = {
+    signout: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:18px;height:18px;vertical-align:-3px"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>'
+  };
 
   var paletteOpen = false, paletteSel = 0, paletteFiltered = paletteCommands.slice();
   var overlay, input, list;
@@ -56,7 +64,8 @@
     });
     if (paletteSel >= paletteFiltered.length) paletteSel = Math.max(0, paletteFiltered.length - 1);
     list.innerHTML = paletteFiltered.map(function (c, i) {
-      return '<li class="palette-item' + (i === paletteSel ? ' selected' : '') + '" data-i="' + i + '">' + esc(c.name) + '<span class="hint">' + esc(c.hint) + '</span></li>';
+      var label = (c.icon && PALETTE_ICONS[c.icon]) ? PALETTE_ICONS[c.icon] : esc(c.name);
+      return '<li class="palette-item' + (i === paletteSel ? ' selected' : '') + '" data-i="' + i + '"' + (c.icon ? ' aria-label="' + esc(c.name) + '"' : '') + '>' + label + '<span class="hint">' + esc(c.hint) + '</span></li>';
     }).join('') || '<li class="palette-item">No command found</li>';
     list.querySelectorAll('.palette-item[data-i]').forEach(function (el) {
       el.addEventListener('click', function () { runPalette(Number(el.getAttribute('data-i'))); });
