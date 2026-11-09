@@ -131,32 +131,34 @@ body.nv-shell-page {
 }
 .nv-shell-radio-btn svg { width: 16px; height: 16px; display: block; }
 
-/* Display-name field + buttons — the shell-styled version of the hub's
-   name input. The old rule (width:1ch, border:0, transparent background)
-   rendered as an unstyled ~4px sliver when empty. The field is now a real
-   visible shell control: 1px violet border, panel background, padding, and
-   a 16ch minimum width so it never collapses — the auto-size JS still grows
-   it past 16ch as the name gets longer. The native caret stays hidden; the
-   blinking underscore span beside the input is the cursor (same as hub). */
+/* Display-name field (Nov 8, 2026, Jasmine's order — supersedes the
+   audit-fix bordered field): an inline invisible input. No border, no
+   panel background, no padding — the blinking underscore span beside the
+   input is the cursor, sitting right after the word "username". The
+   auto-size JS grows the input as the name gets longer. */
 #nameInput {
-  background: var(--nv-panel);
-  border: 1px solid var(--nv-line);
+  background: transparent;
+  border: 0;
   border-radius: 0;
   outline: none;
   caret-color: transparent;
   color: var(--nv-text);
   font-family: inherit;
   font-size: inherit;
-  padding: 6px 8px;
+  padding: 0;
   margin: 0;
-  min-width: 16ch;
+  min-width: 1ch;
 }
+/* Flat controls (Nov 8, 2026, Jasmine's order): no boxes around the
+   Save / Sign Out / name-edit controls — borderless, terminal text.
+   Save and Sign Out are icon-only buttons (see .icon-btn in the pages);
+   this shared rule only strips the box. */
 #saveNameBtn, #editNameBtn, #deleteNameBtn, #signOutBtn {
   background: transparent;
   color: var(--nv-text);
-  border: 1px solid var(--nv-text);
+  border: 0;
   border-radius: 0;
-  padding: 10px 18px;
+  padding: 10px 8px;
   font-family: inherit;
   font-size: inherit;
   font-weight: 700;

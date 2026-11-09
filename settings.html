@@ -13,7 +13,12 @@
     body { background:#05010f; color:#f5f0ff; font-family:"VT323", "Share Tech Mono", monospace; font-size:18px; margin:0; min-height:100vh; display:grid; place-items:center; }
     .bg { position:fixed; inset:0; background-image:url("ships-bridge.jpg"); background-size:cover; background-position:center; z-index:0; pointer-events:none; }
     .static-top { position:fixed; inset:0; z-index:1; pointer-events:none; opacity:.38; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.25' numOctaves='3'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E"); }
-    main { position:relative; z-index:2; width:100%; max-width:560px; padding:32px; box-sizing:border-box; text-align:center; border:1px solid #7c3aed; border-radius:16px; background:rgba(18,8,31,.88); }
+    /* Round 2 (Nov 8, 2026, Jasmine's order): flat Settings — no card box
+       around the profile area, no divider boxes, no button boxes. The
+       Avatar Editor section below is untouched (its own scoped styles). */
+    main { position:relative; z-index:2; width:100%; max-width:560px; padding:32px; box-sizing:border-box; text-align:center; }
+    main section { border-top:0; margin-top:8px; }
+    main button { border:0; }
     section { text-align:left; border-top:1px solid #7c3aed; margin-top:24px; padding-top:8px; }
     section:first-of-type { border-top:0; margin-top:8px; }
     h2 { font-size:20px; margin:12px 0; }
@@ -21,16 +26,46 @@
     button.selected { background:#7c3aed; }
     a { color:#a78bfa; }
     .cursor-blink { display:inline-block; animation:nv-blink 1.2s steps(2,start) infinite; color:#ffffff; }
-    /* Display-name field: styled by nv-terminal-tokens.css (visible 1px
-       violet border, panel background, 16ch minimum width). The old inline
-       rule (border:0, width:1ch) rendered as an unstyled ~4px sliver when
-       empty — audit fix, Nov 8, 2026. #who grid + User: label stay here. */
-    #who { display:grid; grid-template-columns:auto 1fr; gap:4px 8px; text-align:left; max-width:340px; margin:0 auto; }
-    .user-label { grid-column:1; }
-    .name-cell { grid-column:2; white-space:nowrap; }
-    .save-cell { grid-column:2; }
+    /* Username field (Nov 8, 2026, Jasmine's order): the blinking cursor
+       sits right after the word "username" — inline invisible input, no
+       boxed field. #nameInput itself is borderless via
+       nv-terminal-tokens.css; the blinking underscore span is the cursor. */
+    #who { display:block; text-align:left; max-width:340px; margin:0 auto; }
+    .user-label { margin-right:8px; }
+    .name-cell { white-space:nowrap; }
+    .name-edit-row { display:block; margin-top:8px; }
+    .name-edit-row button { padding:6px 8px; }
+    /* One Save + Sign Out row under the username line. Canon rule
+       (Nov 8, 2026): Save is a file-save symbol, Sign Out is a symbol —
+       never the words "Save" / "Sign out" — everywhere on the site. */
+    .who-actions { display:flex; gap:16px; align-items:center; max-width:340px; margin:12px auto 0; text-align:left; }
+    .icon-btn { display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; padding:0; border:0; background:transparent; color:#f5f0ff; cursor:pointer; }
+    .icon-btn:hover { color:#67e8f9; }
+    .icon-btn svg { width:24px; height:24px; display:block; }
+    /* Symbiont base picker: the options ARE the sigils — same hexagon,
+       only the glow colour differs (Hexa cyan, Cyphr indigo, Helix pink). */
+    .sigil-btn { border:0; background:transparent; padding:8px; cursor:pointer; text-align:center; }
+    .sigil-btn .sigil { width:56px; height:56px; display:block; fill:none; stroke:var(--sigil-color, #67e8f9); stroke-width:3; filter:drop-shadow(0 0 6px var(--sigil-color, #67e8f9)); }
+    .sigil-btn .sigil-name { display:block; margin-top:6px; font-size:16px; color:#f5f0ff; }
+    .sigil-btn.selected { background:transparent; }
+    .sigil-btn.selected .sigil { fill:var(--sigil-color, #67e8f9); fill-opacity:.18; filter:drop-shadow(0 0 12px var(--sigil-color, #67e8f9)); }
+    .sigil-btn.selected .sigil-name { color:var(--sigil-color, #67e8f9); }
+    #symbiontHexaBtn { --sigil-color:#67e8f9; }
+    #symbiontCyphrBtn { --sigil-color:#4f46e5; }
+    #symbiontHelixBtn { --sigil-color:#f471b5; }
     @keyframes nv-blink { 50% { opacity:0; } }
     .palette-hint { font-size:13px; color:#a78bfa; margin-top:18px; cursor:pointer; }
+    /* Guided Settings flow (Nov 8, 2026, Jasmine's order): Settings →
+       Profile Settings → Avatar Settings. Plain anchors, no JS; the
+       Command K palette entry for Avatar Editor is untouched. */
+    html { scroll-behavior:smooth; }
+    .flow-nav { margin:24px 0 8px; }
+    .flow-next { display:inline-block; border:1px solid #67e8f9; color:#c9f7ff; padding:10px 18px; font-weight:700; font-size:18px; text-decoration:none; }
+    .flow-next:hover { background:#67e8f9; color:#04222b; }
+    #avatar-editor .flow-back-row { max-width:1440px; margin:0 auto; padding:16px 20px 0; }
+    #avatar-editor .flow-back { color:var(--violet); text-decoration:none; font-family:"VT323", "Share Tech Mono", monospace; font-size:18px; }
+    #avatar-editor .flow-back:hover { color:var(--cyan); }
+    #avatar-editor .flow-heading { max-width:1440px; margin:0 auto; padding:12px 20px 0; font-family:"VT323", "Share Tech Mono", monospace; font-size:26px; color:var(--cyan); letter-spacing:2px; }
     .avatar-current { width:96px; height:96px; border:1px solid #7c3aed; object-fit:cover; display:block; margin:8px 0; }
     .avatar-blank { width:96px; height:96px; border:1px solid #7c3aed; display:block; margin:8px 0; box-sizing:border-box; }
     .choice-row { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; }
@@ -345,6 +380,8 @@
     <h1>Settings</h1>
     <p><a href="hub.html">Back to hub</a></p>
 
+    <section id="profile-settings" aria-label="Profile Settings">
+      <h2>Profile Settings</h2>
     <section aria-label="Profile picture">
       <h2>Profile picture</h2>
       <div id="avatarCurrent"></div>
@@ -359,32 +396,39 @@
         <img id="avatarPreview" alt="Preview of your chosen profile picture" hidden>
       </div>
       <p id="avatarStatus" aria-live="polite"></p>
-      <p><button type="button" id="saveAvatarBtn">Save</button></p>
     </section>
 
     <section aria-label="Username">
       <h2>Username</h2>
       <p id="who">Checking your sign-in…</p>
+      <!-- Canon rule (Nov 8, 2026): ONE Save button only, in Settings, in
+           one row under the username line next to Sign Out. Save is a
+           file-save symbol, Sign Out is a symbol — never the words. -->
+      <p class="who-actions">
+        <button type="button" id="saveProfileBtn" class="icon-btn" aria-label="Save" title="Save"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg></button>
+        <button type="button" id="settingsSignOutBtn" class="icon-btn" aria-label="Sign out" title="Sign out"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
+      </p>
     </section>
 
     <section aria-label="AI Symbiont base">
       <h2>AI Symbiont base</h2>
       <div class="choice-row">
-        <button type="button" id="symbiontHexaBtn">Hexa</button>
-        <button type="button" id="symbiontCyphrBtn">Cyphr</button>
+        <button type="button" id="symbiontHexaBtn" class="sigil-btn" aria-label="Hexa" title="Hexa"><svg class="sigil" viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,6 88,28 88,72 50,94 12,72 12,28"/></svg><span class="sigil-name">Hexa</span></button>
+        <button type="button" id="symbiontCyphrBtn" class="sigil-btn" aria-label="Cyphr" title="Cyphr"><svg class="sigil" viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,6 88,28 88,72 50,94 12,72 12,28"/></svg><span class="sigil-name">Cyphr</span></button>
+        <button type="button" id="symbiontHelixBtn" class="sigil-btn" aria-label="Helix" title="Helix"><svg class="sigil" viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,6 88,28 88,72 50,94 12,72 12,28"/></svg><span class="sigil-name">Helix</span></button>
       </div>
       <p>More colors and more AI Symbiont models will be added later.</p>
     </section>
 
-    <section aria-label="Sign out">
-      <h2>Sign out</h2>
-      <p><button type="button" id="settingsSignOutBtn">Sign out</button></p>
+      <p class="flow-nav"><a class="flow-next" href="#avatar-editor">Next → Avatar Settings</a></p>
     </section>
 
     <p class="palette-hint" data-nv-commands>Press ⌘K for commands</p>
   </main>
 
     <section id="avatar-editor" aria-label="Avatar Editor">
+    <p class="flow-back-row"><a class="flow-back" href="#profile-settings">← Back to Profile Settings</a></p>
+    <h2 class="flow-heading">Avatar Settings</h2>
     <div class="warn" role="note">
       PRIVATE TEST COPY — NOT a player base · NOT canon · Bald Neon test model only
       <small>This is a test copy of the Avatar Editing System concept. It is not connected to the shared Avatar Editor space, and nothing here is filed as canon.</small>
@@ -656,7 +700,9 @@
       reader.onload = function () { prev.src = reader.result; prev.hidden = false; };
       reader.readAsDataURL(f);
     });
-    document.getElementById('saveAvatarBtn').addEventListener('click', function () {
+    /* The one Save button (floppy icon, under the username line) saves the
+       picture choice together with the name — Canon rule, Nov 8, 2026. */
+    function saveAvatarChoice() {
       var status = document.getElementById('avatarStatus');
       status.textContent = '';
       if (avatarChoice === 'provider') {
@@ -700,7 +746,20 @@
           status.textContent = 'Profile picture uploads need the storage bucket — it is being set up. Your provider photo or blank is saved for now.';
         });
       }
-    });
+    }
+    /* One Save button (Canon rule, Nov 8, 2026): saves the username (when
+       editing) AND the profile picture choice, then re-renders the name. */
+    function saveProfile() {
+      var inp = document.getElementById('nameInput');
+      if (inp) {
+        var v = inp.value.trim();
+        if (v) { localStorage.setItem('nv_display_name', v); saveNameToAccount(v); }
+        else { localStorage.removeItem('nv_display_name'); saveNameToAccount(null); }
+      }
+      saveAvatarChoice();
+      renderName();
+    }
+    document.getElementById('saveProfileBtn').addEventListener('click', saveProfile);
 
     /* ---- Username (same logic as options.html) ---- */
     function savedName() { return localStorage.getItem('nv_display_name') || ''; }
@@ -710,24 +769,23 @@
       var inp = document.getElementById('nameInput');
       if (inp) { inp.style.width = Math.max(1, inp.value.length + 1) + 'ch'; }
     }
+    /* Username (Settings variant, Nov 8, 2026): label reads "username",
+       inline invisible input, blinking underscore cursor right after it.
+       The one Save button lives in the static row below (#saveProfileBtn);
+       options.html keeps the "User:" label. */
     function showEdit(prefill) {
-      document.getElementById('who').innerHTML = '<span class="user-label">User:</span> <span class="name-cell"><input id="nameInput" maxlength="60" aria-label="Display name" autocomplete="off"><span class="cursor-blink">_</span></span> <span class="save-cell"><button id="saveNameBtn">Save</button></span>';
+      document.getElementById('who').innerHTML = '<span class="user-label">username</span> <span class="name-cell"><input id="nameInput" maxlength="60" aria-label="Display name" autocomplete="off"><span class="cursor-blink">_</span></span>';
       var inp = document.getElementById('nameInput');
       inp.value = prefill || '';
       sizeInput();
       inp.addEventListener('input', sizeInput);
       inp.focus();
-      document.getElementById('saveNameBtn').addEventListener('click', function () {
-        var v = inp.value.trim();
-        if (v) { localStorage.setItem('nv_display_name', v); saveNameToAccount(v); } else { localStorage.removeItem('nv_display_name'); saveNameToAccount(null); }
-        renderName();
-      });
     }
     function renderName(user) {
       var name = savedName() || accountName(user);
       if (name) { localStorage.setItem('nv_display_name', name); }
       if (name) {
-        document.getElementById('who').innerHTML = '<span class="user-label">User:</span> <span class="name-cell">' + esc(name) + '<span class="cursor-blink">_</span></span> <span class="save-cell"><button id="editNameBtn">Change name</button> <button id="deleteNameBtn">Delete name</button></span>';
+        document.getElementById('who').innerHTML = '<span class="user-label">username</span> <span class="name-cell">' + esc(name) + '<span class="cursor-blink">_</span></span><span class="name-edit-row"><button id="editNameBtn" type="button">Change name</button> <button id="deleteNameBtn" type="button">Delete name</button></span>';
         document.getElementById('editNameBtn').addEventListener('click', function () { showEdit(name); });
         document.getElementById('deleteNameBtn').addEventListener('click', function () {
           localStorage.removeItem('nv_display_name');
@@ -745,6 +803,7 @@
       symbiontBase = base;
       document.getElementById('symbiontHexaBtn').classList.toggle('selected', base === 'hexa');
       document.getElementById('symbiontCyphrBtn').classList.toggle('selected', base === 'cyphr');
+      document.getElementById('symbiontHelixBtn').classList.toggle('selected', base === 'helix');
     }
     function saveSymbiont(base) {
       markSymbiont(base);
@@ -753,6 +812,7 @@
     }
     document.getElementById('symbiontHexaBtn').addEventListener('click', function () { saveSymbiont('hexa'); });
     document.getElementById('symbiontCyphrBtn').addEventListener('click', function () { saveSymbiont('cyphr'); });
+    document.getElementById('symbiontHelixBtn').addEventListener('click', function () { saveSymbiont('helix'); });
 
     /* ---- Sign out ---- */
     document.getElementById('settingsSignOutBtn').addEventListener('click', signOut);
@@ -773,7 +833,7 @@
       /* Symbiont base: no default — neither button is selected unless a
          choice was saved before. */
       var savedBase = localStorage.getItem('nv_symbiont_base') || (user.user_metadata && user.user_metadata.symbiont_base) || '';
-      if (savedBase === 'hexa' || savedBase === 'cyphr') { markSymbiont(savedBase); }
+      if (savedBase === 'hexa' || savedBase === 'cyphr' || savedBase === 'helix') { markSymbiont(savedBase); }
     });
   </script>
 <script src="aniimo/assets/js/three.min.js"></script>
