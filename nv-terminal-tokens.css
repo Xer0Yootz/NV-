@@ -2,7 +2,7 @@
    Infinity 6 Terminal / Hex OS. Audit fix, Nov 8, 2026.
    One file, included on every signed-in page (hub, Settings, Commands,
    NV-808, Bible test page, NV-TV, Gridlog, Gigas Garden + Remix wrappers,
-   Aniimo). The ticker keeps its own file (nv-ticker.css) and the palette
+   Avatar Editor (in Settings)). The ticker keeps its own file (nv-ticker.css) and the palette
    keeps its own (nv-commands.css); this file is the design tokens plus the
    shell chrome they share: the master header wrapper, the bottom Radio/Hexa
    dock, and the display-name field + buttons.

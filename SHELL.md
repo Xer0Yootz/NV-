@@ -15,7 +15,7 @@ shared files plus a module. Every signed-in page wires into the same shell:
 <script src="./nv-commands.js"></script>
 <script src="./nv-shell.js"></script>
 ```
-From a sub-folder (`/nv808/`, `/gridlog/`, `/aniimo/`, …) use `../` in place of
+From a sub-folder (`/nv808/`, `/gridlog/`, …) use `../` in place of
 `./`. Add `class="nv-shell-page"` to `<body>` so the fixed ticker (top) and
 the fixed dock (bottom) never cover page content. The hub does **not** use
 `.nv-shell-page` and does **not** include `nv-shell.js` — its dock is inline
@@ -35,7 +35,7 @@ and its centred `.hub-col` already accounts for ticker + dock.
 - `nv-commands.js` + `nv-commands.css` — the shared Cmd/Ctrl+K palette.
   Labels (locked): `Virtual IWW: Gigas Garden` (Jasmine's Nov 7 rename),
   `NV_Gigas Garden — Remix`, `NV_808`, `NV_Gridlog`, `NV-TV`, `Settings`,
-  `Sign out`, plus `Aniimo` and `NV_Pet Pal` (added by this audit fix).
+  `Sign out`, plus `Avatar Editor` and `NV_Pet Pal` (added by this audit fix).
 - `nv-shell.js` (`window.Infinity6Shell`) — injects the standard bottom dock
   (Radio with the three Sound Beds, default Bed 3, + Hexa/Commands button)
   when the page has no dock, and loads the ticker/palette modules if a page
@@ -55,9 +55,13 @@ except through a wrapper page):**
   log (`GRID_CREATURES`). Praxia is shown (unlocked by default in-game);
   the other four show `UNSYNCED SIGNAL` until synced in the Garden, exactly
   like the in-game modal. Syncing happens in the Garden — link on the page.
-- `/aniimo/` — the Aniimo Avatar Editor console (test editor copy, Nov 8).
-  Banner on the page still says PRIVATE TEST COPY — it is the test console,
-  not the final Avatar Editing System.
+- `/settings.html#avatar-editor` — the Avatar Editor section in Settings
+  (test editor copy, Nov 8). Moved out of the standalone `/aniimo/` page per
+  Jasmine's Nov 8 order ("not Aniimo — just Avatar Editor, with profile
+  creation and profile editing, in Settings"). The editor's GLBs and vendor
+  Three.js still live in `/aniimo/assets/` (paths only — no user-facing
+  "Aniimo" remains there); `/aniimo/` itself is now a redirect to the
+  Settings section.
 - `/nv808/` — NV_808 (ticker + standard dock added; its own lone ⌘K button
   and Sound Bed 3 button were replaced by the shell dock).
 - `/test-web-bible-neon-ultra` — Bible character-sheets test page (shell

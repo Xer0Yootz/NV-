@@ -17,7 +17,7 @@
   window.__nvShellLoaded = true;
 
   /* Base path for the shared modules, derived from this script's own URL,
-     so sub-pages (/nv808/, /gridlog/, /aniimo/) resolve ../nv-ticker.js and
+     so sub-pages (/nv808/, /gridlog/) resolve ../nv-ticker.js and
      ../nv-commands.js correctly without hardcoding a path per page. */
   var base = './';
   try {
