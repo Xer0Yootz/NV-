@@ -27,7 +27,9 @@ and its centred `.hub-col` already accounts for ticker + dock.
   Radio/Hexa dock (`.nv-shell-dock`), and the display-name field + buttons
   (`#nameInput`, `#saveNameBtn`, …).
 - `nv-ticker.js` + `nv-ticker.css` — the shared top telemetry ticker (time,
-  date, location, Open-Meteo weather, live NOAA tide). 14px, VT323. It sits
+  date, location, Open-Meteo weather, live NOAA tide). 10px, VT323 (Nov 8,
+  2026, Jasmine's order — really small, supersedes the 14px from the Nov 8
+  hub cleanup). It sits
   still until location resolves, then scrolls seamlessly. "TIDES STANDBY" /
   "WEATHER STANDBY" are loading states only — the live tide replaces them
   once NOAA answers. The loop seam now ends each copy with a `·` delimiter
@@ -69,12 +71,16 @@ except through a wrapper page):**
 - `/nv-tv.html` — NV-TV (shell header wrapper + ticker + standard dock
   added; still the blank water + static page — the fuller ts-space NV TV
   app is a separate port decision, not part of this fix).
-- `/hub.html` — hub (name field + Save styled to the shell; terminal +
-  palette routes updated to the shell-preserving destinations; header
-  unchanged — "Infinity6 Terminal" stays inside the terminal box per the
-  Nov 8 order; the typewriter re-types it on load, so a screenshot taken
-  in the first ~0.4s can catch it mid-type — that is the "truncation" the
-  audit saw, not a layout clip: no width/overflow rule truncates it).
+- `/hub.html` — hub (terminal + palette routes updated to the
+  shell-preserving destinations; greeting heading — "Greetings User" by
+  default, "Greetings \<username\>" when a username is saved — inside the
+  terminal box per the Nov 8 order, typed by the typewriter on load and
+  re-typed when the saved username arrives; "Infinity 6 Terminal" small at
+  the bottom of the box, clean VT323 13px; no display-name input or Save
+  button on the hub — name editing lives in Settings only. A screenshot
+  taken in the first ~0.4s can catch the greeting mid-type — that is the
+  "truncation" the audit saw, not a layout clip: no width/overflow rule
+  truncates it).
 - `/settings.html`, `/options.html` — name field styled to the shell;
   nav routes updated to the shell-preserving destinations.
 

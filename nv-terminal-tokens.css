@@ -7,7 +7,7 @@
    shell chrome they share: the master header wrapper, the bottom Radio/Hexa
    dock, and the display-name field + buttons.
    Locks: VT323 18px for sign-in + hub; same ticker + same info on all pages
-   except the main page; 1px obsidian/violet borders; monospace terminal type.
+   except the main page, ticker 10px (Nov 8, 2026, Jasmine's order); 1px obsidian/violet borders; monospace terminal type.
    Pages add class="nv-shell-page" to <body> so the fixed ticker (top) and
    the fixed dock (bottom) never cover page content. The hub does NOT use
    .nv-shell-page — its centred .hub-col already accounts for ticker + dock. */
@@ -20,7 +20,7 @@
   --nv-accent: #a78bfa;
   --nv-font: "VT323", "Share Tech Mono", monospace;
   --nv-font-size: 18px;
-  --nv-ticker-size: 14px;
+  --nv-ticker-size: 10px; /* Nov 8, 2026, Jasmine's order — really small, supersedes 14px. Note: no var(--nv-ticker-size) reference exists yet; the live size comes from nv-ticker.css. */
 }
 
 /* Page clearance for the fixed ticker (top) and fixed dock (bottom). */
@@ -32,7 +32,8 @@ body.nv-shell-page {
 /* Master shell header wrapper — the standard header every signed-in page
    carries under the ticker: "Infinity6 Terminal" (link back to the hub),
    the page name, and the palette hint. The hub does not use this — its
-   "Infinity6 Terminal" heading lives inside the terminal box (Nov 8 order). */
+   greeting heading lives inside the terminal box, with "Infinity 6 Terminal"
+   small at the bottom of the box (Nov 8 order). */
 .nv-shell-head {
   position: relative;
   z-index: 2;

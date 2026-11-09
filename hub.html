@@ -43,14 +43,15 @@
     #stationSelect { background:transparent; color:#f5f0ff; border:1px solid #f5f0ff; border-radius:0; font-family:inherit; font-size:13px; padding:4px; }
     #stationSelect option { color:#05010f; }
     .commands-footer p { display:inline; margin:0 8px 0 0; }
-    /* Display-name field: styled by nv-terminal-tokens.css (visible 1px
-       violet border, panel background, 16ch minimum width). The old inline
-       rule (border:0, width:1ch) rendered as an unstyled ~4px sliver when
-       empty — audit fix, Nov 8, 2026. #who grid stays here (page layout). */
-    #who { display:grid; grid-template-columns:1fr; gap:4px 8px; text-align:left; max-width:340px; margin:0 auto; }
-    .name-cell { grid-column:1; white-space:nowrap; }
-    .save-cell { grid-column:1; }
-    #nameEdit { display:inline; }
+    /* Hub greeting (Nov 8, 2026, Jasmine's order): the terminal box heading
+       IS the greeting — "Greetings User" by default, "Greetings <username>"
+       when a username is saved. No display-name input or Save button on the
+       hub anymore; name editing lives in Settings only. */
+    /* "Infinity 6 Terminal" branding, bottom of the terminal box, small
+       (Nov 8, 2026): same VT323 digital font, rendered clean at small size
+       — 13px, no glow, no shadow, modest tracking, antialiased. She likes
+       the digital font specifically when it is really small text. */
+    .nv-term-foot { padding:8px 12px; border-top:1px solid #7c3aed; text-align:right; font-size:13px; letter-spacing:1px; color:#a78bfa; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; text-rendering:optimizeLegibility; }
     .palette-hint { font-size:13px; color:#a78bfa; margin-top:18px; cursor:pointer; }
     /* Hub terminal: a working command line for Neon Vigil content — control
        the radio, load the games, list what's available with help. Same
@@ -58,8 +59,10 @@
        rgba(18,8,31,.88) panel. The input has a hidden native caret and a
        blinking underscore that follows behind the typed text, like the
        name input and the game typing. */
-    /* "Infinity6 Terminal" heading, inside the terminal box as its header
-       (Nov 8, Jasmine's order) — same container as the command line. */
+    /* Greeting heading, inside the terminal box as its header (Nov 8,
+       Jasmine's order) — "Greetings User" by default, "Greetings
+       <username>" when a username is saved. "Infinity 6 Terminal" moved
+       to the bottom of the box, small (.nv-term-foot). */
     .nv-term-head { padding:10px 12px; border-bottom:1px solid #7c3aed; }
     .nv-term-head h1 { margin:0; font-size:20px; }
     .nv-term { margin-top:18px; border:1px solid #7c3aed; background:rgba(18,8,31,.88); text-align:left; }
@@ -80,11 +83,11 @@
   <div id="nvRippleLayer" aria-hidden="true"></div>
   <div class="hub-col">
   <main>
-    <p id="who">Checking your sign-in…</p>
     <div class="nv-term" id="nvTerm">
-      <div class="nv-term-head"><h1 id="hubTitle">Infinity6 Terminal</h1></div>
+      <div class="nv-term-head"><h1 id="hubTitle">Greetings User</h1></div>
       <div class="nv-term-out" id="termOutput"><p>Type 'help' for commands.</p></div>
       <div class="nv-term-line"><span class="nv-term-prompt">&gt;</span><input id="termInput" autocomplete="off" aria-label="Terminal command" spellcheck="false"><span class="cursor-blink">_</span></div>
+      <div class="nv-term-foot">Infinity 6 Terminal</div>
     </div>
     <audio id="radioAudio" src="sounds/neon-vigil-sound-bed-3-loop.wav" loop preload="none"></audio>
     <p class="palette-hint" id="paletteHint" data-nv-commands>Press ⌘K for commands</p>
@@ -96,66 +99,51 @@
   <script src="./nv-commands.js"></script>
   <script src="./nv-sprite.js"></script>
   <script>
-    function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
     function savedName() { return localStorage.getItem('nv_display_name') || ''; }
-    function saveNameToAccount(v) {
-      try {
-        var c = (typeof getClient === 'function') ? getClient() : null;
-        if (c) { c.auth.updateUser({ data: { display_name: v } }).catch(function () {}); }
-      } catch (e) {}
-    }
     function accountName(user) { return (user && user.user_metadata && user.user_metadata.display_name) ? user.user_metadata.display_name : ''; }
-    function sizeInput() {
-      var inp = document.getElementById('nameInput');
-      if (inp) { inp.style.width = Math.max(1, inp.value.length + 1) + 'ch'; }
-    }
-    function showEdit(prefill) {
-      document.getElementById('who').innerHTML = '<span class="name-cell"><input id="nameInput" maxlength="60" aria-label="Display name" autocomplete="off"></span> <span class="save-cell"><button id="saveNameBtn">Save</button></span>';
-      var inp = document.getElementById('nameInput');
-      inp.value = prefill || '';
-      sizeInput();
-      inp.addEventListener('input', sizeInput);
-      inp.addEventListener('input', function () { if (!radioStarted) { radioPlay(); } }, { once: true });
-      inp.focus();
-      document.getElementById('saveNameBtn').addEventListener('click', function () {
-        var v = inp.value.trim();
-        if (v) { localStorage.setItem('nv_display_name', v); saveNameToAccount(v); } else { localStorage.removeItem('nv_display_name'); saveNameToAccount(null); }
-        renderName();
-      });
-    }
-    function renderName(user) {
+    /* Hub greeting (Nov 8, 2026, Jasmine's order): "Greetings User" by
+       default, "Greetings <username>" when a username is saved. The
+       username comes from the same place Settings stores it — localStorage
+       'nv_display_name' first, then the account's display_name in
+       user_metadata — so removing the hub input/Save does not break the
+       lookup. If the account has a name the hub does not, it is cached
+       locally here too. No display-name input or Save button on the hub
+       anymore; name editing lives in Settings only. */
+    function updateGreeting(user) {
       var name = savedName() || accountName(user);
       if (name) { localStorage.setItem('nv_display_name', name); }
-      if (name) {
-        document.getElementById('who').innerHTML = '<span class="name-cell">' + esc(name) + '</span>';
-      } else {
-        showEdit('');
-      }
+      var greet = name ? 'Greetings ' + name : 'Greetings User';
+      var h = document.getElementById('hubTitle');
+      if (h && h.textContent !== greet) { typeHubTitle(greet); }
     }
 
-    /* Hub heading typewriter: "Infinity6 Terminal" types out the same way
-       the game types text — the game's DIALOGUE_CPS is 42 characters per
-       second (~24ms per character). The heading is written out in the HTML
-       so it still reads with JS off; this replaces it with the typed
-       version. Reduced motion shows the full heading at once. No blinking
-       caret here — the only blinking cursor on the hub is the terminal
-       input's (Nov 8, Jasmine's order). */
-    (function typeHubTitle() {
+    /* Hub greeting typewriter: the greeting types out the same way the game
+       types text — the game's DIALOGUE_CPS is 42 characters per second
+       (~24ms per character). The greeting is written out in the HTML so it
+       still reads with JS off; this replaces it with the typed version.
+       Reduced motion shows the full greeting at once. No blinking caret
+       here — the only blinking cursor on the hub is the terminal input's
+       (Nov 8, Jasmine's order). The typewriter is KEPT: it types the
+       greeting on load, and re-types it when the saved username arrives
+       after sign-in (see updateGreeting). */
+    var hubTitleTimer = null;
+    function typeHubTitle(full) {
       var h = document.getElementById('hubTitle');
       if (!h) return;
-      var full = h.textContent;
+      if (hubTitleTimer) { clearInterval(hubTitleTimer); hubTitleTimer = null; }
       if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         h.textContent = full;
         return;
       }
       h.textContent = '';
       var i = 0;
-      var timer = setInterval(function () {
+      hubTitleTimer = setInterval(function () {
         i++;
         h.textContent = full.slice(0, i);
-        if (i >= full.length) clearInterval(timer);
+        if (i >= full.length) { clearInterval(hubTitleTimer); hubTitleTimer = null; }
       }, 1000 / 42);
-    })();
+    }
+    typeHubTitle('Greetings User');
 
     var radioStations = [
       'sounds/neon-vigil-sound-bed-1-landing-workpage.wav',
@@ -310,7 +298,7 @@
     });
 
     requireSession('index.html').then(function (user) {
-      if (user) { renderName(user); playSelectAfterLogin(); }
+      if (user) { updateGreeting(user); playSelectAfterLogin(); }
     });
     /* Sign out is palette-only now (Command K) — no Sign out button on the
        main hub page. The 'Sign out' palette command calls signOut(). */

@@ -1,10 +1,11 @@
 /* nv-ticker.css — Shared ticker for the Neon Vigil web app.
    Infinity 6 Terminal / Hex OS. One module; the hub ticker, extracted whole
-   so every page can share it. Full width across the entire top, VT323 14px,
-   thin purple border, no glow. Sits still until the content is real, then
+   so every page can share it. Full width across the entire top, VT323 10px
+   (Nov 8, 2026, Jasmine's order — really small, supersedes the 14px from
+   the Nov 8 hub cleanup), thin purple border, no glow. Sits still until the content is real, then
    scrolls a seamless 30s loop. The font is set here (not inherited) so the
    ticker reads VT323 even on pages whose own font is different. */
-.ticker { position:fixed; top:0; left:0; right:0; z-index:4; overflow:hidden; white-space:nowrap; padding:10px 0; font-family:"VT323","Share Tech Mono",monospace; font-size:14px; letter-spacing:2px; background:rgba(5,1,15,.72); border:1px solid #7c3aed; box-sizing:border-box; color:#f5f0ff; }
+.ticker { position:fixed; top:0; left:0; right:0; z-index:4; overflow:hidden; white-space:nowrap; padding:10px 0; font-family:"VT323","Share Tech Mono",monospace; font-size:10px; letter-spacing:2px; background:rgba(5,1,15,.72); border:1px solid #7c3aed; box-sizing:border-box; color:#f5f0ff; }
 .ticker-track { display:inline-flex; white-space:nowrap; will-change:transform; }
 .ticker-track span { padding-right:3em; }
 .ticker.scrolling .ticker-track { animation:nv-ticker-scroll 30s linear infinite; }
