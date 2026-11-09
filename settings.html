@@ -594,6 +594,11 @@
 </script>
   <script src="./auth.js"></script>
   <script src="./nv-commands.js"></script>
+  <!-- Nov 8, 2026 lock: bottom-right ⌘K icon on EVERY page. Settings had the
+       palette (keyboard) but no dock/icon — nv-shell.js injects the standard
+       bottom dock (Radio + Hexa/Commands button, wired to NVCommands.open()).
+       Safe here: nv-ticker.js / nv-commands.js guard against double-load. -->
+  <script src="./nv-shell.js"></script>
   <script src="./nv-ticker.js"></script>
   <script src="./nv-sprite.js"></script>
   <script>
