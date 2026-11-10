@@ -120,6 +120,29 @@
         pointer-events: none; z-index: 4;
       }
       #avatar-editor .stage .overlay > * { pointer-events: auto; }
+      /* Loading overlay: a big, centred progress readout so the long
+         download + parse phase never looks like a broken grey box. */
+      #avatar-editor .stage-loading {
+        position: absolute; inset: 0; z-index: 5;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        gap: 12px; background: rgba(5, 5, 10, 0.72); pointer-events: none;
+      }
+      #avatar-editor .stage-loading[hidden] { display: none; }
+      #avatar-editor .stage-loading .load-title {
+        font-family: var(--mono); font-size: 14px; letter-spacing: 0.18em;
+        text-transform: uppercase; color: #d9fbff;
+      }
+      #avatar-editor .stage-loading .load-bar {
+        width: min(280px, 70%); height: 8px;
+        border: 1px solid var(--cyan); background: rgba(5, 5, 10, 0.9);
+      }
+      #avatar-editor .stage-loading .load-bar-fill {
+        display: block; height: 100%; width: 0%;
+        background: var(--cyan);
+      }
+      #avatar-editor .stage-loading .load-pct {
+        font-family: var(--mono); font-size: 12px; color: var(--ink-soft);
+      }
       #avatar-editor .status {
         background: rgba(5, 5, 10, 0.85);
         color: #d9fbff;
@@ -394,6 +417,11 @@
     <div class="layout">
       <div class="stage-wrap">
         <div class="stage" id="stage">
+          <div class="stage-loading" id="stageLoading" role="status" aria-live="polite">
+            <span class="load-title">Loading model</span>
+            <span class="load-bar"><span class="load-bar-fill" id="loadBarFill"></span></span>
+            <span class="load-pct" id="loadPct">0%</span>
+          </div>
           <div class="overlay">
             <span class="status" id="loadStatus">Loading model…</span>
           </div>
@@ -1416,7 +1444,9 @@
             });
 
             computeViews();
-            goView("full");
+            goView("upper");
+            var loadingEl = document.getElementById("stageLoading");
+            if (loadingEl) loadingEl.hidden = true;
             applyLighting(state.light);
             resize();
 
@@ -1430,7 +1460,12 @@
           },
           function (xhr) {
             if (xhr && xhr.total) {
-              statusEl.textContent = "Loading model… " + Math.round((xhr.loaded / xhr.total) * 100) + "%";
+              var pct = Math.round((xhr.loaded / xhr.total) * 100);
+              statusEl.textContent = "Loading model… " + pct + "%";
+              var fill = document.getElementById("loadBarFill");
+              var pctEl = document.getElementById("loadPct");
+              if (fill) fill.style.width = pct + "%";
+              if (pctEl) pctEl.textContent = pct >= 100 ? "Parsing model…" : pct + "%";
             }
           },
           function (err) {
