@@ -1,0 +1,39 @@
+/* nv-symbiont-theme.css — the IA Symbiont recolors the whole system.
+   RULE (Nov 9, 2026, User's, standing): choosing the IA Symbiont
+   changes the color of the IA on all fronts AND the color of the
+   system — the container, radio, and other such things become pink
+   if you choose Helix, cyan if you choose Hexa, indigo if you choose
+   Cyphr. The pick is stored in localStorage as nv_symbiont_base
+   ('hexa' / 'cyphr' / 'helix'); nv-symbiont-theme.js sets
+   data-symbiont on the root element, and this file recolors the
+   system accent to match. Cyphr (indigo) is the current default
+   look, so it keeps the existing purple. */
+:root {
+  --nv-accent: #7c3aed;
+  --nv-accent-bright: #6366f1;
+  --nv-accent-soft: #a78bfa;
+}
+[data-symbiont="hexa"] {
+  --nv-accent: #22d3ee;
+  --nv-accent-bright: #00e5ff;
+  --nv-accent-soft: #67e8f9;
+}
+[data-symbiont="cyphr"] {
+  --nv-accent: #7c3aed;
+  --nv-accent-bright: #6366f1;
+  --nv-accent-soft: #a78bfa;
+}
+[data-symbiont="helix"] {
+  --nv-accent: #ff2e88;
+  --nv-accent-bright: #f471b5;
+  --nv-accent-soft: #f9a8d4;
+}
+/* Recolor the system accent wherever it appears: panel borders,
+   links, and buttons use the theme variables, so the whole system
+   follows the pick. Pages that still hardcode the purple get these
+   overrides (same selectors, later stylesheet wins). */
+[data-symbiont] a { color: var(--nv-accent-soft); }
+[data-symbiont] main { border-color: var(--nv-accent); }
+[data-symbiont] section { border-color: var(--nv-accent); }
+[data-symbiont] button.selected { background: var(--nv-accent); }
+[data-symbiont] .nv-term-prompt { color: var(--nv-accent-soft); }
