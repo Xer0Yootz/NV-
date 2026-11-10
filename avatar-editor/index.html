@@ -619,6 +619,23 @@
             <div class="feedback" id="importFeedback" aria-live="polite"></div>
           </div>
         </div>
+
+        <div class="acc" data-acc="upload">
+          <div class="acc-head">
+            <button type="button" class="acc-toggle" aria-expanded="false"><span class="chev">&#9656;</span>Your Model<span class="count">upload a GLB</span></button>
+          </div>
+          <div class="acc-body" hidden>
+            <h3>Upload your own GLB</h3>
+            <p class="note" id="uploadGateMsg">Checking your membership…</p>
+            <div class="actions">
+              <label for="glbUpload" class="primary" id="glbUploadLabel" style="display:inline-block; padding:6px 12px; cursor:pointer;">Choose a .glb file</label>
+              <input type="file" id="glbUpload" accept=".glb,model/gltf-binary" hidden>
+              <button type="button" id="btnRestoreBase">Back to Neon base</button>
+            </div>
+            <div class="feedback" id="uploadFeedback" aria-live="polite"></div>
+            <p class="note">Your GLB loads in place of the Neon base. Hair and the baby-hair shell are sized for the Neon base, so they are hidden while a custom model is loaded. Morph sliders only move if your GLB carries matching morph targets. Uploads unlock after you have been a member for a week.</p>
+          </div>
+        </div>
       </section>
     </div>
 
@@ -1406,8 +1423,14 @@
         /* ================= Model load ================= */
 
         var loader = new THREE.GLTFLoader();
-        loader.load(
-          MODEL_URL,
+        var customModel = false; /* true when a player-uploaded GLB is loaded */
+        /* loadBase: load a base model (the Neon base, or a player-uploaded
+           GLB) and wire it into the editor. Exposed as
+           window.NVAvatarEditor.loadCustomModel(url, label) so the upload
+           UI can swap the model. */
+        function loadBase(url, label) {
+          loader.load(
+          url,
           function (gltf) {
             model = gltf.scene;
             scene.add(model);
@@ -1454,8 +1477,10 @@
             baseStatus =
               "Model loaded · " + meshes.length + " meshes · " + morphMeshes.length +
               " with morphs · height " + size.y.toFixed(2) + " m";
-            if (state.hair) loadHair();
-            if (state.shell !== "none") loadShell();
+            if (!customModel) {
+              if (state.hair) loadHair();
+              if (state.shell !== "none") loadShell();
+            }
             refreshStatus();
           },
           function (xhr) {
@@ -1472,7 +1497,26 @@
             statusEl.textContent = "Error loading GLB: " + (err && err.message ? err.message : "unknown error");
             statusEl.className = "status err";
           }
-        );
+          );
+        }
+        /* Player upload hook: swap in a custom GLB. Detaches the current
+           model (and any hair/shell, which are sized for the Neon base),
+           then loads the new one. Morph sliders only move if the custom
+           GLB carries matching morph targets. */
+        window.NVAvatarEditor = window.NVAvatarEditor || {};
+        window.NVAvatarEditor.loadCustomModel = function (url, label) {
+          if (model) { scene.remove(model); model = null; }
+          if (typeof hairObject !== "undefined" && hairObject) { model && model.remove(hairObject); hairObject = null; }
+          if (typeof shellObject !== "undefined" && shellObject) { model && model.remove(shellObject); shellObject = null; }
+          /* Restoring the Neon base re-enables hair + shell; a player GLB
+             keeps them off (they are sized for the Neon base). */
+          customModel = url.indexOf("Neon_Ultra_Bald_Morphs_v01.glb") === -1;
+          baseStatus = label || "Custom model";
+          var loadingEl = document.getElementById("stageLoading");
+          if (loadingEl) loadingEl.hidden = false;
+          loadBase(url, label);
+        };
+        loadBase(MODEL_URL, "Neon base");
 
         /* ================= Damped morph application =================
            Every frame, each morph's live influence eases toward its target
@@ -1584,6 +1628,78 @@
         });
       });
       mark(saved);
+    })();
+    </script>
+    <script>
+    /* Player GLB upload — 7-day membership gate.
+       Uploads unlock only after the account is at least 7 days old
+       (Supabase user.created_at). Under 7 days, or signed out, the
+       upload stays locked with a message saying when it unlocks. */
+    (function () {
+      var SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+      var input = document.getElementById('glbUpload');
+      var label = document.getElementById('glbUploadLabel');
+      var gateMsg = document.getElementById('uploadGateMsg');
+      var feedback = document.getElementById('uploadFeedback');
+      var restoreBtn = document.getElementById('btnRestoreBase');
+      if (!input || !label || !gateMsg) return;
+      function setLocked(msg) {
+        input.disabled = true;
+        label.style.opacity = '0.45';
+        label.style.cursor = 'not-allowed';
+        gateMsg.textContent = msg;
+      }
+      function setUnlocked() {
+        input.disabled = false;
+        label.style.opacity = '';
+        label.style.cursor = 'pointer';
+        gateMsg.textContent = 'Uploads unlocked — your account is over a week old.';
+      }
+      function checkGate() {
+        try {
+          var client = (typeof getClient === 'function') ? getClient() : null;
+          if (!client) { setLocked('Sign in to upload your own GLB.'); return; }
+          client.auth.getSession().then(function (res) {
+            var user = res && res.data && res.data.session && res.data.session.user;
+            if (!user) { setLocked('Sign in to upload your own GLB.'); return; }
+            var created = user.created_at ? new Date(user.created_at).getTime() : NaN;
+            if (isNaN(created)) { setLocked('Could not confirm your account age — uploads locked.'); return; }
+            var ageMs = Date.now() - created;
+            if (ageMs >= SEVEN_DAYS_MS) { setUnlocked(); return; }
+            var unlockAt = new Date(created + SEVEN_DAYS_MS);
+            setLocked('Uploads unlock after you have been a member for a week — yours unlock ' + unlockAt.toLocaleDateString() + '.');
+          }).catch(function () {
+            setLocked('Could not confirm your account age — uploads locked.');
+          });
+        } catch (e) {
+          setLocked('Could not confirm your account age — uploads locked.');
+        }
+      }
+      input.addEventListener('change', function () {
+        var file = input.files && input.files[0];
+        if (!file) return;
+        if (!/\.glb$/i.test(file.name)) {
+          if (feedback) feedback.textContent = 'That is not a .glb file.';
+          return;
+        }
+        if (!window.NVAvatarEditor || !window.NVAvatarEditor.loadCustomModel) {
+          if (feedback) feedback.textContent = 'The editor is not ready yet — try again in a moment.';
+          return;
+        }
+        var url = URL.createObjectURL(file);
+        window.NVAvatarEditor.loadCustomModel(url, 'Custom model · ' + file.name);
+        if (feedback) feedback.textContent = 'Loading ' + file.name + '…';
+        input.value = '';
+      });
+      if (restoreBtn) {
+        restoreBtn.addEventListener('click', function () {
+          if (window.NVAvatarEditor && window.NVAvatarEditor.loadCustomModel) {
+            window.NVAvatarEditor.loadCustomModel('assets/Neon_Ultra_Bald_Morphs_v01.glb', 'Neon base');
+            if (feedback) feedback.textContent = 'Back to the Neon base.';
+          }
+        });
+      }
+      checkGate();
     })();
     </script>
 </body>
