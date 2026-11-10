@@ -11,7 +11,7 @@
        <span class="nv-switch-knob"></span>
      </button>
    Pair it with a text label. Set aria-checked="true" when on. The knob
-   slides right and the track lights up cyan; off is dim grey. */
+   slides right and the track lights up in the symbiont accent; off is dim grey. */
 .nv-switch {
   display: inline-flex; align-items: center; flex: none;
   width: 44px; height: 24px; padding: 0;
@@ -27,14 +27,14 @@
   transition: transform .18s ease, background .18s ease;
 }
 .nv-switch[aria-checked="true"] {
-  background: #22d3ee; border-color: #22d3ee; opacity: 1;
+  background: var(--nv-accent); border-color: var(--nv-accent); opacity: 1;
   box-shadow: 0 0 12px rgba(34, 211, 238, .45);
 }
 .nv-switch[aria-checked="true"] .nv-switch-knob {
   transform: translateX(20px); background: #04222b;
 }
-.nv-switch:hover { border-color: #22d3ee; }
-.nv-switch:focus-visible { outline: 2px solid #a78bfa; outline-offset: 2px; }
+.nv-switch:hover { border-color: var(--nv-accent); }
+.nv-switch:focus-visible { outline: 2px solid var(--nv-accent-soft); outline-offset: 2px; }
 /* A labelled switch row: label text + switch. The label dims with the
    switch when off, via the .nv-switch-row-off class set by JS. */
 .nv-switch-row {
