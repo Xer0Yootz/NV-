@@ -30,7 +30,7 @@
      them fights the others. */
   var x = 0, y = 0, vx = 0, vy = 0, angle = 0, angVel = 0;
   var throwVX = 0, throwVY = 0; /* latest flick velocity while dragging */
-  var dragging = false, darting = false, hopping = false;
+  var dragging = false, hopping = false, wiggling = false;
   var raf = null, lastT = 0;
 
   function localName() {
@@ -85,13 +85,13 @@
   }
 
   /* Roams / bounces all around the screen, like a screensaver. Pauses while
-     dragging or darting; resumes from wherever it was dropped. A throw
+     dragging; resumes from wherever it was dropped. A throw
      (fling on release) keeps its velocity and decays with friction, bouncing
      off the walls with a little energy lost per bounce, until it settles
      back to roaming speed. */
   function tick(t) {
     raf = null;
-    if (!container || dragging || darting) return;
+    if (!container || dragging) return;
     var dt = Math.min(0.05, (t - lastT) / 1000 || 0.016);
     lastT = t;
     if (!reduced) {
@@ -148,36 +148,24 @@
     }, HOP_MS);
   }
 
-  function runAway(fromX, fromY) {
-    /* Darts to a new random position away from the click point. */
-    var maxX = Math.max(0, window.innerWidth - SIZE);
-    var maxY = Math.max(0, window.innerHeight - SIZE);
-    var nx = x, ny = y, tries = 0;
-    while (tries < 20) {
-      nx = Math.floor(Math.random() * (maxX + 1));
-      ny = Math.floor(Math.random() * (maxY + 1));
-      var dx = (nx + SIZE / 2) - fromX, dy = (ny + SIZE / 2) - fromY;
-      if (Math.sqrt(dx * dx + dy * dy) > Math.min(window.innerWidth, window.innerHeight) * 0.4) break;
-      tries++;
-    }
-    darting = true;
-    container.classList.add('nv-sprite-dart');
-    x = nx; y = ny;
-    /* Roam away from the click point from the new spot. */
-    var a = Math.atan2((y + SIZE / 2) - fromY, (x + SIZE / 2) - fromX);
-    vx = Math.cos(a) * ROAM_SPEED;
-    vy = Math.sin(a) * ROAM_SPEED;
-    render();
+  function wiggle() {
+    /* A little side-to-side wiggle, like a pet. Skipped under reduced motion. */
+    if (wiggling || reduced || !hex) return;
+    wiggling = true;
+    hex.classList.remove('nv-sprite-wiggle');
+    void hex.offsetWidth; /* restart the animation */
+    hex.classList.add('nv-sprite-wiggle');
     setTimeout(function () {
-      container.classList.remove('nv-sprite-dart');
-      darting = false;
-      kick();
-    }, reduced ? 0 : 350);
+      hex.classList.remove('nv-sprite-wiggle');
+      wiggling = false;
+    }, 600);
   }
 
   function onTap(clientX, clientY) {
+    /* A click is petting it: it hops and wiggles where it is. It does NOT
+       run away — the toss (fling on release) is what sends it flying. */
     hop();
-    runAway(clientX, clientY);
+    wiggle();
   }
 
   function bindDrag() {
