@@ -171,6 +171,12 @@
   function bindDrag() {
     var downX = 0, downY = 0, downT = 0, grabDX = 0, grabDY = 0;
     var lastMoveX = 0, lastMoveY = 0, lastMoveT = 0, moved = 0;
+    /* Trail of recent pointer positions, for the throw velocity on release.
+       The old code used only the last pointermove pair — by release time a
+       mouse fling has already decelerated, so the recorded speed was near
+       zero and the throw did nothing. A trailing ~120ms window catches the
+       fast part of the fling even if the pointer slows at the very end. */
+    var trail = []; /* {x, y, t} — newest last, capped at 20 */
 
     hex.addEventListener('pointerdown', function (e) {
       e.preventDefault();
@@ -180,7 +186,7 @@
       downX = e.clientX; downY = e.clientY; downT = Date.now();
       grabDX = e.clientX - x; grabDY = e.clientY - y;
       lastMoveX = e.clientX; lastMoveY = e.clientY; lastMoveT = Date.now();
-      moved = 0;
+      moved = 0; trail = [];
       angVel = 0;
       hex.classList.add('nv-sprite-grabbing');
     });
@@ -206,6 +212,8 @@
       throwVX = Math.max(-THROW_MAX, Math.min(THROW_MAX, flickX));
       throwVY = Math.max(-THROW_MAX, Math.min(THROW_MAX, flickY));
       lastMoveX = e.clientX; lastMoveY = e.clientY; lastMoveT = now;
+      trail.push({ x: e.clientX, y: e.clientY, t: now });
+      if (trail.length > 20) trail.shift();
       render();
     });
 
@@ -221,8 +229,23 @@
         vx = 0; vy = 0;
       } else {
         /* A throw: the symbiont keeps the fling velocity and flies across
-           the screen, decaying with friction until it settles to roaming. */
-        vx = throwVX; vy = throwVY;
+           the screen, decaying with friction until it settles to roaming.
+           Velocity comes from the trailing ~120ms of pointer movement, not
+           just the last move event — a mouse fling decelerates before
+           release, so the last pair alone reads near zero. */
+        var relT = Date.now();
+        var winStart = relT - 120;
+        var first = null, last = null;
+        for (var i = 0; i < trail.length; i++) {
+          if (trail[i].t >= winStart) { if (!first) first = trail[i]; last = trail[i]; }
+        }
+        if (first && last && last.t > first.t) {
+          var wdt = last.t - first.t;
+          vx = Math.max(-THROW_MAX, Math.min(THROW_MAX, (last.x - first.x) / wdt * 1000));
+          vy = Math.max(-THROW_MAX, Math.min(THROW_MAX, (last.y - first.y) / wdt * 1000));
+        } else {
+          vx = throwVX; vy = throwVY;
+        }
       }
       kick(); /* roaming / throw resumes from the drop point */
     }
