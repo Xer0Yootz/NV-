@@ -177,31 +177,10 @@
       #avatar-editor .hint { color: var(--ink-soft); font-size: 13px; margin: 10px 2px 0; }
 
       /* ---------- Buttons & pills ---------- */
-      #avatar-editor button {
-        font: inherit;
-        font-size: 13px;
-        font-weight: 700;
-        letter-spacing: 0.03em;
-        border: 1px solid var(--edge-hot);
-        background: var(--panel-2);
-        color: var(--ink);
-        border-radius: 0;
-        padding: 7px 12px;
-        cursor: pointer;
-      }
-      #avatar-editor button:hover { border-color: var(--cyan); color: #c9f7ff; }
-      #avatar-editor button.primary {
-        background: var(--cyan);
-        border-color: var(--cyan);
-        color: #04222b;
-      }
-      #avatar-editor button.primary:hover { background: #67e8f9; color: #04222b; }
-      #avatar-editor button[aria-pressed="true"] {
-        background: var(--cyan);
-        border-color: var(--cyan);
-        color: #04222b;
-        box-shadow: 3px 3px 0 rgba(244, 113, 181, 0.55);
-      }
+      #avatar-editor button { font: inherit; font-size: 13px; font-weight: 700; letter-spacing: 0.03em; border: 1px solid var(--nv-accent); background: color-mix(in srgb, var(--nv-accent) 20%, transparent); color: var(--nv-accent-deep)!important; border-radius: 999px; padding: 7px 14px; cursor: pointer; position: relative; overflow: hidden; box-shadow: 0 0 12px color-mix(in srgb, var(--nv-accent) 45%, transparent), inset 0 1px 0 rgba(255,255,255,.22); transition: transform .18s ease, box-shadow .18s ease; } #avatar-editor button::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,.12) 45%, rgba(255,255,255,0) 60%); pointer-events: none; } #avatar-editor button::after { content: ""; position: absolute; top: 0; bottom: 0; left: -70%; width: 45%; background: linear-gradient(100deg, transparent, rgba(255,255,255,.55), transparent); transform: skewX(-18deg); transition: left .45s ease; pointer-events: none; } #avatar-editor button:hover { transform: translateY(-2px); box-shadow: 0 0 20px color-mix(in srgb, var(--nv-accent) 70%, transparent), 0 4px 14px color-mix(in srgb, var(--nv-accent) 40%, transparent), inset 0 1px 0 rgba(255,255,255,.3); } #avatar-editor button:hover::after { left: 120%; } #avatar-editor button:active { transform: translateY(1px) scale(.93,.87); } #avatar-editor button:focus-visible { outline: 2px solid var(--nv-accent-soft); outline-offset: 2px; } #avatar-editor .icon-btn { width: 40px; height: 40px; min-width: 40px; padding: 0; display: inline-flex; align-items: center; justify-content: center; } #avatar-editor .icon-btn svg { width: 22px; height: 22px; display: block; fill: currentColor; } #avatar-editor .ia-pick { border-radius: 0; } #avatar-editor .ia-pick::before, #avatar-editor .ia-pick::after { content: none; }
+      #avatar-editor button.primary { background: color-mix(in srgb, var(--nv-accent) 25%, transparent); border-color: var(--nv-accent); color: var(--nv-accent-deep)!important; }
+      #avatar-editor button.primary:hover { background: color-mix(in srgb, var(--nv-accent) 40%, transparent); color: var(--nv-accent-deep)!important; }
+      #avatar-editor button[aria-pressed="true"] { background: var(--cyan); border-color: var(--cyan); color: #04222b!important; box-shadow: 3px 3px 0 rgba(244, 113, 181, 0.55); }
       #avatar-editor button:disabled { opacity: 0.38; cursor: default; box-shadow: none; }
       #avatar-editor button:disabled:hover { border-color: var(--edge-hot); color: var(--ink); }
       #avatar-editor .mini {
@@ -580,7 +559,7 @@
           <div class="acc-body" hidden>
             <div class="actions">
               <button type="button" id="btnReset">Reset all</button>
-              <button type="button" class="primary" id="btnCopy">Copy Face ID</button>
+              <button type="button" id="btnSaveFace" class="icon-btn" aria-label="Save avatar" title="Save avatar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg></button> <button type="button" class="primary" id="btnCopy">Copy Face ID</button>
               <button type="button" id="btnDownload">Download JSON preset</button>
             </div>
             <div class="feedback" id="presetFeedback" aria-live="polite"></div>
@@ -963,7 +942,7 @@
           el.className = "feedback" + (isErr ? " err" : "");
         }
 
-        document.getElementById("btnCopy").addEventListener("click", function () {
+        function applyFacePreset(data) { var morphs = data.morphs || data; var applied = 0; ALL_MORPHS.forEach(function(name) { if (morphs && typeof morphs[name] === "number") { if (PAIRS[name]) { var pr = data.asymmetry && data.asymmetry[name]; if (pr && typeof pr.l === "number" && typeof pr.r === "number") { setPair(name, pr.l * 100, pr.r * 100); } else { setPair(name, morphs[name] * 100, morphs[name] * 100); } } else { setSlider(name, morphs[name] * 100); } applied++; } }); if (typeof data.symmetry === "string") { setSymmetry(data.symmetry !== "asymmetrical", true); } return applied; } (function restoreSavedFacePreset() { setTimeout(function () { try { var raw = localStorage.getItem("nv_face_preset"); if (!raw) return; var data = JSON.parse(raw); if (!data || typeof data !== "object") return; var applied = applyFacePreset(data); if (applied > 0) { pushHistory(); setFeedback(document.getElementById("presetFeedback"), "Saved avatar face restored: " + applied + " of 18 morphs set.", false); } } catch (e) {} }, 0); })();  document.getElementById("btnSaveFace").addEventListener("click", function () { try { localStorage.setItem("nv_face_preset", JSON.stringify(buildPreset())); setFeedback(document.getElementById("presetFeedback"), "Avatar face saved.", false); } catch (e) { setFeedback(document.getElementById("presetFeedback"), "Avatar face could not be saved in this browser.", true); } });  document.getElementById("btnCopy").addEventListener("click", function () {
           var fb = document.getElementById("presetFeedback");
           var text = JSON.stringify(buildPreset(), null, 2);
           function done() { setFeedback(fb, "Face ID copied to clipboard.", false); }
