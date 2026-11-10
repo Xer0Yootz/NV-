@@ -88,37 +88,6 @@
     <p class="palette-hint" data-nv-commands>Press ⌘K for commands</p>
   </main>
 
-<audio id="nvSoundBed3" src="sounds/neon-vigil-sound-bed-3-loop.wav" loop preload="none"></audio>
-<button type="button" id="nvSoundBed3Btn" class="nv-sound-btn" aria-label="Play Sound Bed 3" title="Play Sound Bed 3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg></button>
-<script>
-(function () {
-  var a = document.getElementById('nvSoundBed3');
-  var b = document.getElementById('nvSoundBed3Btn');
-  if (!a || !b) return;
-  var playSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>';
-  var stopSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="6" width="12" height="12"/></svg>';
-  function sync() {
-    b.innerHTML = a.paused ? playSvg : stopSvg;
-    b.setAttribute('aria-label', a.paused ? 'Play Sound Bed 3' : 'Stop Sound Bed 3');
-    b.setAttribute('title', a.paused ? 'Play Sound Bed 3' : 'Stop Sound Bed 3');
-  }
-  function locked() { return document.body.classList.contains('cookie-locked'); }
-  b.addEventListener('click', function () {
-    if (locked()) return;
-    if (a.paused) { a.play().catch(function () {}); } else { a.pause(); }
-  });
-  a.addEventListener('play', sync);
-  a.addEventListener('pause', sync);
-  function onFirstTap(e) {
-    if (locked()) return;
-    if (b.contains(e.target)) return;
-    a.play().catch(function () {});
-    document.removeEventListener('pointerdown', onFirstTap);
-  }
-  document.addEventListener('pointerdown', onFirstTap);
-  sync();
-})();
-</script>
   <script src="./auth.js"></script>
   <script src="./nv-commands.js"></script>
   <!-- Nov 8, 2026 lock: bottom-right ⌘K icon on EVERY page. Settings had the
