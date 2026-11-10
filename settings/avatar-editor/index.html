@@ -1147,26 +1147,41 @@
         /* Default: open on wide screens, closed on narrow ones. */
         setConsole(window.innerWidth > 900);
 
-        /* ----- Header name: "[username], Edit your digital Avatar." ----- */
+        /* ----- Header name: "[username], Edit your digital Avatar." -----
+           The username is the player's identity everywhere, so the header
+           always shows it — never the "User" placeholder — whenever a
+           username is available. Reads the single username key first,
+           then the signed-in account, and keeps trying (on load, when
+           the session resolves, and if the username changes). */
         (function () {
           var el = document.getElementById("editorUser");
           if (!el) return;
-          var name = "";
-          try {
-            name = localStorage.getItem("nv_display_name") || localStorage.getItem("nv_username") || "";
-          } catch (e) {}
-          if (name) { el.textContent = name; return; }
-          try {
-            var client = (typeof getClient === "function") ? getClient() : null;
-            if (client) {
-              client.auth.getSession().then(function (res) {
-                var user = res && res.data && res.data.session && res.data.session.user;
-                var md = user && user.user_metadata;
-                var n = (md && (md.display_name || md.username)) || (user && (user.email || "").split("@")[0]) || "";
-                if (n) el.textContent = n;
-              }).catch(function () {});
-            }
-          } catch (e) {}
+          function setName() {
+            var name = "";
+            try { name = localStorage.getItem("nv_display_name") || ""; } catch (e) {}
+            if (name) { el.textContent = name; return true; }
+            try {
+              var client = (typeof getClient === "function") ? getClient() : null;
+              if (client) {
+                client.auth.getSession().then(function (res) {
+                  var user = res && res.data && res.data.session && res.data.session.user;
+                  var md = user && user.user_metadata;
+                  var n = (md && md.display_name) || (user && (user.email || "").split("@")[0]) || "";
+                  if (n) {
+                    el.textContent = n;
+                    try { localStorage.setItem("nv_display_name", n); } catch (e2) {}
+                  }
+                }).catch(function () {});
+              }
+            } catch (e) {}
+            return false;
+          }
+          setName();
+          window.addEventListener("storage", function (e) {
+            if (e.key === "nv_display_name") setName();
+          });
+          /* The session can resolve after this script runs — retry once. */
+          setTimeout(setName, 1500);
         })();
 
         function resize() {
