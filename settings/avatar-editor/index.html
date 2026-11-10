@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="../../nv-commands.css">
   <link rel="stylesheet" href="../../nv-terminal-tokens.css">
   <link rel="stylesheet" href="../../nv-ticker.css">
+  <link rel="stylesheet" href="../../nv-toggle.css">
   <style>
     body { background:#05010f; color:#f5f0ff; font-family:"VT323", "Share Tech Mono", monospace; font-size:18px; margin:0; }
     main { position:relative; z-index:2; max-width:1440px; margin:0 auto; padding:0 16px 16px; }
@@ -82,14 +83,13 @@
         color: var(--ink-soft);
         max-width: 78ch;
       }
+      /* Avatar stage: full-width and pinned at the top. The console is
+         a drawer that slides in from the right. */
       #avatar-editor .layout {
         max-width: 1440px;
         margin: 0 auto;
         padding: 14px 20px 28px;
-        display: grid;
-        grid-template-columns: minmax(0, 1.3fr) minmax(340px, 460px);
-        gap: 18px;
-        align-items: start;
+        display: block;
       }
 
       /* ---------- Stage / HUD frame ---------- */
@@ -169,6 +169,8 @@
         color: var(--ink-dim);
       }
       #avatar-editor .btn-row { display: flex; flex-wrap: wrap; gap: 6px; }
+      #avatar-editor .cam-btn { padding: 6px; line-height: 0; }
+      #avatar-editor .cam-btn svg { width: 26px; height: 26px; display: block; fill: currentColor; }
       #avatar-editor .hint { color: var(--ink-soft); font-size: 13px; margin: 10px 2px 0; }
 
       /* ---------- Buttons & pills ---------- */
@@ -277,10 +279,28 @@
       }
 
       /* ---------- Console panel / accordions ---------- */
+      /* Editor console: a drawer that slides in from the right. It sits
+         fixed over the page; the avatar stage stays put at the top. */
       #avatar-editor .panel {
         background: var(--panel);
         border: 1px solid var(--edge);
-        box-shadow: 8px 8px 0 rgba(167, 139, 250, 0.12);
+        border-right: 0;
+        box-shadow: -8px 0 24px rgba(0, 0, 0, 0.55);
+        position: fixed;
+        top: 0; right: 0; bottom: 0;
+        width: min(460px, 94vw);
+        z-index: 60;
+        overflow-y: auto;
+        transform: translateX(102%);
+        transition: transform 0.25s ease;
+      }
+      #avatar-editor .panel.console-open { transform: translateX(0); }
+      /* When the console is open, the stage makes room so the avatar is
+         never covered by the drawer. */
+      #avatar-editor.console-open .stage-wrap { margin-right: 480px; }
+      #avatar-editor .console-close {
+        flex: 0 0 auto; font-size: 16px; line-height: 1;
+        padding: 6px 10px;
       }
       #avatar-editor .toolbar {
         display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
@@ -365,8 +385,7 @@
         color: var(--ink-soft); font-size: 13px;
       }
       @media (max-width: 900px) {
-        #avatar-editor .layout { grid-template-columns: 1fr; }
-        #avatar-editor .stage-wrap { position: static; }
+        #avatar-editor.console-open .stage-wrap { margin-right: 0; }
         #avatar-editor .stage { aspect-ratio: 4 / 4.6; min-height: 360px; }
         #avatar-editor .slider-row { grid-template-columns: 100px 1fr 38px; }
         #avatar-editor .slider-row.fine { grid-template-columns: 100px 1fr 54px; }
@@ -395,23 +414,8 @@
   </header>
   <main>
     <section id="avatar-editor" aria-label="Avatar Editor">
-    <div class="warn" role="note">
-      PRIVATE TEST COPY — NOT a player base · NOT canon · Bald Neon test model only
-      <small>This is a test copy of the Avatar Editing System concept. It is not connected to the shared Avatar Editor space, and nothing here is filed as canon.</small>
-    </div>
-
     <header class="page">
-      <h1>Avatar Editor <span class="cy">Bald Neon</span> <span class="mg">Test</span></h1>
-      <p>
-        A private test copy of the Avatar Editor, loaded with the bald Neon morph build
-        (<em>Neon_Ultra_Bald_Morphs_v01.glb</em>). The base stays bald: hair is a separate GLB
-        (<em>Neon_Hair_Braids_v01.glb</em>) attached at runtime and on by default, and the baby-hair
-        trio (<em>Neon_BabyHair_Shell_v01.glb</em>) is a second attachment whose three styles —
-        Soft Swoop, Delicate Curls, Feathered Wisps — are meshes inside the one shell GLB, cycled by
-        visibility. Both are modular wearables, never baked into the base. Drag to orbit, scroll to zoom.
-        Every slider drives the matching morph target on all 18 meshes with damped, smoothed influence:
-        50 is neutral, 0 and 100 push the morph to its negative and positive extremes.
-      </p>
+      <h1><span id="editorUser">User</span>, Edit your digital Avatar</h1>
     </header>
 
     <div class="layout">
@@ -430,12 +434,19 @@
         <div class="hud-strip">
           <div class="hud-group">
             <span class="hud-label">Camera focus</span>
-            <div class="btn-row" role="group" aria-label="Camera focus presets">
-              <button type="button" class="cam-btn" data-view="head" aria-pressed="false">Head / Face</button>
-              <button type="button" class="cam-btn" data-view="hairline" aria-pressed="false">Hairline</button>
-              <button type="button" class="cam-btn" data-view="upper" aria-pressed="false">Upper Body</button>
-              <button type="button" class="cam-btn" data-view="full" aria-pressed="true">Full Body</button>
-              <button type="button" class="cam-btn" data-view="turn" aria-pressed="false">3/4 Turnaround</button>
+            <div class="btn-row cam-row" role="group" aria-label="Camera focus presets">
+              <button type="button" class="cam-btn" data-view="head" aria-pressed="false" aria-label="Head / Face" title="Head / Face">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="5"/><path d="M3.5 22c.8-4.5 4.2-7 8.5-7s7.7 2.5 8.5 7z"/></svg>
+              </button>
+              <button type="button" class="cam-btn" data-view="upper" aria-pressed="false" aria-label="Upper Body" title="Upper Body">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5.5" r="3"/><path d="M4 10.5c2.6-1.6 5-2.3 8-2.3s5.4.7 8 2.3V22H4z"/></svg>
+              </button>
+              <button type="button" class="cam-btn" data-view="lower" aria-pressed="false" aria-label="Lower Body" title="Lower Body">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h12v6.5L16 10v12h-2.6v-8.5h-2.8V22H8V10L6 8.5z"/></svg>
+              </button>
+              <button type="button" class="cam-btn" data-view="full" aria-pressed="true" aria-label="Full Body" title="Full Body">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="4.5" r="2.4"/><path d="M6.8 8.2c1.7-.9 3.4-1.4 5.2-1.4s3.5.5 5.2 1.4v3.6l-1.3 1.6.9 8.6h-2.4l-1-6.8h-2.8l-1 6.8H7.2l.9-8.6-1.3-1.6z"/></svg>
+              </button>
             </div>
           </div>
           <div class="hud-group">
@@ -449,20 +460,33 @@
           <div class="hud-group">
             <span class="hud-label">Turntable</span>
             <div class="btn-row">
-              <button type="button" id="btnTurntable" aria-pressed="false">Auto-rotate: Off</button>
+              <span class="nv-switch-row nv-switch-row-off" id="turntableRow">
+                <button type="button" class="nv-switch" id="btnTurntable" role="switch" aria-checked="false" aria-label="Auto-rotate"><span class="nv-switch-knob"></span></button>
+                <span>Auto-rotate</span>
+              </span>
+            </div>
+          </div>
+          <div class="hud-group">
+            <span class="hud-label">Console</span>
+            <div class="btn-row">
+              <button type="button" id="btnConsole" aria-expanded="true">Editor Console</button>
             </div>
           </div>
         </div>
-        <p class="hint">Camera presets reframe without touching your morphs. Lighting presets restyle the 3-point studio rig (key / fill / rim) and the stage backdrop only — the model and its materials are unchanged.</p>
+        <p class="hint">Camera presets reframe without touching your morphs. Lighting presets restyle the 3-point studio rig (key / fill / rim) and the stage backdrop only — the model and its materials are unchanged. Editing a part moves the camera to it automatically.</p>
       </div>
 
       <section class="panel" aria-label="Editor console">
         <div class="toolbar">
+          <button type="button" class="console-close" id="btnConsoleClose" aria-label="Close console">&#10005;</button>
           <span class="tb-label">Console — history &amp; symmetry</span>
           <button type="button" id="btnUndo" disabled>&#10226; Undo</button>
           <button type="button" id="btnRedo" disabled>&#10227; Redo</button>
           <span class="spacer"></span>
-          <button type="button" id="btnSymmetry" aria-pressed="true" title="Symmetrical edits mirror paired face features; asymmetrical edits them independently">Symmetrical</button>
+          <span class="nv-switch-row" id="symmetryRow" title="Symmetrical edits mirror paired face features; asymmetrical edits them independently">
+            <button type="button" class="nv-switch" id="btnSymmetry" role="switch" aria-checked="true" aria-label="Symmetrical"><span class="nv-switch-knob"></span></button>
+            <span>Symmetrical</span>
+          </span>
         </div>
 
         <div class="acc open" data-acc="face">
@@ -840,6 +864,7 @@
           var l = parseFloat(ps.l.value), r = parseFloat(ps.r.value);
           state.asym[name] = { l: l, r: r };
           influenceTgt[name] = ((l + r) / 2 - 50) / 50;
+          autoFocusFor("head");
         }
 
         function buildMorphSliders() {
@@ -877,6 +902,7 @@
                   var v = parseFloat(inp.value);
                   state.morphs[nm] = v;
                   influenceTgt[nm] = (v - 50) / 50;
+                  autoFocusFor(viewForMorph(nm));
                 });
                 inp.addEventListener("change", pushHistory);
               })(name, r2.input, r2.out);
@@ -913,6 +939,7 @@
                 state.tf[def.key] = parseFloat(inp.value);
                 out.textContent = def.fmt(state.tf[def.key]);
                 applyHairTransform();
+                autoFocusFor("head");
               });
               inp.addEventListener("change", pushHistory);
             })(d, r.input, r.out);
@@ -940,6 +967,10 @@
               var open = acc.classList.toggle("open");
               toggle.setAttribute("aria-expanded", open ? "true" : "false");
               if (open) body.removeAttribute("hidden"); else body.setAttribute("hidden", "");
+              if (open) {
+                var accView = { face: "head", body: "full", hair: "head" }[acc.getAttribute("data-acc")];
+                if (accView) autoFocusFor(accView);
+              }
             });
           })(accs[ai]);
         }
@@ -949,8 +980,9 @@
         function setSymmetry(on, silent) {
           state.symmetrical = on;
           var btn = document.getElementById("btnSymmetry");
-          btn.setAttribute("aria-pressed", on ? "true" : "false");
-          btn.textContent = on ? "Symmetrical" : "Asymmetrical";
+          var row = document.getElementById("symmetryRow");
+          btn.setAttribute("aria-checked", on ? "true" : "false");
+          if (row) row.classList.toggle("nv-switch-row-off", !on);
           if (on) {
             // Re-mirror: right follows left.
             Object.keys(PAIRS).forEach(function (n) { setPair(n, state.asym[n].l, state.asym[n].l); });
@@ -1175,37 +1207,47 @@
         controls.dampingFactor = 0.08;
         controls.autoRotateSpeed = 1.6;
 
-        /* ----- 3-point studio rig: key / fill / rim over a soft base ----- */
+        /* ----- 3-point studio rig: key / fill / rim over a soft base -----
+           The light DIRECTIONS are locked: the key always comes from the
+           front-right-top, the fill from the front-left, the rim from
+           behind-left. Presets change only colour, intensity, and the
+           backdrop — never the direction. The rig lives in world space,
+           so orbiting or auto-rotating the camera never moves it. */
+        var LIGHT_DIR = {
+          key: [1.5, 2.2, 2.5],
+          fill: [-2.2, 0.6, 1.6],
+          rim: [-2, 1.2, -2]
+        };
         var hemi = new THREE.HemisphereLight(0xffffff, 0x444455, 0.95);
         scene.add(hemi);
         var keyLight = new THREE.DirectionalLight(0xffffff, 0.85);
-        keyLight.position.set(1.5, 2.2, 2.5);
+        keyLight.position.set(LIGHT_DIR.key[0], LIGHT_DIR.key[1], LIGHT_DIR.key[2]);
         scene.add(keyLight);
         var fillLight = new THREE.DirectionalLight(0xffffff, 0.0);
-        fillLight.position.set(-2.2, 0.6, 1.6);
+        fillLight.position.set(LIGHT_DIR.fill[0], LIGHT_DIR.fill[1], LIGHT_DIR.fill[2]);
         scene.add(fillLight);
         var rimLight = new THREE.DirectionalLight(0xdfe8ff, 0.35);
-        rimLight.position.set(-2, 1.2, -2);
+        rimLight.position.set(LIGHT_DIR.rim[0], LIGHT_DIR.rim[1], LIGHT_DIR.rim[2]);
         scene.add(rimLight);
 
         var LIGHTING = {
           neutral: {
             bg: 0x808080, hemi: 0.95, hemiSky: 0xffffff, hemiGround: 0x444455,
-            key: 0.85, keyColor: 0xffffff, keyPos: [1.5, 2.2, 2.5],
+            key: 0.85, keyColor: 0xffffff,
             fill: 0.0, fillColor: 0xffffff,
-            rim: 0.35, rimColor: 0xdfe8ff, rimPos: [-2, 1.2, -2]
+            rim: 0.35, rimColor: 0xdfe8ff
           },
           neon: {
             bg: 0x0d0d18, hemi: 0.32, hemiSky: 0x8a7bff, hemiGround: 0x12060f,
-            key: 0.65, keyColor: 0x9be9ff, keyPos: [1.6, 1.6, 2.4],
+            key: 0.65, keyColor: 0x9be9ff,
             fill: 0.55, fillColor: 0xa78bfa,
-            rim: 1.5, rimColor: 0xff4fa3, rimPos: [-1.6, 1.4, -2.4]
+            rim: 1.5, rimColor: 0xff4fa3
           },
           chiaroscuro: {
             bg: 0x1a1a1e, hemi: 0.10, hemiSky: 0x555560, hemiGround: 0x000000,
-            key: 1.5, keyColor: 0xfff2df, keyPos: [2.4, 2.8, 1.2],
+            key: 1.5, keyColor: 0xfff2df,
             fill: 0.0, fillColor: 0xffffff,
-            rim: 0.22, rimColor: 0xbfd4ff, rimPos: [-2.2, 1.0, -1.8]
+            rim: 0.22, rimColor: 0xbfd4ff
           }
         };
         function applyLighting(name) {
@@ -1216,11 +1258,11 @@
           hemi.intensity = p.hemi;
           hemi.color = new THREE.Color(p.hemiSky);
           hemi.groundColor = new THREE.Color(p.hemiGround);
+          /* Directions stay locked (LIGHT_DIR) — only colour and
+             intensity change here. */
           keyLight.intensity = p.key; keyLight.color = new THREE.Color(p.keyColor);
-          keyLight.position.set(p.keyPos[0], p.keyPos[1], p.keyPos[2]);
           fillLight.intensity = p.fill; fillLight.color = new THREE.Color(p.fillColor);
           rimLight.intensity = p.rim; rimLight.color = new THREE.Color(p.rimColor);
-          rimLight.position.set(p.rimPos[0], p.rimPos[1], p.rimPos[2]);
           var btns = document.querySelectorAll(".light-btn");
           for (var i = 0; i < btns.length; i++) {
             btns[i].setAttribute("aria-pressed", btns[i].getAttribute("data-light") === name ? "true" : "false");
@@ -1231,13 +1273,54 @@
           lightBtns[li].addEventListener("click", function () { applyLighting(this.getAttribute("data-light")); });
         }
 
-        /* ----- Turntable ----- */
+        /* ----- Turntable (a switch, per the web-app toggle rule) ----- */
         var btnTurntable = document.getElementById("btnTurntable");
+        var turntableRow = document.getElementById("turntableRow");
         btnTurntable.addEventListener("click", function () {
           controls.autoRotate = !controls.autoRotate;
-          btnTurntable.setAttribute("aria-pressed", controls.autoRotate ? "true" : "false");
-          btnTurntable.textContent = controls.autoRotate ? "Auto-rotate: On" : "Auto-rotate: Off";
+          btnTurntable.setAttribute("aria-checked", controls.autoRotate ? "true" : "false");
+          turntableRow.classList.toggle("nv-switch-row-off", !controls.autoRotate);
         });
+
+        /* ----- Console drawer (slides from the right) ----- */
+        var editorRoot = document.getElementById("avatar-editor");
+        var consolePanel = document.querySelector("#avatar-editor .panel");
+        var btnConsole = document.getElementById("btnConsole");
+        var btnConsoleClose = document.getElementById("btnConsoleClose");
+        function setConsole(open) {
+          consolePanel.classList.toggle("console-open", open);
+          editorRoot.classList.toggle("console-open", open);
+          btnConsole.setAttribute("aria-expanded", open ? "true" : "false");
+          resize();
+        }
+        btnConsole.addEventListener("click", function () {
+          setConsole(!consolePanel.classList.contains("console-open"));
+        });
+        btnConsoleClose.addEventListener("click", function () { setConsole(false); });
+        /* Default: open on wide screens, closed on narrow ones. */
+        setConsole(window.innerWidth > 900);
+
+        /* ----- Header name: "[username], Edit your digital Avatar." ----- */
+        (function () {
+          var el = document.getElementById("editorUser");
+          if (!el) return;
+          var name = "";
+          try {
+            name = localStorage.getItem("nv_display_name") || localStorage.getItem("nv_username") || "";
+          } catch (e) {}
+          if (name) { el.textContent = name; return; }
+          try {
+            var client = (typeof getClient === "function") ? getClient() : null;
+            if (client) {
+              client.auth.getSession().then(function (res) {
+                var user = res && res.data && res.data.session && res.data.session.user;
+                var md = user && user.user_metadata;
+                var n = (md && (md.display_name || md.username)) || (user && (user.email || "").split("@")[0]) || "";
+                if (n) el.textContent = n;
+              }).catch(function () {});
+            }
+          } catch (e) {}
+        })();
 
         function resize() {
           var w = stage.clientWidth, h = stage.clientHeight;
@@ -1264,15 +1347,24 @@
           views.hairline = { pos: new THREE.Vector3(hairC.x + size.x * 0.10, hairC.y + size.y * 0.03, hairC.z + Math.max(size.y * 0.20, 0.16)), target: hairC };
           var upperC = new THREE.Vector3(center.x, modelBox.min.y + size.y * 0.78, center.z);
           views.upper = { pos: new THREE.Vector3(upperC.x, upperC.y, upperC.z + Math.max(size.y * 0.85, 0.6)), target: upperC };
-          // 3/4 turnaround: off-axis three-quarter angle at full-body distance.
-          views.turn = {
-            pos: new THREE.Vector3(center.x + fullDist * 0.72, center.y + size.y * 0.10, center.z + fullDist * 0.72),
-            target: new THREE.Vector3(center.x, center.y + size.y * 0.04, center.z)
-          };
+          var lowerC = new THREE.Vector3(center.x, modelBox.min.y + size.y * 0.30, center.z);
+          views.lower = { pos: new THREE.Vector3(lowerC.x, lowerC.y, lowerC.z + Math.max(size.y * 0.75, 0.55)), target: lowerC };
+        }
+        /* ----- Auto-focus: editing a part puts it in view ----- */
+        var currentView = "full";
+        function viewForMorph(name) {
+          if (FACE_MORPHS.indexOf(name) !== -1) return "head";
+          var map = { height: "full", shoulder: "upper", chest: "upper", armLength: "upper", waist: "lower", hip: "lower", legLength: "lower" };
+          return map[name] || "full";
+        }
+        function autoFocusFor(view) {
+          if (!view || currentView === view || !views[view]) return;
+          goView(view);
         }
         function goView(which) {
           var v = views[which];
           if (!v) return;
+          currentView = which;
           camera.position.copy(v.pos);
           controls.target.copy(v.target);
           controls.update();
@@ -1345,6 +1437,7 @@
           for (var i = 0; i < btns.length; i++) {
             btns[i].setAttribute("aria-pressed", (btns[i].getAttribute("data-hair") === "braids") === wanted ? "true" : "false");
           }
+          if (!silent) autoFocusFor("head");
           if (wanted) {
             hairError = "";
             if (hairObject) { applyHairTransform(); refreshStatus(); }
@@ -1413,7 +1506,7 @@
           }
           if (style !== "none" && !shellLoaded) loadShell();
           else { applyShellVisibility(); refreshStatus(); }
-          if (!silent) pushHistory();
+          if (!silent) { autoFocusFor("hairline"); pushHistory(); }
         }
         var shellPills = document.querySelectorAll(".shell-pill");
         for (var spi = 0; spi < shellPills.length; spi++) {
