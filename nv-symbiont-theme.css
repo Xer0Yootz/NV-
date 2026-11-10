@@ -1,5 +1,5 @@
 /* nv-symbiont-theme.css — the IA Symbiont recolors the whole system.
-   RULE (Nov 9, 2026, User's, standing): choosing the IA Symbiont
+   RULE (Nov 9, 2026, User's standing rule): choosing the IA Symbiont
    changes the color of the IA on all fronts AND the color of the
    system — the container, radio, and other such things become pink
    if you choose Helix, cyan if you choose Hexa, indigo if you choose
@@ -8,32 +8,158 @@
    data-symbiont on the root element, and this file recolors the
    system accent to match. Cyphr (indigo) is the current default
    look, so it keeps the existing purple. */
+
+/* Per-symbiont panel tints and readable text on them. Light panels
+   (Hexa cyan / Helix pink) get DARK text so it always shows: cyan
+   panels #05373f, pink panels #4b0020. Cyphr's panel stays dark
+   indigo, so its text stays near-white #f5f0ff. --nv-accent-deep is
+   the readable heading/link shade of the accent on a light panel;
+   --nv-on-accent is the text on a solid accent button. The accent
+   colors themselves are unchanged. */
 :root {
   --nv-accent: #7c3aed;
   --nv-accent-bright: #6366f1;
   --nv-accent-soft: #a78bfa;
+  --nv-accent-deep: #a78bfa;
+  --nv-on-accent: #ffffff;
+  --nv-panel: #1e1745;
+  --nv-panel-text: #f5f0ff;
 }
 [data-symbiont="hexa"] {
   --nv-accent: #22d3ee;
   --nv-accent-bright: #00e5ff;
   --nv-accent-soft: #67e8f9;
+  --nv-accent-deep: #0e7490;
+  --nv-on-accent: #05373f;
+  --nv-panel: #c9f2f7;
+  --nv-panel-text: #05373f;
 }
 [data-symbiont="cyphr"] {
   --nv-accent: #7c3aed;
   --nv-accent-bright: #6366f1;
   --nv-accent-soft: #a78bfa;
+  --nv-accent-deep: #a78bfa;
+  --nv-on-accent: #ffffff;
+  --nv-panel: #1e1745;
+  --nv-panel-text: #f5f0ff;
 }
 [data-symbiont="helix"] {
   --nv-accent: #ff2e88;
   --nv-accent-bright: #f471b5;
   --nv-accent-soft: #f9a8d4;
+  --nv-accent-deep: #be185d;
+  --nv-on-accent: #4b0020;
+  --nv-panel: #ffd7e6;
+  --nv-panel-text: #4b0020;
 }
+
 /* Recolor the system accent wherever it appears: panel borders,
    links, and buttons use the theme variables, so the whole system
    follows the pick. Pages that still hardcode the purple get these
-   overrides (same selectors, later stylesheet wins). */
-[data-symbiont] a { color: var(--nv-accent-soft); }
-[data-symbiont] main { border-color: var(--nv-accent); }
-[data-symbiont] section { border-color: var(--nv-accent); }
-[data-symbiont] button.selected { background: var(--nv-accent); }
-[data-symbiont] .nv-term-prompt { color: var(--nv-accent-soft); }
+   overrides (later stylesheets win). The !important flags are what
+   let this file recolor inline purple styles. */
+[data-symbiont] a { color: var(--nv-accent-deep) !important; }
+[data-symbiont] main, [data-symbiont] section, [data-symbiont] article { border-color: var(--nv-accent) !important; }
+[data-symbiont] button.selected { background: var(--nv-accent) !important; color: var(--nv-on-accent) !important; }
+[data-symbiont] .nv-term-prompt { color: var(--nv-accent-soft) !important; }
+
+/* Containers / panels: per-symbiont tint, readable text, accent border. */
+[data-symbiont] .card,
+[data-symbiont] .panel,
+[data-symbiont] .toc,
+[data-symbiont] .box,
+[data-symbiont] .tile,
+[data-symbiont] .entry,
+[data-symbiont] .nv-card,
+[data-symbiont] .nv-panel,
+[data-symbiont] .widget,
+[data-symbiont] .modal,
+[data-symbiont] dialog {
+  background-color: var(--nv-panel) !important;
+  color: var(--nv-panel-text) !important;
+  border-color: var(--nv-accent) !important;
+}
+
+/* Text inside a tinted panel must use the panel text color, even
+   when the page gave it a hardcoded purple inline style. Links,
+   headings and buttons inside panels get their own rules below. */
+[data-symbiont] .card p, [data-symbiont] .card li, [data-symbiont] .card span,
+[data-symbiont] .card div, [data-symbiont] .card small, [data-symbiont] .card label,
+[data-symbiont] .panel p, [data-symbiont] .panel li, [data-symbiont] .panel span,
+[data-symbiont] .panel div, [data-symbiont] .toc p, [data-symbiont] .toc li,
+[data-symbiont] .card .meta, [data-symbiont] .card .note,
+[data-symbiont] .panel .meta, [data-symbiont] .panel .note {
+  color: var(--nv-panel-text) !important;
+}
+
+/* Headings: accent on the dark page, the deeper readable shade
+   inside a tinted panel. */
+[data-symbiont] h1, [data-symbiont] h2, [data-symbiont] h3 {
+  color: var(--nv-accent) !important;
+}
+[data-symbiont] .card h1, [data-symbiont] .card h2, [data-symbiont] .card h3,
+[data-symbiont] .panel h1, [data-symbiont] .panel h2, [data-symbiont] .panel h3,
+[data-symbiont] .toc h1, [data-symbiont] .toc h2, [data-symbiont] .toc h3 {
+  color: var(--nv-accent-deep) !important;
+}
+
+/* Links inside panels use the deep shade so they stay readable
+   on a light tint. */
+[data-symbiont] .card a, [data-symbiont] .panel a, [data-symbiont] .toc a {
+  color: var(--nv-accent-deep) !important;
+}
+
+/* Buttons: accent border and accent text everywhere; solid accent
+   for primary / call-to-action / submit buttons, with readable
+   text on the solid accent. */
+[data-symbiont] button, [data-symbiont] .btn, [data-symbiont] [role="button"] {
+  border-color: var(--nv-accent) !important;
+  color: var(--nv-accent) !important;
+}
+[data-symbiont] button.primary, [data-symbiont] .btn-primary,
+[data-symbiont] .cta, [data-symbiont] button[type="submit"],
+[data-symbiont] input[type="submit"], [data-symbiont] .save {
+  background-color: var(--nv-accent) !important;
+  background: var(--nv-accent) !important;
+  color: var(--nv-on-accent) !important;
+  border-color: var(--nv-accent) !important;
+}
+[data-symbiont] button.primary *, [data-symbiont] .cta * {
+  color: var(--nv-on-accent) !important;
+}
+
+/* Form controls: accent borders and the radio/checkbox accent. */
+[data-symbiont] input, [data-symbiont] select, [data-symbiont] textarea {
+  border-color: var(--nv-accent) !important;
+}
+[data-symbiont] input[type="radio"], [data-symbiont] input[type="checkbox"] {
+  accent-color: var(--nv-accent) !important;
+}
+[data-symbiont] .card input, [data-symbiont] .card select,
+[data-symbiont] .card textarea, [data-symbiont] .panel input,
+[data-symbiont] .panel select, [data-symbiont] .panel textarea {
+  background-color: var(--nv-panel) !important;
+  color: var(--nv-panel-text) !important;
+}
+
+/* Shell: ticker, dock and palette follow the pick too. */
+[data-symbiont] .nv-ticker, [data-symbiont] .ticker, [data-symbiont] #nv-ticker,
+[data-symbiont] .nv-dock, [data-symbiont] .dock, [data-symbiont] #nv-dock,
+[data-symbiont] .nv-palette, [data-symbiont] .palette, [data-symbiont] #nv-palette,
+[data-symbiont] .nv-shell, [data-symbiont] header, [data-symbiont] nav {
+  border-color: var(--nv-accent) !important;
+}
+[data-symbiont] .nv-ticker, [data-symbiont] .ticker, [data-symbiont] #nv-ticker {
+  color: var(--nv-accent-soft) !important;
+}
+[data-symbiont] hr { border-color: var(--nv-accent) !important; }
+[data-symbiont] ::selection {
+  background: var(--nv-accent);
+  color: var(--nv-on-accent);
+}
+
+/* The chosen pick is marked with the accent, not with a fixed purple. */
+[data-symbiont] .ia-pick[aria-pressed="true"] {
+  border-color: var(--nv-accent) !important;
+  box-shadow: 0 0 0 2px var(--nv-accent) !important;
+}
