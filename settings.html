@@ -49,35 +49,10 @@
     <h1>Settings</h1>
     <p><a href="hub.html">Back to hub</a></p>
 
-    <section aria-label="Profile picture">
-      <h2>Profile picture</h2>
-      <div id="avatarCurrent"></div>
-      <div class="choice-row">
-        <button type="button" id="choiceProviderBtn">Use provider photo</button>
-        <button type="button" id="choiceUploadBtn">Upload your own</button>
-        <button type="button" id="choiceBlankBtn">Blank</button>
-      </div>
-      <div id="uploadRow" hidden>
-        <input type="file" id="avatarFile" accept="image/*" aria-label="Upload your own profile picture">
-        <p class="avatar-note">No mature content in pictures.</p>
-        <img id="avatarPreview" alt="Preview of your chosen profile picture" hidden>
-      </div>
-      <p id="avatarStatus" aria-live="polite"></p>
-      <p><button type="button" id="saveAvatarBtn">Save</button></p>
-    </section>
-
-    <section aria-label="Username">
-      <h2>Username</h2>
-      <p id="who">Checking your sign-in…</p>
-    </section>
-
-    <section aria-label="AI Symbiont base">
-      <h2>AI Symbiont base</h2>
-      <div class="choice-row">
-        <button type="button" id="symbiontHexaBtn">Hexa</button>
-        <button type="button" id="symbiontCyphrBtn">Cyphr</button>
-      </div>
-      <p>More colors and more AI Symbiont models will be added later.</p>
+    <section aria-label="Profile">
+      <h2>Profile</h2>
+      <p><a href="/settings/profile-editor/">Profile Editor</a> — picture, username, and IA Symbiont base.</p>
+      <p><a href="/settings/avatar-editor/">Avatar Editor</a> — build your avatar.</p>
     </section>
 
     <section aria-label="Sign out">
@@ -106,170 +81,13 @@
       } catch (e) {}
     }
 
-    var currentUser = null;
-
-    /* ---- Profile picture ---- */
-    var avatarChoice = localStorage.getItem('nv_avatar_choice') || '';
-    var avatarCache = localStorage.getItem('nv_avatar_url') || '';
-    var providerAvatar = localStorage.getItem('nv_provider_avatar_url') || '';
-    var chosenFile = null;
-
-    function providerPhotoUrl(user) {
-      return (user && user.user_metadata && user.user_metadata.avatar_url) ? user.user_metadata.avatar_url : '';
-    }
-    function currentAvatarUrl() {
-      if (avatarChoice === 'blank') return '';
-      if (avatarChoice === 'upload') return avatarCache;
-      if (avatarChoice === 'provider') return providerAvatar;
-      return providerAvatar || avatarCache;
-    }
-    function renderAvatarCurrent() {
-      var url = currentAvatarUrl();
-      var box = document.getElementById('avatarCurrent');
-      if (url) {
-        box.innerHTML = '<img class="avatar-current" src="' + esc(url) + '" alt="Your profile picture">';
-      } else {
-        box.innerHTML = '<span class="avatar-blank" role="img" aria-label="No profile picture"></span>';
-      }
-    }
-    function markAvatarChoice(choice) {
-      avatarChoice = choice;
-      document.getElementById('choiceProviderBtn').classList.toggle('selected', choice === 'provider');
-      document.getElementById('choiceUploadBtn').classList.toggle('selected', choice === 'upload');
-      document.getElementById('choiceBlankBtn').classList.toggle('selected', choice === 'blank');
-      document.getElementById('uploadRow').hidden = (choice !== 'upload');
-      renderAvatarCurrent();
-    }
-    document.getElementById('choiceProviderBtn').addEventListener('click', function () { markAvatarChoice('provider'); });
-    document.getElementById('choiceUploadBtn').addEventListener('click', function () { markAvatarChoice('upload'); });
-    document.getElementById('choiceBlankBtn').addEventListener('click', function () { markAvatarChoice('blank'); });
-    document.getElementById('avatarFile').addEventListener('change', function () {
-      var f = this.files && this.files[0];
-      chosenFile = f || null;
-      var prev = document.getElementById('avatarPreview');
-      if (!f) { prev.hidden = true; prev.removeAttribute('src'); return; }
-      var reader = new FileReader();
-      reader.onload = function () { prev.src = reader.result; prev.hidden = false; };
-      reader.readAsDataURL(f);
-    });
-    document.getElementById('saveAvatarBtn').addEventListener('click', function () {
-      var status = document.getElementById('avatarStatus');
-      status.textContent = '';
-      if (avatarChoice === 'provider') {
-        var url = providerAvatar;
-        if (url) { localStorage.setItem('nv_avatar_url', url); saveToAccount({ avatar_url: url }); }
-        localStorage.setItem('nv_avatar_choice', 'provider');
-        renderAvatarCurrent();
-      } else if (avatarChoice === 'blank') {
-        localStorage.setItem('nv_avatar_choice', 'blank');
-        localStorage.removeItem('nv_avatar_url');
-        avatarCache = '';
-        saveToAccount({ avatar_url: null });
-        renderAvatarCurrent();
-      } else if (avatarChoice === 'upload') {
-        if (!chosenFile) {
-          if (avatarCache) {
-            localStorage.setItem('nv_avatar_choice', 'upload');
-            saveToAccount({ avatar_url: avatarCache });
-            renderAvatarCurrent();
-          }
-          return;
-        }
-        var client = (typeof getClient === 'function') ? getClient() : null;
-        if (!client) { status.textContent = 'Profile picture uploads need the storage bucket — it is being set up. Your provider photo or blank is saved for now.'; return; }
-        /* NOTE: the 'profile-pictures' Supabase Storage bucket does not exist
-           yet — it is still being set up. Until it exists, the upload below
-           errors and we fail gracefully without overwriting avatar_url.
-           Do not rename the bucket. */
-        var path = currentUser.id + '/' + Date.now() + '-' + chosenFile.name;
-        client.storage.from('profile-pictures').upload(path, chosenFile).then(function (res) {
-          if (res.error) throw res.error;
-          var pub = client.storage.from('profile-pictures').getPublicUrl(path);
-          var publicUrl = pub && pub.data && pub.data.publicUrl;
-          if (!publicUrl) throw new Error('no public URL');
-          avatarCache = publicUrl;
-          localStorage.setItem('nv_avatar_url', publicUrl);
-          localStorage.setItem('nv_avatar_choice', 'upload');
-          saveToAccount({ avatar_url: publicUrl });
-          renderAvatarCurrent();
-        }).catch(function () {
-          status.textContent = 'Profile picture uploads need the storage bucket — it is being set up. Your provider photo or blank is saved for now.';
-        });
-      }
-    });
-
-    /* ---- Username (same logic as options.html) ---- */
-    function savedName() { return localStorage.getItem('nv_display_name') || ''; }
-    function saveNameToAccount(v) { saveToAccount({ display_name: v }); }
-    function accountName(user) { return (user && user.user_metadata && user.user_metadata.display_name) ? user.user_metadata.display_name : ''; }
-    function sizeInput() {
-      var inp = document.getElementById('nameInput');
-      if (inp) { inp.style.width = Math.max(1, inp.value.length + 1) + 'ch'; }
-    }
-    function showEdit(prefill) {
-      document.getElementById('who').innerHTML = '<span class="user-label">User:</span> <span class="name-cell"><input id="nameInput" maxlength="60" aria-label="Display name" autocomplete="off"><span class="cursor-blink">_</span></span> <span class="save-cell"><button id="saveNameBtn">Save</button></span>';
-      var inp = document.getElementById('nameInput');
-      inp.value = prefill || '';
-      sizeInput();
-      inp.addEventListener('input', sizeInput);
-      inp.focus();
-      document.getElementById('saveNameBtn').addEventListener('click', function () {
-        var v = inp.value.trim();
-        if (v) { localStorage.setItem('nv_display_name', v); saveNameToAccount(v); } else { localStorage.removeItem('nv_display_name'); saveNameToAccount(null); }
-        renderName();
-      });
-    }
-    function renderName(user) {
-      var name = savedName() || accountName(user);
-      if (name) { localStorage.setItem('nv_display_name', name); }
-      if (name) {
-        document.getElementById('who').innerHTML = '<span class="user-label">User:</span> <span class="name-cell">' + esc(name) + '<span class="cursor-blink">_</span></span> <span class="save-cell"><button id="editNameBtn">Change name</button> <button id="deleteNameBtn">Delete name</button></span>';
-        document.getElementById('editNameBtn').addEventListener('click', function () { showEdit(name); });
-        document.getElementById('deleteNameBtn').addEventListener('click', function () {
-          localStorage.removeItem('nv_display_name');
-          saveNameToAccount(null);
-          renderName();
-        });
-      } else {
-        showEdit('');
-      }
-    }
-
-    /* ---- AI Symbiont base ---- */
-    var symbiontBase = localStorage.getItem('nv_symbiont_base') || '';
-    function markSymbiont(base) {
-      symbiontBase = base;
-      document.getElementById('symbiontHexaBtn').classList.toggle('selected', base === 'hexa');
-      document.getElementById('symbiontCyphrBtn').classList.toggle('selected', base === 'cyphr');
-    }
-    function saveSymbiont(base) {
-      markSymbiont(base);
-      localStorage.setItem('nv_symbiont_base', base);
-      saveToAccount({ symbiont_base: base });
-    }
-    document.getElementById('symbiontHexaBtn').addEventListener('click', function () { saveSymbiont('hexa'); });
-    document.getElementById('symbiontCyphrBtn').addEventListener('click', function () { saveSymbiont('cyphr'); });
-
     /* ---- Sign out ---- */
     document.getElementById('settingsSignOutBtn').addEventListener('click', signOut);
 
     requireSession('index.html').then(function (user) {
       if (!user) return;
-      currentUser = user;
-      /* Cache the provider photo before any custom avatar overwrites
-         user_metadata.avatar_url, so "Use provider photo" can restore it. */
-      var prov = providerPhotoUrl(user);
-      if (prov && avatarChoice !== 'upload') { providerAvatar = prov; localStorage.setItem('nv_provider_avatar_url', prov); }
-      if (!avatarChoice) {
-        markAvatarChoice(providerAvatar ? 'provider' : 'blank');
-      } else {
-        markAvatarChoice(avatarChoice);
-      }
-      renderName(user);
-      /* Symbiont base: no default — neither button is selected unless a
-         choice was saved before. */
-      var savedBase = localStorage.getItem('nv_symbiont_base') || (user.user_metadata && user.user_metadata.symbiont_base) || '';
-      if (savedBase === 'hexa' || savedBase === 'cyphr') { markSymbiont(savedBase); }
+      /* Profile editing lives in the Profile Editor now — Settings only
+         links to it. */
     });
   </script>
 <script>
