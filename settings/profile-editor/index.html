@@ -61,16 +61,10 @@
       <p><button type="button" id="saveAvatarBtn">Save</button></p>
     </section>
 
-    <section aria-label="Display name">
-      <h2>Display name</h2>
-      <p id="who">Checking your sign-in…</p>
-    </section>
-
     <section aria-label="Username">
       <h2>Username</h2>
-      <p class="note">Your username is your identity everywhere — the game, chat, and your Symbiont calls you by it.</p>
-      <p><input id="usernameInput" maxlength="40" aria-label="Username" autocomplete="off" placeholder="username"> <button type="button" id="saveUsernameBtn">Save</button></p>
-      <p id="usernameStatus" aria-live="polite"></p>
+      <p class="note">Your username is your identity everywhere — the game, chat, and your Symbiont calls you by it. There is one name, and this is it.</p>
+      <p id="who">Checking your sign-in…</p>
     </section>
 
     <section aria-label="Pronouns">
@@ -237,7 +231,7 @@
       if (inp) { inp.style.width = Math.max(1, inp.value.length + 1) + 'ch'; }
     }
     function showEdit(prefill) {
-      document.getElementById('who').innerHTML = '<span class="user-label">User:</span> <span class="name-cell"><input id="nameInput" maxlength="60" aria-label="Display name" autocomplete="off"><span class="cursor-blink">_</span></span> <span class="save-cell"><button id="saveNameBtn">Save</button></span>';
+      document.getElementById('who').innerHTML = '<span class="user-label">User:</span> <span class="name-cell"><input id="nameInput" maxlength="60" aria-label="Username" autocomplete="off"><span class="cursor-blink">_</span></span> <span class="save-cell"><button id="saveNameBtn">Save</button></span>';
       var inp = document.getElementById('nameInput');
       inp.value = prefill || '';
       sizeInput();
@@ -279,19 +273,6 @@
     }
     document.getElementById('symbiontHexaBtn').addEventListener('click', function () { saveSymbiont('hexa'); });
     document.getElementById('symbiontCyphrBtn').addEventListener('click', function () { saveSymbiont('cyphr'); });
-
-    /* ---- Username (the identity — game, chat, Symbiont calls you by it) ---- */
-    function loadUsername() {
-      var u = localStorage.getItem('nv_username') || '';
-      var inp = document.getElementById('usernameInput');
-      if (inp) inp.value = u;
-    }
-    document.getElementById('saveUsernameBtn').addEventListener('click', function () {
-      var v = document.getElementById('usernameInput').value.trim();
-      var status = document.getElementById('usernameStatus');
-      if (v) { localStorage.setItem('nv_username', v); saveToAccount({ username: v }); status.textContent = 'Username saved.'; }
-      else { localStorage.removeItem('nv_username'); saveToAccount({ username: null }); status.textContent = 'Username cleared.'; }
-    });
 
     /* ---- Pronouns ---- */
     function markPronouns(p) {
@@ -381,14 +362,12 @@
       if (savedBase === 'hexa' || savedBase === 'cyphr') { markSymbiont(savedBase); }
       /* Hydrate the newer profile fields from the account when local is empty. */
       var md = user.user_metadata || {};
-      if (!localStorage.getItem('nv_username') && md.username) { localStorage.setItem('nv_username', md.username); }
       if (!localStorage.getItem('nv_pronouns') && md.pronouns) { localStorage.setItem('nv_pronouns', md.pronouns); }
       if (!localStorage.getItem('nv_bio') && md.bio) { localStorage.setItem('nv_bio', md.bio); }
       if (!localStorage.getItem('nv_links') && md.links) { localStorage.setItem('nv_links', JSON.stringify(md.links)); }
       if (!localStorage.getItem('nv_location') && md.location) { localStorage.setItem('nv_location', md.location); }
       if (!localStorage.getItem('nv_symbiont_name') && md.symbiont_name) { localStorage.setItem('nv_symbiont_name', md.symbiont_name); }
       if (!localStorage.getItem('nv_symbiont_gender') && md.symbiont_gender) { localStorage.setItem('nv_symbiont_gender', md.symbiont_gender); }
-      loadUsername();
       markPronouns(localStorage.getItem('nv_pronouns') || '');
       if (bioInput) { bioInput.value = localStorage.getItem('nv_bio') || ''; updateBioCount(); }
       loadLinks();
