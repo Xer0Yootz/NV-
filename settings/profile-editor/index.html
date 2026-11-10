@@ -61,9 +61,47 @@
       <p><button type="button" id="saveAvatarBtn">Save</button></p>
     </section>
 
+    <section aria-label="Display name">
+      <h2>Display name</h2>
+      <p id="who">Checking your sign-in…</p>
+    </section>
+
     <section aria-label="Username">
       <h2>Username</h2>
-      <p id="who">Checking your sign-in…</p>
+      <p class="note">Your username is your identity everywhere — the game, chat, and your Symbiont calls you by it.</p>
+      <p><input id="usernameInput" maxlength="40" aria-label="Username" autocomplete="off" placeholder="username"> <button type="button" id="saveUsernameBtn">Save</button></p>
+      <p id="usernameStatus" aria-live="polite"></p>
+    </section>
+
+    <section aria-label="Pronouns">
+      <h2>Pronouns</h2>
+      <div class="choice-row">
+        <button type="button" class="pronounBtn" data-pronouns="he/him">He/Him</button>
+        <button type="button" class="pronounBtn" data-pronouns="she/her">She/Her</button>
+        <button type="button" class="pronounBtn" data-pronouns="they/them">They/Them</button>
+        <button type="button" class="pronounBtn" data-pronouns="neo">Neo</button>
+      </div>
+    </section>
+
+    <section aria-label="Bio">
+      <h2>Bio</h2>
+      <textarea id="bioInput" maxlength="140" rows="3" aria-label="Bio" placeholder="140 characters max, 3 lines max — only what's necessary."></textarea>
+      <p><span id="bioCount">0</span>/140</p>
+      <p><button type="button" id="saveBioBtn">Save</button></p>
+    </section>
+
+    <section aria-label="Links">
+      <h2>Links</h2>
+      <p><input class="linkInput" type="url" maxlength="200" aria-label="Link 1" placeholder="https://…"></p>
+      <p><input class="linkInput" type="url" maxlength="200" aria-label="Link 2" placeholder="https://…"></p>
+      <p><input class="linkInput" type="url" maxlength="200" aria-label="Link 3" placeholder="https://…"></p>
+      <p><button type="button" id="saveLinksBtn">Save</button></p>
+    </section>
+
+    <section aria-label="Location">
+      <h2>Location</h2>
+      <p><input id="locationInput" maxlength="80" aria-label="Location" autocomplete="off" placeholder="City, or wherever you are"></p>
+      <p><button type="button" id="saveLocationBtn">Save</button></p>
     </section>
 
     <section aria-label="AI Symbiont base">
@@ -74,6 +112,11 @@
       </div>
       <p>More colors and more AI Symbiont models will be added later.</p>
       <p><a href="/ia-symbiont/">Choose your IA on the IA Symbiont page</a></p>
+      <h3>Your Symbiont</h3>
+      <p class="note">Your own symbiont — not Hexa or Cyphr themselves. Name and gender are yours to pick, editable later.</p>
+      <p><input id="symbiontNameInput" maxlength="40" aria-label="Symbiont name" autocomplete="off" placeholder="Symbiont name"></p>
+      <p><input id="symbiontGenderInput" maxlength="40" aria-label="Symbiont gender" autocomplete="off" placeholder="Symbiont gender"></p>
+      <p><button type="button" id="saveSymbiontBtn">Save</button></p>
     </section>
 
     <p class="palette-hint" data-nv-commands>Press ⌘K for commands</p>
@@ -237,6 +280,92 @@
     document.getElementById('symbiontHexaBtn').addEventListener('click', function () { saveSymbiont('hexa'); });
     document.getElementById('symbiontCyphrBtn').addEventListener('click', function () { saveSymbiont('cyphr'); });
 
+    /* ---- Username (the identity — game, chat, Symbiont calls you by it) ---- */
+    function loadUsername() {
+      var u = localStorage.getItem('nv_username') || '';
+      var inp = document.getElementById('usernameInput');
+      if (inp) inp.value = u;
+    }
+    document.getElementById('saveUsernameBtn').addEventListener('click', function () {
+      var v = document.getElementById('usernameInput').value.trim();
+      var status = document.getElementById('usernameStatus');
+      if (v) { localStorage.setItem('nv_username', v); saveToAccount({ username: v }); status.textContent = 'Username saved.'; }
+      else { localStorage.removeItem('nv_username'); saveToAccount({ username: null }); status.textContent = 'Username cleared.'; }
+    });
+
+    /* ---- Pronouns ---- */
+    function markPronouns(p) {
+      Array.prototype.forEach.call(document.querySelectorAll('.pronounBtn'), function (b) {
+        b.classList.toggle('selected', b.getAttribute('data-pronouns') === p);
+      });
+    }
+    Array.prototype.forEach.call(document.querySelectorAll('.pronounBtn'), function (b) {
+      b.addEventListener('click', function () {
+        var p = b.getAttribute('data-pronouns');
+        markPronouns(p);
+        localStorage.setItem('nv_pronouns', p);
+        saveToAccount({ pronouns: p });
+      });
+    });
+
+    /* ---- Bio: 140 characters max, 3 lines max ---- */
+    var bioInput = document.getElementById('bioInput');
+    function updateBioCount() {
+      var c = document.getElementById('bioCount');
+      if (c && bioInput) c.textContent = String(bioInput.value.length);
+    }
+    if (bioInput) {
+      bioInput.value = localStorage.getItem('nv_bio') || '';
+      updateBioCount();
+      bioInput.addEventListener('input', function () {
+        /* Enforce 3 lines max. */
+        var lines = bioInput.value.split('\n');
+        if (lines.length > 3) { bioInput.value = lines.slice(0, 3).join('\n'); }
+        updateBioCount();
+      });
+      document.getElementById('saveBioBtn').addEventListener('click', function () {
+        localStorage.setItem('nv_bio', bioInput.value);
+        saveToAccount({ bio: bioInput.value });
+      });
+    }
+
+    /* ---- Links: 3 external links ---- */
+    function loadLinks() {
+      var saved = [];
+      try { saved = JSON.parse(localStorage.getItem('nv_links') || '[]'); } catch (e) { saved = []; }
+      Array.prototype.forEach.call(document.querySelectorAll('.linkInput'), function (inp, i) {
+        inp.value = saved[i] || '';
+      });
+    }
+    document.getElementById('saveLinksBtn').addEventListener('click', function () {
+      var vals = Array.prototype.map.call(document.querySelectorAll('.linkInput'), function (inp) {
+        return inp.value.trim();
+      }).filter(function (v) { return v; });
+      localStorage.setItem('nv_links', JSON.stringify(vals));
+      saveToAccount({ links: vals });
+    });
+
+    /* ---- Location (typed) ---- */
+    var locInput = document.getElementById('locationInput');
+    if (locInput) {
+      locInput.value = localStorage.getItem('nv_location') || '';
+      document.getElementById('saveLocationBtn').addEventListener('click', function () {
+        localStorage.setItem('nv_location', locInput.value.trim());
+        saveToAccount({ location: locInput.value.trim() });
+      });
+    }
+
+    /* ---- Symbiont name + gender ---- */
+    var symName = document.getElementById('symbiontNameInput');
+    var symGender = document.getElementById('symbiontGenderInput');
+    if (symName) symName.value = localStorage.getItem('nv_symbiont_name') || '';
+    if (symGender) symGender.value = localStorage.getItem('nv_symbiont_gender') || '';
+    document.getElementById('saveSymbiontBtn').addEventListener('click', function () {
+      if (symName) { localStorage.setItem('nv_symbiont_name', symName.value.trim()); }
+      if (symGender) { localStorage.setItem('nv_symbiont_gender', symGender.value.trim()); }
+      saveToAccount({ symbiont_name: symName ? symName.value.trim() : '', symbiont_gender: symGender ? symGender.value.trim() : '' });
+    });
+
     requireSession('/index.html').then(function (user) {
       if (!user) return;
       currentUser = user;
@@ -250,6 +379,22 @@
       renderName(user);
       var savedBase = localStorage.getItem('nv_symbiont_base') || (user.user_metadata && user.user_metadata.symbiont_base) || '';
       if (savedBase === 'hexa' || savedBase === 'cyphr') { markSymbiont(savedBase); }
+      /* Hydrate the newer profile fields from the account when local is empty. */
+      var md = user.user_metadata || {};
+      if (!localStorage.getItem('nv_username') && md.username) { localStorage.setItem('nv_username', md.username); }
+      if (!localStorage.getItem('nv_pronouns') && md.pronouns) { localStorage.setItem('nv_pronouns', md.pronouns); }
+      if (!localStorage.getItem('nv_bio') && md.bio) { localStorage.setItem('nv_bio', md.bio); }
+      if (!localStorage.getItem('nv_links') && md.links) { localStorage.setItem('nv_links', JSON.stringify(md.links)); }
+      if (!localStorage.getItem('nv_location') && md.location) { localStorage.setItem('nv_location', md.location); }
+      if (!localStorage.getItem('nv_symbiont_name') && md.symbiont_name) { localStorage.setItem('nv_symbiont_name', md.symbiont_name); }
+      if (!localStorage.getItem('nv_symbiont_gender') && md.symbiont_gender) { localStorage.setItem('nv_symbiont_gender', md.symbiont_gender); }
+      loadUsername();
+      markPronouns(localStorage.getItem('nv_pronouns') || '');
+      if (bioInput) { bioInput.value = localStorage.getItem('nv_bio') || ''; updateBioCount(); }
+      loadLinks();
+      if (locInput) { locInput.value = localStorage.getItem('nv_location') || ''; }
+      if (symName) { symName.value = localStorage.getItem('nv_symbiont_name') || ''; }
+      if (symGender) { symGender.value = localStorage.getItem('nv_symbiont_gender') || ''; }
     });
   </script>
 <script>
