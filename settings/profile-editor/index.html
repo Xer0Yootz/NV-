@@ -217,7 +217,7 @@
       if (inp) { inp.style.width = Math.max(1, inp.value.length + 1) + 'ch'; }
     }
     function showEdit(prefill) {
-      document.getElementById('who').innerHTML = '<span class="user-label">User:</span> <span class="name-cell"><input id="nameInput" class="nv-type" maxlength="60" aria-label="Username" autocomplete="off" spellcheck="false"><span class="cursor-blink">_</span></span> <span class="save-cell"><button id="saveNameBtn">Save</button></span>';
+      document.getElementById('who').innerHTML = '<span class="user-label">User:</span> <span class="name-cell"><input id="nameInput" class="nv-type" maxlength="60" aria-label="Username" autocomplete="off" spellcheck="false"><span class="cursor-blink">_</span></span> <button id="cancelNameBtn" class="icon-btn" aria-label="Cancel" title="Cancel">✕</button>';
       var inp = document.getElementById('nameInput');
       inp.value = prefill || '';
       sizeInput();
