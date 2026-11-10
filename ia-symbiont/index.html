@@ -9,6 +9,8 @@
   <link rel="stylesheet" href="../nv-ticker.css">
   <link rel="stylesheet" href="../nv-commands.css">
   <link rel="stylesheet" href="../nv-sprite.css">
+  <link rel="stylesheet" href="../nv-symbiont-theme.css">
+  <script src="../nv-symbiont-theme.js"></script>
   <style>
     /* IA Symbiont — its own page (Nov 9, 2026). The symbiont is the pet:
        your IA companion. Choosing one is like choosing a voice + persona
@@ -177,6 +179,8 @@
         var base = b.getAttribute('data-ia');
         mark(base);
         try { localStorage.setItem('nv_symbiont_base', base); } catch (e) {}
+        /* Recolor the whole system to the pick right now. */
+        try { if (window.NVSymbiontTheme) window.NVSymbiontTheme.apply(); } catch (e2) {}
         chime();
       });
     });
