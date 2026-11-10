@@ -15,7 +15,7 @@
   <style>
     body { background:#05010f; color:#f5f0ff; font-family:"VT323", "Share Tech Mono", monospace; font-size:18px; margin:0; }
     main { position:relative; z-index:2; max-width:1440px; margin:0 auto; padding:0 16px 16px; }
-    a { color:#a78bfa; }
+    a { color:var(--nv-accent-soft); }
     .nv-sound-btn{position:fixed;right:16px;bottom:16px;z-index:6;width:44px;height:44px;padding:0;display:flex;align-items:center;justify-content:center;background:rgba(18,8,31,.88);color:#f5f0ff;border:1px solid #f5f0ff;border-radius:0;cursor:pointer}.nv-sound-btn svg{width:20px;height:20px;display:block}.nv-sound-btn:disabled{opacity:.5;cursor:wait}
   </style>
     <!-- Avatar Editor styles. All editor rules are scoped under
@@ -1625,7 +1625,7 @@
         });
       }
       var audioCtx = null;
-      function chime() {
+      function chime() { if (window.NVSymbiontChime) return window.NVSymbiontChime();
         try {
           var AC = window.AudioContext || window.webkitAudioContext;
           if (!AC) return;
