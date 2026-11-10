@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="../../nv-commands.css">
   <link rel="stylesheet" href="../../nv-terminal-tokens.css">
   <link rel="stylesheet" href="../../nv-ticker.css">
+  <link rel="stylesheet" href="../../nv-type.css">
   <link rel="stylesheet" href="../../nv-sprite.css">
   <style>
     body { background:#05010f; color:#f5f0ff; font-family:"VT323", "Share Tech Mono", monospace; font-size:18px; margin:0; min-height:100vh; display:grid; place-items:center; }
@@ -79,37 +80,30 @@
 
     <section aria-label="Bio">
       <h2>Bio</h2>
-      <textarea id="bioInput" maxlength="140" rows="3" aria-label="Bio" placeholder="140 characters max, 3 lines max — only what's necessary."></textarea>
+      <textarea id="bioInput" class="nv-type-area" maxlength="140" rows="3" aria-label="Bio" placeholder="140 characters max"></textarea><span class="nv-type-cursor">_</span>
       <p><span id="bioCount">0</span>/140</p>
       <p><button type="button" id="saveBioBtn">Save</button></p>
     </section>
 
     <section aria-label="Links">
       <h2>Links</h2>
-      <p><input class="linkInput" type="url" maxlength="200" aria-label="Link 1" placeholder="https://…"></p>
-      <p><input class="linkInput" type="url" maxlength="200" aria-label="Link 2" placeholder="https://…"></p>
-      <p><input class="linkInput" type="url" maxlength="200" aria-label="Link 3" placeholder="https://…"></p>
+      <p><input class="linkInput nv-type" type="url" maxlength="200" aria-label="Link 1" placeholder="https://…" spellcheck="false"><span class="nv-type-cursor">_</span></p>
+      <p><input class="linkInput nv-type" type="url" maxlength="200" aria-label="Link 2" placeholder="https://…" spellcheck="false"><span class="nv-type-cursor">_</span></p>
+      <p><input class="linkInput nv-type" type="url" maxlength="200" aria-label="Link 3" placeholder="https://…" spellcheck="false"><span class="nv-type-cursor">_</span></p>
       <p><button type="button" id="saveLinksBtn">Save</button></p>
     </section>
 
     <section aria-label="Location">
       <h2>Location</h2>
-      <p><input id="locationInput" maxlength="80" aria-label="Location" autocomplete="off" placeholder="City, or wherever you are"></p>
+      <p><input id="locationInput" class="nv-type" maxlength="80" aria-label="Location" autocomplete="off" placeholder="City, or wherever you are" spellcheck="false"><span class="nv-type-cursor">_</span></p>
       <p><button type="button" id="saveLocationBtn">Save</button></p>
     </section>
 
-    <section aria-label="AI Symbiont base">
-      <h2>AI Symbiont base</h2>
-      <div class="choice-row">
-        <button type="button" id="symbiontHexaBtn">Hexa</button>
-        <button type="button" id="symbiontCyphrBtn">Cyphr</button>
-      </div>
-      <p>More colors and more AI Symbiont models will be added later.</p>
-      <p><a href="/ia-symbiont/">Choose your IA on the IA Symbiont page</a></p>
-      <h3>Your Symbiont</h3>
+    <section aria-label="Your Symbiont">
+      <h2>Your Symbiont</h2>
       <p class="note">Your own symbiont — not Hexa or Cyphr themselves. Name and gender are yours to pick, editable later.</p>
-      <p><input id="symbiontNameInput" maxlength="40" aria-label="Symbiont name" autocomplete="off" placeholder="Symbiont name"></p>
-      <p><input id="symbiontGenderInput" maxlength="40" aria-label="Symbiont gender" autocomplete="off" placeholder="Symbiont gender"></p>
+      <p><input id="symbiontNameInput" class="nv-type" maxlength="40" aria-label="Symbiont name" autocomplete="off" placeholder="Symbiont name" spellcheck="false"><span class="nv-type-cursor">_</span></p>
+      <p><input id="symbiontGenderInput" class="nv-type" maxlength="40" aria-label="Symbiont gender" autocomplete="off" placeholder="Symbiont gender" spellcheck="false"><span class="nv-type-cursor">_</span></p>
       <p><button type="button" id="saveSymbiontBtn">Save</button></p>
     </section>
 
@@ -231,7 +225,7 @@
       if (inp) { inp.style.width = Math.max(1, inp.value.length + 1) + 'ch'; }
     }
     function showEdit(prefill) {
-      document.getElementById('who').innerHTML = '<span class="user-label">User:</span> <span class="name-cell"><input id="nameInput" maxlength="60" aria-label="Username" autocomplete="off"><span class="cursor-blink">_</span></span> <span class="save-cell"><button id="saveNameBtn">Save</button></span>';
+      document.getElementById('who').innerHTML = '<span class="user-label">User:</span> <span class="name-cell"><input id="nameInput" class="nv-type" maxlength="60" aria-label="Username" autocomplete="off" spellcheck="false"><span class="cursor-blink">_</span></span> <span class="save-cell"><button id="saveNameBtn">Save</button></span>';
       var inp = document.getElementById('nameInput');
       inp.value = prefill || '';
       sizeInput();
@@ -259,20 +253,15 @@
       }
     }
 
-    /* ---- AI Symbiont base ---- */
-    var symbiontBase = localStorage.getItem('nv_symbiont_base') || '';
-    function markSymbiont(base) {
-      symbiontBase = base;
-      document.getElementById('symbiontHexaBtn').classList.toggle('selected', base === 'hexa');
-      document.getElementById('symbiontCyphrBtn').classList.toggle('selected', base === 'cyphr');
+    /* ---- Inline typing: size each .nv-type input to its text ---- */
+    function nvTypeSize(inp) {
+      if (!inp) return;
+      inp.style.width = Math.max(1, (inp.value || inp.placeholder || '').length + 1) + 'ch';
     }
-    function saveSymbiont(base) {
-      markSymbiont(base);
-      localStorage.setItem('nv_symbiont_base', base);
-      saveToAccount({ symbiont_base: base });
-    }
-    document.getElementById('symbiontHexaBtn').addEventListener('click', function () { saveSymbiont('hexa'); });
-    document.getElementById('symbiontCyphrBtn').addEventListener('click', function () { saveSymbiont('cyphr'); });
+    Array.prototype.forEach.call(document.querySelectorAll('.nv-type'), function (inp) {
+      nvTypeSize(inp);
+      inp.addEventListener('input', function () { nvTypeSize(inp); });
+    });
 
     /* ---- Pronouns ---- */
     function markPronouns(p) {
@@ -326,14 +315,39 @@
       saveToAccount({ links: vals });
     });
 
-    /* ---- Location (typed) ---- */
+    /* ---- Location: automatic from GPS, but editable ---- */
     var locInput = document.getElementById('locationInput');
+    function setLocation(v) {
+      if (!locInput || !v) return;
+      locInput.value = v;
+      nvTypeSize(locInput);
+      localStorage.setItem('nv_location', v);
+      saveToAccount({ location: v });
+    }
+    function fillLocationFromGps() {
+      if (!navigator.geolocation) return;
+      if (localStorage.getItem('nv_location')) return;
+      navigator.geolocation.getCurrentPosition(function (pos) {
+        var lat = pos.coords.latitude, lon = pos.coords.longitude;
+        fetch('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=' + lat + '&longitude=' + lon + '&localityLanguage=en')
+          .then(function (r) { return r.json(); })
+          .then(function (d) {
+            var city = d.locality || d.city || '';
+            var state = d.principalSubdivision || '';
+            var place = city && state ? city + ', ' + state : (city || state || d.countryName || '');
+            if (place && !localStorage.getItem('nv_location')) setLocation(place);
+          })
+          .catch(function () {});
+      }, function () {}, { timeout: 8000 });
+    }
     if (locInput) {
       locInput.value = localStorage.getItem('nv_location') || '';
+      nvTypeSize(locInput);
       document.getElementById('saveLocationBtn').addEventListener('click', function () {
         localStorage.setItem('nv_location', locInput.value.trim());
         saveToAccount({ location: locInput.value.trim() });
       });
+      fillLocationFromGps();
     }
 
     /* ---- Symbiont name + gender ---- */
@@ -358,8 +372,6 @@
         markAvatarChoice(avatarChoice);
       }
       renderName(user);
-      var savedBase = localStorage.getItem('nv_symbiont_base') || (user.user_metadata && user.user_metadata.symbiont_base) || '';
-      if (savedBase === 'hexa' || savedBase === 'cyphr') { markSymbiont(savedBase); }
       /* Hydrate the newer profile fields from the account when local is empty. */
       var md = user.user_metadata || {};
       if (!localStorage.getItem('nv_pronouns') && md.pronouns) { localStorage.setItem('nv_pronouns', md.pronouns); }
@@ -371,7 +383,8 @@
       markPronouns(localStorage.getItem('nv_pronouns') || '');
       if (bioInput) { bioInput.value = localStorage.getItem('nv_bio') || ''; updateBioCount(); }
       loadLinks();
-      if (locInput) { locInput.value = localStorage.getItem('nv_location') || ''; }
+      if (locInput) { locInput.value = localStorage.getItem('nv_location') || ''; nvTypeSize(locInput); }
+      fillLocationFromGps();
       if (symName) { symName.value = localStorage.getItem('nv_symbiont_name') || ''; }
       if (symGender) { symGender.value = localStorage.getItem('nv_symbiont_gender') || ''; }
     });
