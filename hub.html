@@ -211,7 +211,7 @@
     /* Hub terminal: a working command line for Neon Vigil content.
        help — list the commands. radio play / radio stop — start/stop the
        radio. radio station 1|2|3 (or radio 1|2|3) — switch station.
-       load <game> / open <game> — load a game: iww, remix, nv808, gridlog.
+       load <game> / open <game> — load a game: iww, nv808, gridlog.
        commands — open the Command K popup. clear — clear the terminal. */
     var termOut = document.getElementById('termOutput');
     var termInput = document.getElementById('termInput');
@@ -227,14 +227,13 @@
     termSize();
     /* Audit fix Nov 8, 2026: game links stay inside the app shell — the
        terminal routes to the same-origin shell wrappers (/gigas-garden/,
-       /remix/) and the real Grid Log page (/gridlog/), never out to an
+       and the real Grid Log page (/gridlog/), never out to an
        external URL or the Bible test page. Avatar Editor + NV_Pet Pal added
        (Avatar Editor is a standalone page at /avatar-editor/; the pet lives
        in the Garden — load pet opens the shell-wrapped game). */
     var termGames = {
       'iww': { label: 'Virtual IWW: Gigas Garden', url: '/gigas-garden/' },
       'gigas': { label: 'Virtual IWW: Gigas Garden', url: '/gigas-garden/' },
-      'remix': { label: 'NV_Gigas Garden — Remix', url: '/remix/' },
       'nv808': { label: 'NV_808', url: '/nv808/' },
       'nv_808': { label: 'NV_808', url: '/nv808/' },
       '808': { label: 'NV_808', url: '/nv808/' },
@@ -250,7 +249,7 @@
       termPrint('Commands:');
       termPrint('  radio play / radio stop — start or stop the radio');
       termPrint('  radio station 1|2|3 — switch station (1 Bed 1, 2 Bed 2, 3 Bed 3)');
-      termPrint('  load iww | load remix | load nv808 | load gridlog — load a game');
+      termPrint('  load iww | load nv808 | load gridlog — load a game');
       termPrint('  load avatar — open the Avatar Editor');
       termPrint('  load pet — open NV_Pet Pal (Baby Pigek, in the Garden)');
       termPrint('  commands — open the Command K popup');
@@ -258,7 +257,7 @@
     }
     function termLoad(key) {
       var g = termGames[key];
-      if (!g) { termPrint('Unknown game. Try: load iww, load remix, load nv808, load gridlog, load avatar, load pet.'); return; }
+      if (!g) { termPrint('Unknown game. Try: load iww, load nv808, load gridlog, load avatar, load pet.'); return; }
       termPrint('Loading ' + g.label + '…');
       /* Loading a game changes the page, so the select sound plays once;
          a short delay lets the click be heard before the page changes. */
