@@ -28,3 +28,32 @@
      re-apply when the page regains focus, so the theme follows. */
   window.addEventListener('focus', apply);
 })();
+
+/* Shared symbiont chime — the Web Audio two-note chime (660 Hz then
+   880 Hz, sine, short fade) that the IA pickers used to carry inline.
+   The pick handlers in ia-symbiont/index.html and
+   settings/avatar-editor/index.html delegate to this helper, and the
+   roaming symbiont sprite (nv-sprite.js) plays it when touched, so
+   the chime sounds any time the user touches their symbiont anywhere
+   on the web. No audio file is involved. */
+(function () {
+  var chimeCtx = null;
+  window.NVSymbiontChime = function () {
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      if (!chimeCtx) chimeCtx = new AC();
+      if (chimeCtx.state === 'suspended') chimeCtx.resume();
+      var t = chimeCtx.currentTime;
+      [[660, 0], [880, 0.09]].forEach(function (n) {
+        var o = chimeCtx.createOscillator(), g = chimeCtx.createGain();
+        o.type = 'sine'; o.frequency.value = n[0];
+        g.gain.setValueAtTime(0.0001, t + n[1]);
+        g.gain.exponentialRampToValueAtTime(0.12, t + n[1] + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + n[1] + 0.35);
+        o.connect(g); g.connect(chimeCtx.destination);
+        o.start(t + n[1]); o.stop(t + n[1] + 0.4);
+      });
+    } catch (e) {}
+  };
+})();
