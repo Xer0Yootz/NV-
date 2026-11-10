@@ -50,7 +50,6 @@
         <span id="profilePic"></span>
         <div class="profile-names">
           <div class="profile-display" id="profileDisplay">—</div>
-          <div class="profile-user" id="profileUser"></div>
           <div class="profile-pronouns" id="profilePronouns"></div>
         </div>
       </div>
@@ -85,8 +84,9 @@
       return get('nv_provider_avatar_url') || get('nv_avatar_url');
     }
     function render() {
-      var display = get('nv_display_name');
-      var username = get('nv_username');
+      /* One name: the username. (Display name and username are the
+         same thing, called "username".) */
+      var username = get('nv_display_name');
       var pronouns = get('nv_pronouns');
       var bio = get('nv_bio');
       var location = get('nv_location');
@@ -102,8 +102,7 @@
         ? '<img class="profile-pic" src="' + esc(url) + '" alt="Profile picture">'
         : '<span class="profile-pic-blank" role="img" aria-label="No profile picture"></span>';
 
-      document.getElementById('profileDisplay').textContent = display || username || '—';
-      document.getElementById('profileUser').textContent = username ? '@' + username : '';
+      document.getElementById('profileDisplay').textContent = username || '—';
       document.getElementById('profilePronouns').textContent = pronouns || '';
       document.getElementById('profileBio').textContent = bio || '';
       document.getElementById('profileLocation').innerHTML = location ? '<strong>Location:</strong> ' + esc(location) : '';
@@ -128,7 +127,7 @@
         list.innerHTML = '';
       }
 
-      var hasAny = display || username || bio || location || symBase || links.length || url;
+      var hasAny = username || bio || location || symBase || links.length || url;
       document.getElementById('profileEmpty').hidden = !!hasAny;
     }
     render();
@@ -141,7 +140,6 @@
           if (!user) return;
           var md = user.user_metadata || {};
           if (!get('nv_display_name') && md.display_name) localStorage.setItem('nv_display_name', md.display_name);
-          if (!get('nv_username') && md.username) localStorage.setItem('nv_username', md.username);
           if (!get('nv_pronouns') && md.pronouns) localStorage.setItem('nv_pronouns', md.pronouns);
           if (!get('nv_bio') && md.bio) localStorage.setItem('nv_bio', md.bio);
           if (!get('nv_links') && md.links) localStorage.setItem('nv_links', JSON.stringify(md.links));
