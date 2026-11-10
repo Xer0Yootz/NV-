@@ -275,7 +275,10 @@
     hex.setAttribute('tabindex', '0');
     hex.setAttribute('aria-label', 'Symbiont (placeholder)');
     /* Inline SVG hexagon — no words, no text on it. */
-    hex.innerHTML = '<svg viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,3 93,27 93,73 50,97 7,73 7,27" fill="rgba(124,58,237,.35)" stroke="#7c3aed" stroke-width="3"/><polygon points="50,22 76,37 76,63 50,78 24,63 24,37" fill="none" stroke="#a78bfa" stroke-width="2"/></svg>';
+    /* The hexagon follows the IA Symbiont pick (Hexa cyan, Cyphr indigo,
+       Helix pink) through the theme variables, so the IA recolors with
+       the rest of the system. */
+    hex.innerHTML = '<svg viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,3 93,27 93,73 50,97 7,73 7,27" fill="var(--nv-accent, #7c3aed)" fill-opacity="0.35" stroke="var(--nv-accent, #7c3aed)" stroke-width="3"/><polygon points="50,22 76,37 76,63 50,78 24,63 24,37" fill="none" stroke="var(--nv-accent-soft, #a78bfa)" stroke-width="2"/></svg>';
     container.appendChild(hex);
     document.body.appendChild(container);
 
