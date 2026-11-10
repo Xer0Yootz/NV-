@@ -74,7 +74,7 @@
      Supabase account (user_metadata) when local is empty. */
   (function () {
     function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
-    function get(k) { 
+    function get(k) { return localStorage.getItem(k) || ''; } function avatarUrl() { return get('nv_avatar_url') || get('nv_provider_avatar_url') || ''; } function render() { var username = get('nv_display_name'); var pronouns = get('nv_pronouns'); var bio = get('nv_bio'); var symBase = get('nv_symbiont_base'); var symName = get('nv_symbiont_name'); var symGender = get('nv_symbiont_gender'); 
       var pic = document.getElementById('profilePic');
       var url = avatarUrl();
       pic.innerHTML = url
