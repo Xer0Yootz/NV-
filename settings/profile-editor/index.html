@@ -20,8 +20,8 @@
     section { text-align:left; border-top:1px solid var(--nv-accent); margin-top:24px; padding-top:8px; }
     section:first-of-type { border-top:0; margin-top:8px; }
     h2 { font-size:20px; margin:12px 0; }
-    button { background:transparent; color:#f5f0ff; border:1px solid #f5f0ff; border-radius:0; padding:10px 18px; font-weight:700; cursor:pointer; font-family:inherit; font-size:18px; }
-    button.selected { background:var(--nv-accent); }
+    button { background:color-mix(in srgb, var(--nv-accent) 20%, transparent); color:var(--nv-accent-deep) !important; border:1px solid var(--nv-accent); border-radius:999px; padding:10px 18px; font-weight:700; cursor:pointer; font-family:inherit; font-size:18px; position:relative; overflow:hidden; box-shadow:0 0 12px color-mix(in srgb, var(--nv-accent) 45%, transparent), inset 0 1px 0 rgba(255,255,255,.45), inset 0 -6px 12px rgba(255,255,255,.08); transition:transform .18s ease, box-shadow .18s ease; }
+    button.selected { background:var(--nv-accent); } button::before { content:""; position:absolute; inset:0; border-radius:inherit; background:linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,.12) 45%, rgba(255,255,255,0) 60%); pointer-events:none; } button::after { content:""; position:absolute; top:0; bottom:0; left:-70%; width:45%; background:linear-gradient(100deg, transparent, rgba(255,255,255,.55), transparent); transform:skewX(-18deg); transition:left .45s ease; pointer-events:none; } button:hover, button:focus-visible { transform:translateY(-2px); box-shadow:0 6px 18px color-mix(in srgb, var(--nv-accent) 55%, transparent), 0 0 22px color-mix(in srgb, var(--nv-accent) 60%, transparent), inset 0 1px 0 rgba(255,255,255,.55); } button:hover::after, button:focus-visible::after { left:120%; } button:active { transform:translateY(1px) scale(.93, .87); box-shadow:0 0 10px color-mix(in srgb, var(--nv-accent) 50%, transparent), inset 0 1px 0 rgba(255,255,255,.45); } button:focus-visible { outline:2px solid var(--nv-accent-soft); outline-offset:2px; }
     a { color:var(--nv-accent-soft); }
     .cursor-blink { display:inline-block; animation:nv-blink 1.2s steps(2,start) infinite; color:#ffffff; }
     #who { display:grid; grid-template-columns:auto 1fr; gap:4px 8px; text-align:left; max-width:340px; margin:0 auto; }
@@ -29,7 +29,7 @@
     .name-cell { grid-column:2; white-space:nowrap; }
     .save-cell { grid-column:2; }
     @keyframes nv-blink { 50% { opacity:0; } }
-    .palette-hint { font-size:13px; color:var(--nv-accent-soft); margin-top:18px; cursor:pointer; }
+    .palette-hint { font-size:13px; color:var(--nv-accent-soft); margin-top:18px; cursor:pointer; } .identity-line { font-size:13px; color:var(--nv-accent-soft); margin:6px 0 0; } .icon-btn { width:44px; height:44px; min-width:44px; padding:0; display:inline-flex; align-items:center; justify-content:center; font-size:22px; line-height:1; } .icon-btn svg { width:22px; height:22px; display:block; fill:currentColor; position:relative; z-index:1; } .pronounBtn[hidden] { display:none !important; } .save-msg { font-size:14px; color:var(--nv-accent-soft); margin:8px 0 0; min-height:1em; } .save-row { display:flex; align-items:center; gap:12px; margin-top:24px; }
     .avatar-current { width:96px; height:96px; border:1px solid var(--nv-accent); object-fit:cover; display:block; margin:8px 0; }
     .avatar-blank { width:96px; height:96px; border:1px solid var(--nv-accent); display:block; margin:8px 0; box-sizing:border-box; }
     .choice-row { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; }
@@ -61,13 +61,13 @@
         <img id="avatarPreview" alt="Preview of your chosen profile picture" hidden>
       </div>
       <p id="avatarStatus" aria-live="polite"></p>
-      <p><button type="button" id="saveAvatarBtn">Save</button></p>
+      
     </section>
 
     <section aria-label="Username">
       <h2>Username</h2>
       <p class="note">Your username is your identity everywhere — the game, chat, and your Symbiont calls you by it. There is one name, and this is it.</p>
-      <p id="who">Checking your sign-in…</p>
+      <p id="who">Checking your sign-in…</p> <p class="identity-line">your username is your identity in Neon Vigil</p>
     </section>
 
     <section aria-label="Pronouns">
@@ -84,32 +84,22 @@
       <h2>Bio</h2>
       <textarea id="bioInput" class="nv-type-area" maxlength="140" rows="3" aria-label="Bio" placeholder="140 characters max"></textarea><span class="nv-type-cursor">_</span>
       <p><span id="bioCount">0</span>/140</p>
-      <p><button type="button" id="saveBioBtn">Save</button></p>
+      
     </section>
 
-    <section aria-label="Links">
-      <h2>Links</h2>
-      <p><input class="linkInput nv-type" type="url" maxlength="200" aria-label="Link 1" placeholder="https://…" spellcheck="false"><span class="nv-type-cursor">_</span></p>
-      <p><input class="linkInput nv-type" type="url" maxlength="200" aria-label="Link 2" placeholder="https://…" spellcheck="false"><span class="nv-type-cursor">_</span></p>
-      <p><input class="linkInput nv-type" type="url" maxlength="200" aria-label="Link 3" placeholder="https://…" spellcheck="false"><span class="nv-type-cursor">_</span></p>
-      <p><button type="button" id="saveLinksBtn">Save</button></p>
-    </section>
+    
 
-    <section aria-label="Location">
-      <h2>Location</h2>
-      <p><input id="locationInput" class="nv-type" maxlength="80" aria-label="Location" autocomplete="off" placeholder="City, or wherever you are" spellcheck="false"><span class="nv-type-cursor">_</span></p>
-      <p><button type="button" id="saveLocationBtn">Save</button></p>
-    </section>
+    
 
     <section aria-label="Your Symbiont">
       <h2>Your Symbiont</h2>
       <p class="note">Your own symbiont — not Hexa or Cyphr themselves. Name and gender are yours to pick, editable later.</p>
       <p><input id="symbiontNameInput" class="nv-type" maxlength="40" aria-label="Symbiont name" autocomplete="off" placeholder="Symbiont name" spellcheck="false"><span class="nv-type-cursor">_</span></p>
       <p><input id="symbiontGenderInput" class="nv-type" maxlength="40" aria-label="Symbiont gender" autocomplete="off" placeholder="Symbiont gender" spellcheck="false"><span class="nv-type-cursor">_</span></p>
-      <p><button type="button" id="saveSymbiontBtn">Save</button></p>
+      
     </section>
 
-    <p class="palette-hint" data-nv-commands>Press ⌘K for commands</p>
+    <div class="save-row"><button type="button" id="saveAllBtn" class="icon-btn" aria-label="Save profile" title="Save profile"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg></button><span class="save-msg" id="saveMsg" role="status" aria-live="polite"></span></div> <p class="palette-hint" data-nv-commands>Press ⌘K for commands</p>
   </main>
 
   <script src="../../auth.js"></script>
@@ -172,7 +162,7 @@
       reader.onload = function () { prev.src = reader.result; prev.hidden = false; };
       reader.readAsDataURL(f);
     });
-    document.getElementById('saveAvatarBtn').addEventListener('click', function () {
+    function saveAvatarNow() {
       var status = document.getElementById('avatarStatus');
       status.textContent = '';
       if (avatarChoice === 'provider') {
@@ -214,9 +204,9 @@
           renderAvatarCurrent();
         }).catch(function () {
           status.textContent = 'Profile picture uploads need the storage bucket — it is being set up. Your provider photo or blank is saved for now.';
-        });
-      }
-    });
+  });
+  }
+    }
 
     /* ---- Username ---- */
     function savedName() { return localStorage.getItem('nv_display_name') || ''; }
@@ -233,23 +223,15 @@
       sizeInput();
       inp.addEventListener('input', sizeInput);
       inp.focus();
-      document.getElementById('saveNameBtn').addEventListener('click', function () {
-        var v = inp.value.trim();
-        if (v) { localStorage.setItem('nv_display_name', v); saveNameToAccount(v); } else { localStorage.removeItem('nv_display_name'); saveNameToAccount(null); }
-        renderName();
-      });
+      document.getElementById('cancelNameBtn').addEventListener('click', function () { renderName(); });
     }
     function renderName(user) {
       var name = savedName() || accountName(user);
       if (name) { localStorage.setItem('nv_display_name', name); }
       if (name) {
-        document.getElementById('who').innerHTML = '<span class="user-label">User:</span> <span class="name-cell">' + esc(name) + '<span class="cursor-blink">_</span></span> <span class="save-cell"><button id="editNameBtn">Change name</button> <button id="deleteNameBtn">Delete name</button></span>';
+        document.getElementById('who').innerHTML = '<span class="user-label">User:</span> <span class="name-cell">' + esc(name) + '<span class="cursor-blink">_</span></span> <span class="save-cell"><button id="editNameBtn" class="icon-btn" aria-label="Change name" title="Change name">✎</button></span>';
         document.getElementById('editNameBtn').addEventListener('click', function () { showEdit(name); });
-        document.getElementById('deleteNameBtn').addEventListener('click', function () {
-          localStorage.removeItem('nv_display_name');
-          saveNameToAccount(null);
-          renderName();
-        });
+        
       } else {
         showEdit('');
       }
@@ -268,12 +250,12 @@
     /* ---- Pronouns ---- */
     function markPronouns(p) {
       Array.prototype.forEach.call(document.querySelectorAll('.pronounBtn'), function (b) {
-        b.classList.toggle('selected', b.getAttribute('data-pronouns') === p);
+        var chosen = b.getAttribute('data-pronouns') === p; b.classList.toggle('selected', chosen); b.hidden = !!p && !chosen;
       });
     }
     Array.prototype.forEach.call(document.querySelectorAll('.pronounBtn'), function (b) {
       b.addEventListener('click', function () {
-        var p = b.getAttribute('data-pronouns');
+        var p = b.getAttribute('data-pronouns'); if (b.classList.contains('selected') && document.querySelector('.pronounBtn[hidden]')) { Array.prototype.forEach.call(document.querySelectorAll('.pronounBtn'), function (x) { x.hidden = false; }); return; }
         markPronouns(p);
         localStorage.setItem('nv_pronouns', p);
         saveToAccount({ pronouns: p });
@@ -295,75 +277,26 @@
         if (lines.length > 3) { bioInput.value = lines.slice(0, 3).join('\n'); }
         updateBioCount();
       });
-      document.getElementById('saveBioBtn').addEventListener('click', function () {
+      var saveBioNow = function () {
         localStorage.setItem('nv_bio', bioInput.value);
-        saveToAccount({ bio: bioInput.value });
-      });
+        saveToAccount({ bio: bioInput.value }); };
     }
 
-    /* ---- Links: 3 external links ---- */
-    function loadLinks() {
-      var saved = [];
-      try { saved = JSON.parse(localStorage.getItem('nv_links') || '[]'); } catch (e) { saved = []; }
-      Array.prototype.forEach.call(document.querySelectorAll('.linkInput'), function (inp, i) {
-        inp.value = saved[i] || '';
-      });
-    }
-    document.getElementById('saveLinksBtn').addEventListener('click', function () {
-      var vals = Array.prototype.map.call(document.querySelectorAll('.linkInput'), function (inp) {
-        return inp.value.trim();
-      }).filter(function (v) { return v; });
-      localStorage.setItem('nv_links', JSON.stringify(vals));
-      saveToAccount({ links: vals });
-    });
+    
 
-    /* ---- Location: automatic from GPS, but editable ---- */
-    var locInput = document.getElementById('locationInput');
-    function setLocation(v) {
-      if (!locInput || !v) return;
-      locInput.value = v;
-      nvTypeSize(locInput);
-      localStorage.setItem('nv_location', v);
-      saveToAccount({ location: v });
-    }
-    function fillLocationFromGps() {
-      if (!navigator.geolocation) return;
-      if (localStorage.getItem('nv_location')) return;
-      navigator.geolocation.getCurrentPosition(function (pos) {
-        var lat = pos.coords.latitude, lon = pos.coords.longitude;
-        fetch('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=' + lat + '&longitude=' + lon + '&localityLanguage=en')
-          .then(function (r) { return r.json(); })
-          .then(function (d) {
-            var city = d.locality || d.city || '';
-            var state = d.principalSubdivision || '';
-            var place = city && state ? city + ', ' + state : (city || state || d.countryName || '');
-            if (place && !localStorage.getItem('nv_location')) setLocation(place);
-          })
-          .catch(function () {});
-      }, function () {}, { timeout: 8000 });
-    }
-    if (locInput) {
-      locInput.value = localStorage.getItem('nv_location') || '';
-      nvTypeSize(locInput);
-      document.getElementById('saveLocationBtn').addEventListener('click', function () {
-        localStorage.setItem('nv_location', locInput.value.trim());
-        saveToAccount({ location: locInput.value.trim() });
-      });
-      fillLocationFromGps();
-    }
+     
 
     /* ---- Symbiont name + gender ---- */
     var symName = document.getElementById('symbiontNameInput');
     var symGender = document.getElementById('symbiontGenderInput');
     if (symName) symName.value = localStorage.getItem('nv_symbiont_name') || '';
     if (symGender) symGender.value = localStorage.getItem('nv_symbiont_gender') || '';
-    document.getElementById('saveSymbiontBtn').addEventListener('click', function () {
+    function saveSymbiontNow() {
       if (symName) { localStorage.setItem('nv_symbiont_name', symName.value.trim()); }
       if (symGender) { localStorage.setItem('nv_symbiont_gender', symGender.value.trim()); }
-      saveToAccount({ symbiont_name: symName ? symName.value.trim() : '', symbiont_gender: symGender ? symGender.value.trim() : '' });
-    });
+      saveToAccount({ symbiont_name: symName ? symName.value.trim() : '', symbiont_gender: symGender ? symGender.value.trim() : '' }); }
 
-    requireSession('/index.html').then(function (user) {
+    function saveAllProfile() { var msg = document.getElementById('saveMsg'); var nameInput = document.getElementById('nameInput'); if (nameInput) { var v = nameInput.value.trim(); if (!v) { if (msg) { msg.textContent = 'Enter a username before saving — your name can’t be empty.'; } nameInput.focus(); return; } localStorage.setItem('nv_display_name', v); saveNameToAccount(v); } saveAvatarNow(); saveBioNow(); saveSymbiontNow(); renderName(); if (msg) { msg.textContent = 'Profile saved.'; } } document.getElementById('saveAllBtn').addEventListener('click', saveAllProfile); requireSession('/index.html').then(function (user) {
       if (!user) return;
       currentUser = user;
       var prov = providerPhotoUrl(user);
@@ -378,15 +311,15 @@
       var md = user.user_metadata || {};
       if (!localStorage.getItem('nv_pronouns') && md.pronouns) { localStorage.setItem('nv_pronouns', md.pronouns); }
       if (!localStorage.getItem('nv_bio') && md.bio) { localStorage.setItem('nv_bio', md.bio); }
-      if (!localStorage.getItem('nv_links') && md.links) { localStorage.setItem('nv_links', JSON.stringify(md.links)); }
-      if (!localStorage.getItem('nv_location') && md.location) { localStorage.setItem('nv_location', md.location); }
+      
+      
       if (!localStorage.getItem('nv_symbiont_name') && md.symbiont_name) { localStorage.setItem('nv_symbiont_name', md.symbiont_name); }
       if (!localStorage.getItem('nv_symbiont_gender') && md.symbiont_gender) { localStorage.setItem('nv_symbiont_gender', md.symbiont_gender); }
       markPronouns(localStorage.getItem('nv_pronouns') || '');
       if (bioInput) { bioInput.value = localStorage.getItem('nv_bio') || ''; updateBioCount(); }
-      loadLinks();
-      if (locInput) { locInput.value = localStorage.getItem('nv_location') || ''; nvTypeSize(locInput); }
-      fillLocationFromGps();
+      
+      
+      
       if (symName) { symName.value = localStorage.getItem('nv_symbiont_name') || ''; }
       if (symGender) { symGender.value = localStorage.getItem('nv_symbiont_gender') || ''; }
     });
