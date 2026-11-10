@@ -9,13 +9,14 @@
    system accent to match. Cyphr (indigo) is the current default
    look, so it keeps the existing purple. */
 
-/* Per-symbiont panel tints and readable text on them. Light panels
-   (Hexa cyan / Helix pink) get DARK text so it always shows: cyan
-   panels #05373f, pink panels #4b0020. Cyphr's panel stays dark
-   indigo, so its text stays near-white #f5f0ff. --nv-accent-deep is
-   the readable heading/link shade of the accent on a light panel;
-   --nv-on-accent is the text on a solid accent button. The accent
-   colors themselves are unchanged. */
+/* Per-symbiont panel tints and readable text on them. Hexa's panel
+      stays light cyan, so its text stays dark #05373f. Helix's panel
+      (Nov 10) is now dark plum #2a0a1e, so its text is pale pink
+      #ffe9f3, near-white and readable on the dark panel, and its
+      accent is a deeper pink #c2185b. Cyphr's panel stays dark indigo,
+      so its text stays near-white #f5f0ff. --nv-accent-deep is the
+   readable heading/link shade of the accent on the panel;
+      --nv-on-accent is the text on a solid accent button. */
 :root {
   --nv-accent: #7c3aed;
   --nv-accent-bright: #6366f1;
@@ -44,13 +45,13 @@
   --nv-panel-text: #f5f0ff;
 }
 [data-symbiont="helix"] {
-  --nv-accent: #ff2e88;
-  --nv-accent-bright: #f471b5;
-  --nv-accent-soft: #f9a8d4;
-  --nv-accent-deep: #be185d;
-  --nv-on-accent: #4b0020;
-  --nv-panel: #ffd7e6;
-  --nv-panel-text: #4b0020;
+    --nv-accent: #c2185b;
+    --nv-accent-bright: #e7548a;
+      --nv-accent-soft: #f0a6c6;
+    --nv-accent-deep: #ff8fb6;
+    --nv-on-accent: #ffffff;
+    --nv-panel: #2a0a1e;
+    --nv-panel-text: #ffe9f3;
 }
 
 /* Recolor the system accent wherever it appears: panel borders,
