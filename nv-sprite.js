@@ -16,6 +16,9 @@
   var TAP_MS = 400;
   var HOP_MS = 1000; /* 1s hop-bob, same timing as Baby Pigek's locked hop-bob */
   var ROAM_SPEED = 55; /* px per second while roaming */
+  var THROW_MAX = 2200; /* px per second — the fastest a fling can throw it */
+  var THROW_FRICTION = 0.32; /* per-second velocity retention while thrown — decays in ~1-2s */
+  var BOUNCE_KEEP = 0.7; /* a throw bounce keeps 70% of its speed (loses 30% per wall) */
 
   var container = null, hex = null;
   var shown = false, gateTimer = null;
@@ -26,6 +29,7 @@
      as an animation on the container — three separate layers, so none of
      them fights the others. */
   var x = 0, y = 0, vx = 0, vy = 0, angle = 0, angVel = 0;
+  var throwVX = 0, throwVY = 0; /* latest flick velocity while dragging */
   var dragging = false, darting = false, hopping = false;
   var raf = null, lastT = 0;
 
@@ -81,20 +85,36 @@
   }
 
   /* Roams / bounces all around the screen, like a screensaver. Pauses while
-     dragging or darting; resumes from wherever it was dropped. */
+     dragging or darting; resumes from wherever it was dropped. A throw
+     (fling on release) keeps its velocity and decays with friction, bouncing
+     off the walls with a little energy lost per bounce, until it settles
+     back to roaming speed. */
   function tick(t) {
     raf = null;
     if (!container || dragging || darting) return;
     var dt = Math.min(0.05, (t - lastT) / 1000 || 0.016);
     lastT = t;
     if (!reduced) {
+      /* Throw friction: a flung symbiont sheds speed until it is back to
+         roaming pace. Below roaming speed, hold roaming speed so it never
+         stalls out mid-screen. */
+      var speed = Math.sqrt(vx * vx + vy * vy);
+      if (speed > ROAM_SPEED) {
+        var keep = Math.pow(THROW_FRICTION, dt);
+        vx *= keep; vy *= keep;
+        speed = Math.sqrt(vx * vx + vy * vy);
+        if (speed <= ROAM_SPEED && speed > 0) {
+          vx = vx / speed * ROAM_SPEED;
+          vy = vy / speed * ROAM_SPEED;
+        }
+      }
       x += vx * dt;
       y += vy * dt;
       var maxX = window.innerWidth - SIZE, maxY = window.innerHeight - SIZE;
-      if (x <= 0) { x = 0; vx = Math.abs(vx); }
-      if (x >= maxX) { x = maxX; vx = -Math.abs(vx); }
-      if (y <= 0) { y = 0; vy = Math.abs(vy); }
-      if (y >= maxY) { y = maxY; vy = -Math.abs(vy); }
+      if (x <= 0) { x = 0; vx = Math.abs(vx) * (speed > ROAM_SPEED ? BOUNCE_KEEP : 1); }
+      if (x >= maxX) { x = maxX; vx = -Math.abs(vx) * (speed > ROAM_SPEED ? BOUNCE_KEEP : 1); }
+      if (y <= 0) { y = 0; vy = Math.abs(vy) * (speed > ROAM_SPEED ? BOUNCE_KEEP : 1); }
+      if (y >= maxY) { y = maxY; vy = -Math.abs(vy) * (speed > ROAM_SPEED ? BOUNCE_KEEP : 1); }
     }
     /* Spin momentum: a flick keeps it turning after release, decaying until
        it settles. Under reduced motion there is no spin. */
@@ -186,11 +206,17 @@
       clampIntoView();
       /* Rotation follows the drag. */
       if (!reduced) angle += dx * 0.4;
-      /* Track flick speed for the spin momentum on release. */
+      /* Track flick velocity for the throw on release — both the spin and
+         the flight speed come from how fast the pointer is moving. */
       var now = Date.now();
       var dt = Math.max(1, now - lastMoveT);
-      var flick = (e.clientX - lastMoveX) / dt * 1000; /* px per second */
+      var flickX = (e.clientX - lastMoveX) / dt * 1000; /* px per second */
+      var flickY = (e.clientY - lastMoveY) / dt * 1000;
+      var flick = flickX; /* spin follows the horizontal flick, as before */
       angVel = Math.max(-720, Math.min(720, flick * 0.4));
+      /* Keep the latest flick velocity so release can throw with it. */
+      throwVX = Math.max(-THROW_MAX, Math.min(THROW_MAX, flickX));
+      throwVY = Math.max(-THROW_MAX, Math.min(THROW_MAX, flickY));
       lastMoveX = e.clientX; lastMoveY = e.clientY; lastMoveT = now;
       render();
     });
@@ -204,8 +230,13 @@
         onTap(e.clientX, e.clientY);
       } else if (reduced) {
         angVel = 0; /* no spin momentum under reduced motion */
+        vx = 0; vy = 0;
+      } else {
+        /* A throw: the symbiont keeps the fling velocity and flies across
+           the screen, decaying with friction until it settles to roaming. */
+        vx = throwVX; vy = throwVY;
       }
-      kick(); /* roaming resumes from the drop point */
+      kick(); /* roaming / throw resumes from the drop point */
     }
     hex.addEventListener('pointerup', endDrag);
     hex.addEventListener('pointercancel', endDrag);
