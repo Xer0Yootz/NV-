@@ -4,7 +4,7 @@
    Placeholder purple (#7c3aed, lavender #a78bfa accent) is the single
    placeholder default. The Hexa/Cyphr per-base colour split is still
    Jasmine's call — do NOT invent per-base colours here.
-   Silent: no sound attached anywhere. No words or text on the hexagon. */
+   Chime: touching the sprite plays the shared symbiont chime (window.NVSymbiontChime). No words or text on the hexagon. */
 
 (function () {
   'use strict';
@@ -161,7 +161,7 @@
     }, 600);
   }
 
-  function onTap(clientX, clientY) {
+  function onTap(clientX, clientY) { if (window.NVSymbiontChime) window.NVSymbiontChime();
     /* A click is petting it: it hops and wiggles where it is. It does NOT
        run away — the toss (fling on release) is what sends it flying. */
     hop();
