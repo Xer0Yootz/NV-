@@ -163,3 +163,47 @@
   border-color: var(--nv-accent) !important;
   box-shadow: 0 0 0 2px var(--nv-accent) !important;
 }
+
+/* Main containers and hub panels: the whole page container gets the
+   per-symbiont panel tint too (not just .card panels), with readable
+   panel text throughout. Headings, links and buttons inside a tinted
+   main use the deep readable shade. */
+[data-symbiont] main {
+  background-color: var(--nv-panel) !important;
+  color: var(--nv-panel-text) !important;
+}
+[data-symbiont] main p, [data-symbiont] main li, [data-symbiont] main span,
+[data-symbiont] main div, [data-symbiont] main small, [data-symbiont] main label,
+[data-symbiont] main .meta, [data-symbiont] main .note {
+  color: var(--nv-panel-text) !important;
+}
+[data-symbiont] main h1, [data-symbiont] main h2, [data-symbiont] main h3 {
+  color: var(--nv-accent-deep) !important;
+}
+[data-symbiont] main a {
+  color: var(--nv-accent-deep) !important;
+}
+[data-symbiont] main button {
+  color: var(--nv-accent-deep) !important;
+}
+[data-symbiont] main input, [data-symbiont] main select,
+[data-symbiont] main textarea {
+  background-color: var(--nv-panel) !important;
+  color: var(--nv-panel-text) !important;
+}
+
+/* Hub panels and the terminal use the panel tint as well. */
+[data-symbiont] .commands-footer, [data-symbiont] .footer-cell,
+[data-symbiont] .nv-term, [data-symbiont] .nv-term-out,
+[data-symbiont] .nv-term-head, [data-symbiont] .nv-term-foot {
+  background-color: var(--nv-panel) !important;
+  color: var(--nv-panel-text) !important;
+  border-color: var(--nv-accent) !important;
+}
+[data-symbiont] .nv-term-line {
+  color: var(--nv-panel-text) !important;
+  border-color: var(--nv-accent) !important;
+}
+[data-symbiont] #nv-ripple-ring {
+  border-color: var(--nv-accent-soft) !important;
+}
