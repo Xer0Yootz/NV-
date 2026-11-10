@@ -3,28 +3,36 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>NV_Gridlog — Infinity6 Terminal</title>
+  <title>NV_Gridlog — Neon Vigil</title>
   <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../nv-terminal-tokens.css">
   <link rel="stylesheet" href="../nv-ticker.css">
   <link rel="stylesheet" href="../nv-commands.css">
   <link rel="stylesheet" href="../nv-sprite.css">
   <style>
-    /* NV_Gridlog — the Grid Log (audit fix, Nov 8, 2026). This is the real
-       Gridlog destination: the same creature log as the in-game Grid Log
-       modal (GRID_CREATURES), with the same lock semantics. Praxia is shown
-       — she is unlocked by default in the game. The other four entries show
-       UNSYNCED SIGNAL until they are synced in the Garden, exactly like the
-       in-game modal; their data is not shown here so the unlock progression
-       is not spoiled. Syncing happens in the Garden. */
+    /* NV_Gridlog — the Grid Log wiki (Nov 9, 2026). One encyclopedia page:
+       Characters, the Creature Log, and the Living Line Tribes, folded into
+       one. Cleared information only; canon pictures only. The Creature Log
+       holds the Swarm, Assassin, and Parasite Wasp bug castes. No syncing
+       language. */
     body { background:#05010f; color:#f5f0ff; font-family:"VT323", "Share Tech Mono", monospace; font-size:18px; margin:0; }
     main { position:relative; z-index:2; max-width:720px; margin:0 auto; padding:0 16px 16px; }
     .card { border:1px solid #7c3aed; border-radius:16px; background:rgba(18,8,31,.88); padding:28px; }
+    h1 { margin:8px 0; }
+    h2 { color:#a78bfa; margin:32px 0 8px; }
+    h3 { color:#ff4fd8; margin:24px 0 4px; }
+    a { color:#a78bfa; }
     .gridlog-note { color:#a78bfa; }
     .gridlog-note a { color:#a78bfa; }
+    .toc { border:1px solid #7c3aed; border-radius:12px; background:#0b0414; padding:16px 20px; margin:16px 0; }
+    .toc h2 { margin:0 0 8px; }
+    .toc ul { margin:0; padding-left:20px; }
+    .toc li { margin:4px 0; }
+    .entry p { color:#c9b8d6; margin:4px 0 0; }
+    figure { margin:20px 0; }
+    figure img { width:100%; border:1px solid #7c3aed; display:block; }
     .log-entry { border:1px solid #00f0ff; padding:8px; background:#0b0414; margin:12px 0; }
     .log-entry-head { display:flex; justify-content:space-between; color:#ff4fd8; font-weight:bold; }
-    .log-entry-power { color:#00f0ff; margin-top:3px; }
     .log-entry-desc { color:#c9b8d6; margin-top:3px; }
   </style>
   <script src="../config.js"></script>
@@ -37,33 +45,314 @@
   </header>
   <main>
     <div class="card">
-      <h1 style="margin:8px 0">Grid Log</h1>
-      <p class="gridlog-note">The Garden's creature log. Sync in the Garden to log telemetry — <a href="/gigas-garden/">open the Gigas Garden</a>.</p>
-      <div class="log-entry">
-        <div class="log-entry-head"><span>UNSYNCED SIGNAL</span><span>[HAULER]</span></div>
-        <div class="log-entry-power">Sync in the Garden to log telemetry.</div>
-        <div class="log-entry-desc">---</div>
+      <h1>Grid Log</h1>
+      <p class="gridlog-note">The Neon Vigil encyclopedia — characters, creatures, and the Living Line tribes.</p>
+
+      <nav class="toc" aria-label="Contents">
+        <h2>Contents</h2>
+        <ul>
+          <li><a href="#characters">Characters</a></li>
+          <li><a href="#creature-log">Creature Log</a>
+            <ul>
+              <li><a href="#bug-castes">Bug Castes</a></li>
+              <li><a href="#garden-fauna">Garden Fauna</a></li>
+              <li><a href="#ocean-fauna">Ocean Fauna</a></li>
+              <li><a href="#plants">Plants</a></li>
+              <li><a href="#slime">Slime Sisters &amp; Mother Slime</a></li>
+            </ul>
+          </li>
+          <li><a href="#living-line">Living Line Tribes</a></li>
+        </ul>
+      </nav>
+
+      <h2 id="characters">Characters</h2>
+
+      <div class="entry">
+        <h3 id="neon-ultra">Neon Ultra</h3>
+        <p>Neon Ultra, a time displaced DJ.</p>
+        <figure><img src="../portraits/NV-Neon_Ultra_Suite_GIF_2026-11-09.gif" alt="Neon Ultra canon portrait and turnaround GIF"></figure>
       </div>
-      <div class="log-entry">
-        <div class="log-entry-head"><span>UNSYNCED SIGNAL</span><span>[WARDEN]</span></div>
-        <div class="log-entry-power">Sync in the Garden to log telemetry.</div>
-        <div class="log-entry-desc">---</div>
+
+      <div class="entry">
+        <h3 id="alyha">Alyha</h3>
+        <figure><img src="../portraits/NV-Alyha_Portrait.png" alt="Alyha approved portrait"></figure>
       </div>
-      <div class="log-entry">
-        <div class="log-entry-head"><span>UNSYNCED SIGNAL</span><span>[LUMEN]</span></div>
-        <div class="log-entry-power">Sync in the Garden to log telemetry.</div>
-        <div class="log-entry-desc">---</div>
+
+      <div class="entry">
+        <h3 id="anya">Anya</h3>
+        <figure><img src="../portraits/NV-Anya_Portrait.png" alt="Anya approved portrait"></figure>
       </div>
-      <div class="log-entry">
-        <div class="log-entry-head"><span>UNSYNCED SIGNAL</span><span>[DIVER]</span></div>
-        <div class="log-entry-power">Sync in the Garden to log telemetry.</div>
-        <div class="log-entry-desc">---</div>
+
+      <div class="entry">
+        <h3 id="cali-rose">Cali Rose</h3>
+        <figure><img src="../portraits/NV-Cali_Rose_Portrait.png" alt="Cali Rose approved portrait"></figure>
       </div>
-      <div class="log-entry">
-        <div class="log-entry-head"><span>PRAXIA</span><span>[CANNOT SYNC]</span></div>
-        <div class="log-entry-power">Pure Will of the Gigas Garden (Unsyncable)</div>
-        <div class="log-entry-desc">6'3", mantis head, compound pink eyes, no mouth, two tiny antennae, pearlescent chitin, dragonfly wings.</div>
+
+      <div class="entry">
+        <h3 id="cyphr">Cyphr</h3>
+        <figure><img src="../portraits/NV-Cyphr_Portrait.png" alt="Cyphr approved portrait"></figure>
       </div>
+
+      <div class="entry">
+        <h3 id="erica-mar">Erica Mar</h3>
+        <figure><img src="../portraits/NV-Erica_Mar_Portrait.png" alt="Erica Mar approved portrait"></figure>
+      </div>
+
+      <div class="entry">
+        <h3 id="hexa">Hexa</h3>
+        <figure><img src="../portraits/NV-Hexa_Portrait.png" alt="Hexa approved portrait"></figure>
+      </div>
+
+      <div class="entry">
+        <h3 id="himhun">HimHun</h3>
+        <figure><img src="../portraits/NV-HimHun_Portrait.png" alt="HimHun approved portrait"></figure>
+      </div>
+
+      <div class="entry">
+        <h3 id="indigo">Indigo</h3>
+        <figure><img src="../portraits/NV-Indigo_Portrait.png" alt="Indigo approved portrait"></figure>
+      </div>
+
+      <div class="entry">
+        <h3 id="jade">Jade</h3>
+        <figure><img src="../portraits/NV-Jade_Portrait.png" alt="Jade approved portrait"></figure>
+      </div>
+
+      <div class="entry">
+        <h3 id="nexus">Nexus</h3>
+        <figure><img src="../portraits/NV-Nexus_Portrait.png" alt="Nexus approved portrait"></figure>
+      </div>
+
+      <div class="entry">
+        <h3 id="noor">Noor</h3>
+        <figure><img src="../portraits/NV-Noor_Portrait.png" alt="Noor approved portrait"></figure>
+      </div>
+
+      <div class="entry">
+        <h3 id="praxia">Praxia</h3>
+        <figure><img src="../portraits/NV-Praxia_Portrait.png" alt="Praxia approved portrait"></figure>
+      </div>
+
+      <div class="entry">
+        <h3 id="star">Star</h3>
+        <figure><img src="../portraits/NV-Star_Portrait.png" alt="Star approved portrait"></figure>
+      </div>
+
+      <div class="entry">
+        <h3 id="val-17">Val 17</h3>
+        <figure><img src="../portraits/NV-Val17_Portrait.png" alt="Val 17 approved portrait"></figure>
+      </div>
+
+      <div class="entry">
+        <h3 id="val-18">Val 18</h3>
+        <figure><img src="../portraits/NV-Val18_Portrait.png" alt="Val 18 approved portrait"></figure>
+      </div>
+
+      <div class="entry">
+        <h3 id="xavier">Xavier</h3>
+        <figure><img src="../portraits/NV-Xavier_Portrait.png" alt="Xavier approved portrait"></figure>
+      </div>
+
+      <div class="entry">
+        <h3 id="xero">Xero</h3>
+        <figure><img src="../portraits/NV-Xero_Portrait.png" alt="Xero approved portrait"></figure>
+      </div>
+
+      <h2 id="creature-log">Creature Log</h2>
+      <p class="gridlog-note">The Garden's creatures — bug castes, fauna, and flora. Only Praxia commands the Garden this season. Always a Queen in law.</p>
+
+      <h3 id="bug-castes">Bug Castes</h3>
+      <p class="gridlog-note">Sentient distributed intelligences. Harmonious with Garden. Low-frequency song / scent. Bioluminescent. No sigils on the Bugs. Bugs never use plasma.</p>
+
+      <div class="log-entry">
+        <div class="log-entry-head"><span>SWARM</span><span>[BUG CASTE]</span></div>
+        <div class="log-entry-desc">Rust-red / gunmetal, ember eyes (base beetle-beast).</div>
+      </div>
+
+      <div class="log-entry">
+        <div class="log-entry-head"><span>ASSASSIN</span><span>[BUG CASTE]</span></div>
+        <div class="log-entry-desc">Reduviid browns, blacks, dull amber; ember or dark compound eyes. Especially evolved hunters: elongated head, curved rostrum, raptorial forelegs. Ambush, pierce, reel.</div>
+      </div>
+
+      <div class="log-entry">
+        <div class="log-entry-head"><span>PARASITE WASP</span><span>[BUG CASTE]</span></div>
+        <div class="log-entry-desc">Metallic blue (cuckoo / mud-dauber blue), dark wings, ember or blue-glass eyes. Smaller animalistic wasp-beast. Mind-control is biological: sting / ovipositor + song-line infection through a living host. Host walks. Wasp rides. Follows Praxia until succession.</div>
+      </div>
+
+      <p class="gridlog-note">Swarm, Assassin, and Parasite Wasp are smaller, mostly animalistic — insect-beast bodies, not human-height soldiers. All castes follow the Queen's order until succession.</p>
+
+      <h3 id="garden-fauna">Garden Fauna</h3>
+
+      <div class="log-entry">
+        <div class="log-entry-head"><span>SPIRIT FAUNA</span><span>[FAUNA]</span></div>
+        <div class="log-entry-desc">Bacteria and other microbes run slightly bigger than Old World scale. Sometimes visible, hovering and floating through the Garden. Translucent motes, slow flagella, faint biolume. Coin-to-palm at closest. Weather, not combat. First Water is their air.</div>
+      </div>
+
+      <div class="log-entry">
+        <div class="log-entry-head"><span>STINGLESS GARDEN BEES</span><span>[FAUNA]</span></div>
+        <div class="log-entry-desc">Bird-sized (robin to raven, not condor). Fuzzy bumble-body language. Stingless. Translucent to honey-glass chitin, faint Garden lumen. They move pollen, resin, and song-dust through the canopy.</div>
+      </div>
+
+      <div class="log-entry">
+        <div class="log-entry-head"><span>NIGHT MOTHS</span><span>[FAUNA]</span></div>
+        <div class="log-entry-desc">Same scale as the bees. Soft powder wings, dusk-to-black with pale eyespots. Silent. No sting. Night shift of the same air-layer.</div>
+      </div>
+
+      <div class="log-entry">
+        <div class="log-entry-head"><span>SEA SHEEP</span><span>[FAUNA]</span></div>
+        <div class="log-entry-desc">Sap-sucking sea slugs, the size of actual sheep. Kleptoplasty: they steal intact chloroplasts from algae and keep them in the cerata on their backs; when food runs out they photosynthesize like plants. Gentle, harmless grazers drifting the tide pools and shallow First Water edges.</div>
+      </div>
+
+      <div class="log-entry">
+        <div class="log-entry-head"><span>WORMS</span><span>[FAUNA]</span></div>
+        <div class="log-entry-desc">Human-scale predatory worms, sandworm / bloodworm / clamworm lineage grown large. Segmented bodies, copper-hard teeth or zinc fangs, venomous saliva. Ambush predators in Garden soil and ruin-loam.</div>
+      </div>
+
+      <div class="log-entry">
+        <div class="log-entry-head"><span>ROOSTWING SERPENT</span><span>[FAUNA]</span></div>
+        <div class="log-entry-desc">A flying snake. Giraffe-sized, just big enough to swallow a full-grown human. Roosts high; flies.</div>
+      </div>
+
+      <div class="log-entry">
+        <div class="log-entry-head"><span>URSA QUILL</span><span>[FAUNA]</span></div>
+        <div class="log-entry-desc">Iron City / Iron Fortress eternal winter. White ursine — polar bear + armadillo + wolverine. Red eyes. Glass-white quills. Non-humanoid. Not Swarm. Not a Queen.</div>
+      </div>
+
+      <h3 id="ocean-fauna">Ocean Fauna</h3>
+
+      <div class="log-entry">
+        <div class="log-entry-head"><span>PAKARI SHALLOWS</span><span>[FAUNA]</span></div>
+        <div class="log-entry-desc">Nine-tail Garden fox of the First Water edge. Two bodies, one animal. Low form: raccoon-to-hound, tide-pools, cyan inner-light, nine thin wet tails. High form: large night-fox, tails become weather.</div>
+      </div>
+
+      <div class="log-entry">
+        <div class="log-entry-head"><span>VEIN-LEVIATHAN (AMNION WHALE)</span><span>[FAUNA]</span></div>
+        <div class="log-entry-desc">Garden whale. City-block to small hull-shadow. Silk baleen combs spirit-fauna. Filter-song. Surfaces under Six.</div>
+      </div>
+
+      <div class="log-entry">
+        <div class="log-entry-head"><span>GEO-TRENCH CATHEDRAL CLAM</span><span>[FAUNA]</span></div>
+        <div class="log-entry-desc">Living Filter Clam grown huge. Chitin-nacre valves, magma-red resin hinge, First Water held in the mantle cavity. An animal.</div>
+      </div>
+
+      <div class="log-entry">
+        <div class="log-entry-head"><span>CHOIR-STRING (SIPHON LINE)</span><span>[FAUNA]</span></div>
+        <div class="log-entry-desc">Colony animal. Lamp-post thin, longer than Old World blue whale. Glass-teal zooids. Caste in the water (float / sting / feed / sing).</div>
+      </div>
+
+      <div class="log-entry">
+        <div class="log-entry-head"><span>HOOK-RAY</span><span>[FAUNA]</span></div>
+        <div class="log-entry-desc">Pilus-law skate. Skiff to barge. Ventral bio-grapples. Cannot hold chrome.</div>
+      </div>
+
+      <div class="log-entry">
+        <div class="log-entry-head"><span>ROSTRUM EEL</span><span>[FAUNA]</span></div>
+        <div class="log-entry-desc">Assassin logic in water. Old World six-foot eel is the juvenile. Adults coach-to-bus. Baths tunnels, open clam valves, trench dark.</div>
+      </div>
+
+      <h3 id="plants">Plants</h3>
+      <p class="gridlog-note">All are natural in the Gigas Garden, not synthetic, not engineered.</p>
+
+      <div class="log-entry">
+        <div class="log-entry-head"><span>LUNGWOOD</span><span>[FLORA]</span></div>
+        <div class="log-entry-desc">Canopy tree, trunk inhales / exhales, breath rhythm changes before storms / swarm moves / First Water shifts.</div>
+      </div>
+
+      <div class="log-entry">
+        <div class="log-entry-head"><span>THORN-SHOOTER THICKET</span><span>[FLORA]</span></div>
+        <div class="log-entry-desc">Thorns fire on vibration; effect: pain, numbness, then sleep, slow-acting, unless dose repeated.</div>
+      </div>
+
+      <div class="log-entry">
+        <div class="log-entry-head"><span>PULSE LANTERN VINE</span><span>[FLORA]</span></div>
+        <div class="log-entry-desc">Hanging lanterns pink / blue / purple / white, pulsing, reaching toward warmth not grabbing; a cut lantern glows one night.</div>
+      </div>
+
+      <div class="log-entry">
+        <div class="log-entry-head"><span>EMBER BUSH</span><span>[FLORA]</span></div>
+        <div class="log-entry-desc">Glowing pollinators burst out like light when disturbed, then settle; living alarm.</div>
+      </div>
+
+      <div class="log-entry">
+        <div class="log-entry-head"><span>MAW CAP</span><span>[FLORA]</span></div>
+        <div class="log-entry-desc">Closes slowly, eats what stays still inside too long.</div>
+      </div>
+
+      <div class="log-entry">
+        <div class="log-entry-head"><span>SIGNAL FLOWER</span><span>[FLORA]</span></div>
+        <div class="log-entry-desc">Orb bud twinkles long / short patterns changing with water, Bug song-lines, First Water in soil; living telegraph.</div>
+      </div>
+
+      <div class="log-entry">
+        <div class="log-entry-head"><span>VEIL MOSS / MYCELIAL MAT</span><span>[FLORA]</span></div>
+        <div class="log-entry-desc">Toned-down glow; mycelium is the bioluminescent element, not the moss; path / camp floor for all Garden tribes, no single tribe owns it.</div>
+      </div>
+
+      <div class="log-entry">
+        <div class="log-entry-head"><span>QUEEN'S BLOOM</span><span>[FLORA]</span></div>
+        <div class="log-entry-desc">Queen's Bloom 5147, with Infinity 6 as distant overhead silhouette (not landed).</div>
+      </div>
+
+      <div class="log-entry">
+        <div class="log-entry-head"><span>STRELITZIA GIGAS</span><span>[FLORA]</span></div>
+        <div class="log-entry-desc">Petals snap on 2 and 4 at 124 BPM.</div>
+      </div>
+
+      <div class="log-entry">
+        <div class="log-entry-head"><span>FIRST PLANTS / LITHOPS</span><span>[FLORA]</span></div>
+        <div class="log-entry-desc">First Plants / Lithops nodules / magma-red resin.</div>
+      </div>
+
+      <h3 id="slime">Slime Sisters &amp; Mother Slime</h3>
+
+      <div class="log-entry">
+        <div class="log-entry-head"><span>SLIME SISTERS</span><span>[CREATURE]</span></div>
+        <div class="log-entry-desc">Gigas Garden creature.</div>
+      </div>
+
+      <div class="log-entry">
+        <div class="log-entry-head"><span>MOTHER SLIME</span><span>[CREATURE]</span></div>
+        <div class="log-entry-desc">Gigas Garden creature.</div>
+      </div>
+
+      <h2 id="living-line">Living Line Tribes</h2>
+      <p class="gridlog-note">Living Line is the term for Bio Humans. What they call themselves is Mimekh, "people of the high branches."</p>
+
+      <div class="log-entry">
+        <div class="log-entry-head"><span>AMNION KEEPERS</span><span>[TRIBE]</span></div>
+        <div class="log-entry-desc">Living Line tribe.</div>
+      </div>
+
+      <div class="log-entry">
+        <div class="log-entry-head"><span>IRON ROOT</span><span>[TRIBE]</span></div>
+        <div class="log-entry-desc">Living Line tribe.</div>
+      </div>
+
+      <div class="log-entry">
+        <div class="log-entry-head"><span>SALT-BORN</span><span>[TRIBE]</span></div>
+        <div class="log-entry-desc">Living Line tribe.</div>
+      </div>
+
+      <div class="log-entry">
+        <div class="log-entry-head"><span>SKY-BONE</span><span>[TRIBE]</span></div>
+        <div class="log-entry-desc">Sky Bone is the name in the Living Line list and the name outsiders use; Mimekh is their own self-name.</div>
+      </div>
+
+      <div class="log-entry">
+        <div class="log-entry-head"><span>THE TRAVELING</span><span>[TRIBE]</span></div>
+        <div class="log-entry-desc">Garden-born. Ceremonial; bioluminescent patches; elders carry staves, kneel, and stop at the tree line — they will not set foot on the Curipira's ground. Their self-name is not "travellers" but the traveling itself, the act as identity; in their tongue, spelled phonetically: Loh biazhando. Dissent within the tribe: those who believe in magic — the old ways, the Garden's song — against those who want to wield the technology of the past to protect their future. Scout / hunter caste ranges past the tree line where the elders refuse to go. Material culture: bug shells as armor; they use many of the local animals for their own purposes; no buildings or infrastructure — they travel and set up camps, using animal skin and garden vines as rope. They paint their bioluminescent markings with ink from weird squids, carried dead as ink pouches. Language: Spanish base, Portuguese, English, Mexican slang. Migration: Brazil northward after the Fall, surviving by moving and natural births, up until 5150.</div>
+      </div>
+
+      <div class="log-entry">
+        <div class="log-entry-head"><span>DISPOSSESSED</span><span>[TRIBE]</span></div>
+        <div class="log-entry-desc">Ancient relic cyborgs who have persisted three thousand years, for whatever reason. Their implants are long dead; they wear the husks. They cannot enter First Water. Their weapons are stolen or scavenged, and many of them do not even know how to use them.</div>
+      </div>
+
+      <div class="log-entry">
+        <div class="log-entry-head"><span>SWARM</span><span>[TRIBE]</span></div>
+        <div class="log-entry-desc">Living Line tribe.</div>
+      </div>
+
       <p class="gridlog-note"><a href="/hub.html">Back to hub</a></p>
     </div>
   </main>
