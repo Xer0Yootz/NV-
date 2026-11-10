@@ -207,3 +207,31 @@
 [data-symbiont] #nv-ripple-ring {
   border-color: var(--nv-accent-soft) !important;
 }
+/* Footer text and icons: the shell footer sits on the light panel
+   tint, so its radio label, station selector, play button and the
+   Commands icon must read in the panel text too. The play triangle
+   follows currentColor; the Commands icon uses fixed #f5f0ff
+   strokes and fills, so those get the panel text as well. */
+[data-symbiont] .commands-footer *,
+[data-symbiont] .footer-cell * {
+  color: var(--nv-panel-text) !important;
+}
+[data-symbiont] .commands-footer select,
+[data-symbiont] .footer-cell select {
+  background-color: var(--nv-panel) !important;
+}
+[data-symbiont] .commands-icon-btn svg {
+  stroke: var(--nv-panel-text) !important;
+}
+[data-symbiont] .commands-icon-btn svg circle {
+  fill: var(--nv-panel-text) !important;
+}
+/* Strong and bold text inside a tinted panel (for example the
+   profile page's "IA Symbiont:" label) uses the readable panel
+   text instead of the soft accent. */
+[data-symbiont] main strong,
+[data-symbiont] main b,
+[data-symbiont] .card strong,
+[data-symbiont] .card b {
+  color: var(--nv-panel-text) !important;
+}
