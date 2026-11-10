@@ -516,54 +516,6 @@
           </div>
         </div>
 
-        <div class="acc" data-acc="hair">
-          <div class="acc-head">
-            <button type="button" class="acc-toggle" aria-expanded="false"><span class="chev">&#9656;</span>Hair &amp; Shell<span class="count">attachments</span></button>
-            <div class="acc-tools">
-              <button type="button" class="mini" data-randomize="hair">Randomize</button>
-              <button type="button" class="mini" data-reset="hair">Reset</button>
-            </div>
-          </div>
-          <div class="acc-body" hidden>
-            <h3>Hair attachment</h3>
-            <div class="pill-grid" role="group" aria-label="Hair style">
-              <button type="button" class="pill hair-pill" data-hair="braids" aria-pressed="true">
-                <svg class="thumb" viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" fill="#0a0a12"/><circle cx="17" cy="11" r="5.5" fill="none" stroke="#22d3ee" stroke-width="1.4"/><path d="M11.5 9 C10 16 10.5 24 9.5 31 M22.5 9 C24 16 23.5 24 24.5 31 M14 6.5 C13.4 14 14 22 13.2 30 M20 6.5 C20.6 14 20 22 20.8 30" fill="none" stroke="#a78bfa" stroke-width="1.6"/></svg>
-                <span>Neon braids<small>Neon_Hair_Braids_v01.glb</small></span>
-              </button>
-              <button type="button" class="pill hair-pill" data-hair="none" aria-pressed="false">
-                <svg class="thumb" viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" fill="#0a0a12"/><circle cx="17" cy="15" r="8" fill="none" stroke="#9aa7b4" stroke-width="1.4"/><path d="M10 26 C13 29.5 21 29.5 24 26" fill="none" stroke="#9aa7b4" stroke-width="1.4"/></svg>
-                <span>None / bald<small>The base, on its own</small></span>
-              </button>
-            </div>
-
-            <h3>Baby-hair shell — Neon_BabyHair_Shell_v01.glb</h3>
-            <div class="pill-grid" role="group" aria-label="Baby-hair shell style">
-              <button type="button" class="pill shell-pill" data-shell="none" aria-pressed="true">
-                <svg class="thumb" viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" fill="#0a0a12"/><path d="M6 15 C11 9 23 9 28 15" fill="none" stroke="#9aa7b4" stroke-width="1.4"/></svg>
-                <span>None<small>No shell</small></span>
-              </button>
-              <button type="button" class="pill shell-pill" data-shell="swoop" aria-pressed="false">
-                <svg class="thumb" viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" fill="#0a0a12"/><path d="M6 15 C11 9 23 9 28 15" fill="none" stroke="#626d7d" stroke-width="1.2"/><path d="M7 16 C13 21 21 21 27 15 M10 18.5 C14 22 20 22 24 18" fill="none" stroke="#f471b5" stroke-width="1.6"/></svg>
-                <span>Soft Swoop<small>Laid ribbons across the hairline</small></span>
-              </button>
-              <button type="button" class="pill shell-pill" data-shell="curls" aria-pressed="false">
-                <svg class="thumb" viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" fill="#0a0a12"/><path d="M6 15 C11 9 23 9 28 15" fill="none" stroke="#626d7d" stroke-width="1.2"/><path d="M9 16 c-1.6 2 1.4 3.4 2.4 1.8 c.8-1.2-.6-2.4-1.6-1.6 M16 17.5 c-1.6 2 1.4 3.4 2.4 1.8 c.8-1.2-.6-2.4-1.6-1.6 M23 16 c-1.6 2 1.4 3.4 2.4 1.8 c.8-1.2-.6-2.4-1.6-1.6" fill="none" stroke="#f471b5" stroke-width="1.5"/></svg>
-                <span>Delicate Curls<small>Micro-coils along the hairline</small></span>
-              </button>
-              <button type="button" class="pill shell-pill" data-shell="wisps" aria-pressed="false">
-                <svg class="thumb" viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" fill="#0a0a12"/><path d="M6 15 C11 9 23 9 28 15" fill="none" stroke="#626d7d" stroke-width="1.2"/><path d="M9 16 l-1 4 M13 17.5 l-.4 4.5 M17 18 l.2 4.5 M21 17.5 l.8 4.3 M25 16 l1.2 3.8" fill="none" stroke="#f471b5" stroke-width="1.5"/></svg>
-                <span>Feathered Wisps<small>Fine strands off the hairline</small></span>
-              </button>
-            </div>
-            <p class="note">One shell GLB, three style meshes plus an invisible holder sitting 0.5–1.0&nbsp;mm off the forehead skin. Picking a style shows that mesh and hides the other two; the shell is placed off the head itself and does not move with the braids or their transform.</p>
-
-            <h3>Hair transform — fine adjust</h3>
-            <div id="hairTransformSliders"></div>
-            <p class="note">Second Life–style wearable adjust for the hair attachment: offset in metres, scale as a multiplier, applied live. Reset returns offset [0, 0, 0], scale [1, 1, 1].</p>
-          </div>
-        </div>
-
         <div class="acc" data-acc="ia">
           <div class="acc-head">
             <button type="button" class="acc-toggle" aria-expanded="false"><span class="chev">&#9656;</span>IA Symbiont<span class="count">voice &amp; persona</span></button>
@@ -631,8 +583,7 @@
             <div class="feedback" id="presetFeedback" aria-live="polite"></div>
             <p class="note">
               Face ID preset: version 1, base “A”, blend “neutral”, all 18 morphs stored as 0–1 values,
-              the symmetry mode and per-pair L/R values, the hair as its own GLB reference with offset
-              and scale, the baby-hair style key (<em>babyHair</em>), plus the fixed test defaults for
+              the symmetry mode and per-pair L/R values, plus the fixed test defaults for
               skin, iris, outfit, symbiont, and expression.
             </p>
             <h3>Import Face ID</h3>
@@ -657,7 +608,7 @@
               <button type="button" id="btnRestoreBase">Back to Neon base</button>
             </div>
             <div class="feedback" id="uploadFeedback" aria-live="polite"></div>
-            <p class="note">Your GLB loads in place of the Neon base. Hair and the baby-hair shell are sized for the Neon base, so they are hidden while a custom model is loaded. Morph sliders only move if your GLB carries matching morph targets. Uploads unlock after you have been a member for a week.</p>
+            <p class="note">Your GLB loads in place of the Neon base. Morph sliders only move if your GLB carries matching morph targets. Uploads unlock after you have been a member for a week.</p>
           </div>
         </div>
       </section>
@@ -666,9 +617,7 @@
     <footer class="page">
       Test model: bald Neon, T-pose, ~0.99&nbsp;m, 18 meshes, each carrying the same 18 morph targets.
       Morph influence = (slider − 50) / 50, eased toward its target every frame (damping) so scrubbing stays
-      smooth across all 18 meshes. Hair: Neon braids, 12 meshes, a separate GLB attached to the avatar root
-      at runtime — the bald base file is unchanged. Baby-hair shell: a separate GLB attached at the root,
-      three style meshes cycled by visibility, holder 0.5–1.0&nbsp;mm off the skin.
+      smooth across all 18 meshes.
     </footer>
     </section>
   </main>
@@ -693,17 +642,6 @@
         var GROUPS = { face: FACE_MORPHS, body: BODY_MORPHS };
         var MODEL_URL = "assets/Neon_Ultra_Bald_Morphs_v01.glb";
 
-        // Hair and shell are always separate GLBs, attached at runtime to
-        // the avatar root — never baked into the bald base. Both files are
-        // already in avatar world space, so they attach at identity.
-        var HAIR_GLB = "Neon_Hair_Braids_v01.glb";
-        var HAIR_URL = "assets/" + HAIR_GLB;
-        var SHELL_GLB = "Neon_BabyHair_Shell_v01.glb";
-        var SHELL_URL = "assets/" + SHELL_GLB;
-        // Style key -> mesh name inside the shell GLB.
-        var SHELL_MESH = { swoop: "BabyHair_Swoop", curls: "BabyHair_Curls", wisps: "BabyHair_Wisps" };
-        var SHELL_STYLES = ["none", "swoop", "curls", "wisps"];
-        var SHELL_LABELS = { none: "None", swoop: "Soft Swoop", curls: "Delicate Curls", wisps: "Feathered Wisps" };
 
         var LABELS = {
           faceWidth: "Face width", cheek: "Cheekbones", jaw: "Jaw", chin: "Chin",
@@ -728,24 +666,12 @@
           earPoint:  { label: "Ear point",   parts: ["ear"],  shear: 0.008 }
         };
 
-        var TF_DEFS = [
-          { key: "ox", label: "Offset X", min: -0.05, max: 0.05, step: 0.001, def: 0, fmt: function (v) { return v.toFixed(3); } },
-          { key: "oy", label: "Offset Y", min: -0.05, max: 0.05, step: 0.001, def: 0, fmt: function (v) { return v.toFixed(3); } },
-          { key: "oz", label: "Offset Z", min: -0.05, max: 0.05, step: 0.001, def: 0, fmt: function (v) { return v.toFixed(3); } },
-          { key: "sx", label: "Scale X", min: 0.8, max: 1.25, step: 0.005, def: 1, fmt: function (v) { return v.toFixed(2); } },
-          { key: "sy", label: "Scale Y", min: 0.8, max: 1.25, step: 0.005, def: 1, fmt: function (v) { return v.toFixed(2); } },
-          { key: "sz", label: "Scale Z", min: 0.8, max: 1.25, step: 0.005, def: 1, fmt: function (v) { return v.toFixed(2); } }
-        ];
-
         /* ================= State ================= */
 
         var state = {
           morphs: {},        // unpaired morph name -> slider value 0..100
           asym: {},          // pair name -> { l: 0..100, r: 0..100 }
           symmetrical: true,
-          hair: true,
-          shell: "none",
-          tf: { ox: 0, oy: 0, oz: 0, sx: 1, sy: 1, sz: 1 },
           light: "neutral"
         };
         ALL_MORPHS.forEach(function (n) { state.morphs[n] = 50; });
@@ -758,13 +684,9 @@
 
         var sliders = {}, outputs = {};
         var pairSliders = {};     // name -> { l, r, lOut, rOut }
-        var tfSliders = {}, tfOutputs = {};
         var meshes = [], morphMeshes = [];
         var pairMeshes = {};      // pair name -> [meshes] for the asym offset
         var model = null, modelBox = null;
-        var hairObject = null, hairLoaded = false, hairLoading = false, hairError = "";
-        var shellObject = null, shellLoaded = false, shellLoading = false, shellError = "";
-        var shellStyleMeshes = {};  // style key -> mesh inside shell GLB
         var baseStatus = "";
 
         /* ================= History (undo / redo) ================= */
@@ -776,9 +698,7 @@
           ALL_MORPHS.forEach(function (n) { m[n] = state.morphs[n]; });
           Object.keys(PAIRS).forEach(function (n) { a[n] = { l: state.asym[n].l, r: state.asym[n].r }; });
           return {
-            morphs: m, asym: a, symmetrical: state.symmetrical,
-            hair: state.hair, shell: state.shell,
-            tf: { ox: state.tf.ox, oy: state.tf.oy, oz: state.tf.oz, sx: state.tf.sx, sy: state.tf.sy, sz: state.tf.sz }
+            morphs: m, asym: a, symmetrical: state.symmetrical
           };
         }
         function pushHistory() {
@@ -801,10 +721,6 @@
             else setSlider(n, s.morphs[n]);
           });
           setSymmetry(!!s.symmetrical, true);
-          setHair(!!s.hair, true);
-          setShell(s.shell || "none", true);
-          TF_DEFS.forEach(function (d) { setTF(d.key, s.tf[d.key], true); });
-          applyHairTransform();
           restoring = false;
           updateHistoryButtons();
         }
@@ -926,36 +842,6 @@
           });
         }
 
-        function buildTFSliders() {
-          var c = document.getElementById("hairTransformSliders");
-          TF_DEFS.forEach(function (d) {
-            var r = makeSliderRow(c, "tf-", d.key, d.label, true);
-            r.input.min = String(d.min); r.input.max = String(d.max); r.input.step = String(d.step);
-            r.input.value = String(d.def);
-            r.out.textContent = d.fmt(d.def);
-            tfSliders[d.key] = r.input; tfOutputs[d.key] = r.out;
-            (function (def, inp, out) {
-              inp.addEventListener("input", function () {
-                state.tf[def.key] = parseFloat(inp.value);
-                out.textContent = def.fmt(state.tf[def.key]);
-                applyHairTransform();
-                autoFocusFor("head");
-              });
-              inp.addEventListener("change", pushHistory);
-            })(d, r.input, r.out);
-          });
-        }
-        function setTF(key, value, silent) {
-          state.tf[key] = value;
-          for (var i = 0; i < TF_DEFS.length; i++) {
-            if (TF_DEFS[i].key === key) {
-              if (tfSliders[key]) { tfSliders[key].value = String(value); tfOutputs[key].textContent = TF_DEFS[i].fmt(value); }
-              break;
-            }
-          }
-          if (!silent) applyHairTransform();
-        }
-
         /* ================= Accordions ================= */
 
         var accs = document.querySelectorAll(".acc");
@@ -968,7 +854,7 @@
               toggle.setAttribute("aria-expanded", open ? "true" : "false");
               if (open) body.removeAttribute("hidden"); else body.setAttribute("hidden", "");
               if (open) {
-                var accView = { face: "head", body: "full", hair: "head" }[acc.getAttribute("data-acc")];
+                var accView = { face: "head", body: "full" }[acc.getAttribute("data-acc")];
                 if (accView) autoFocusFor(accView);
               }
             });
@@ -1001,24 +887,7 @@
         for (var ri = 0; ri < rndBtns.length; ri++) {
           rndBtns[ri].addEventListener("click", function () {
             var g = this.getAttribute("data-randomize");
-            if (g === "hair") {
-              // Hair & Shell: random hair on/off, a random shell style, and
-              // transform values inside a safe sub-range of each slider —
-              // offsets ±0.030 m (slider range ±0.050) and scale 0.90–1.15
-              // (slider range 0.80–1.25) so the hair never detaches or
-              // balloons. All setters run silent; one history entry below.
-              TF_DEFS.forEach(function (d) {
-                var v = d.key.charAt(0) === "o" ? randFloat(-0.03, 0.03) : randFloat(0.9, 1.15);
-                v = Math.round(v / d.step) * d.step;
-                v = Math.max(d.min, Math.min(d.max, v));
-                setTF(d.key, parseFloat(v.toFixed(3)), true);
-              });
-              applyHairTransform();
-              setShell(SHELL_STYLES[randInt(0, SHELL_STYLES.length - 1)], true);
-              setHair(Math.random() < 0.5, true);
-              // Re-apply once hair visibility is settled.
-              applyHairTransform();
-            } else {
+            {
               var names = GROUPS[g];
               names.forEach(function (n) {
                 if (PAIRS[n]) {
@@ -1037,12 +906,7 @@
         for (var si = 0; si < rstBtns.length; si++) {
           rstBtns[si].addEventListener("click", function () {
             var g = this.getAttribute("data-reset");
-            if (g === "hair") {
-              TF_DEFS.forEach(function (d) { setTF(d.key, d.def, true); });
-              applyHairTransform();
-              setShell("none", true);
-              setHair(true, true);
-            } else {
+            {
               GROUPS[g].forEach(function (n) {
                 if (PAIRS[n]) setPair(n, 50, 50); else setSlider(n, 50);
               });
@@ -1070,10 +934,6 @@
             morphs: morphs,
             symmetry: state.symmetrical ? "symmetrical" : "asymmetrical",
             asymmetry: asym,
-            hair: state.hair
-              ? { glb: HAIR_GLB, offset: [state.tf.ox, state.tf.oy, state.tf.oz], scale: [state.tf.sx, state.tf.sy, state.tf.sz] }
-              : null,
-            babyHair: state.shell === "none" ? null : state.shell,
             skin: 3,
             iris: { colour: "#3ba7a0", pupil: "round" },
             outfit: { top: "#e9e4d6", bottom: "#3a4a5a", accessory: "none" },
@@ -1117,13 +977,9 @@
           ALL_MORPHS.forEach(function (name) {
             if (PAIRS[name]) setPair(name, 50, 50); else setSlider(name, 50);
           });
-          TF_DEFS.forEach(function (d) { setTF(d.key, d.def, true); });
-          applyHairTransform();
-          setShell("none", true);
-          setHair(true, true);
           setSymmetry(true, true);
           pushHistory();
-          setFeedback(document.getElementById("presetFeedback"), "Everything reset: morphs neutral, hair on, shell off, transform identity, symmetrical.", false);
+          setFeedback(document.getElementById("presetFeedback"), "Everything reset: morphs neutral, symmetrical.", false);
         });
 
         document.getElementById("btnImport").addEventListener("click", function () {
@@ -1148,34 +1004,11 @@
             }
           });
           if (typeof data.symmetry === "string") setSymmetry(data.symmetry !== "asymmetrical", true);
-          var hairApplied = false;
-          if (data && data.hair && typeof data.hair.glb === "string" && data.hair.glb) {
-            if (Array.isArray(data.hair.offset) && data.hair.offset.length === 3) {
-              setTF("ox", Number(data.hair.offset[0]), true);
-              setTF("oy", Number(data.hair.offset[1]), true);
-              setTF("oz", Number(data.hair.offset[2]), true);
-            }
-            if (Array.isArray(data.hair.scale) && data.hair.scale.length === 3) {
-              setTF("sx", Number(data.hair.scale[0]), true);
-              setTF("sy", Number(data.hair.scale[1]), true);
-              setTF("sz", Number(data.hair.scale[2]), true);
-            }
-            applyHairTransform();
-            setHair(true, true);
-            hairApplied = true;
-          } else {
-            setHair(false, true);
-          }
-          var shellStyle = "none";
-          if (data && typeof data.babyHair === "string" && SHELL_STYLES.indexOf(data.babyHair) !== -1) shellStyle = data.babyHair;
-          setShell(shellStyle, true);
           pushHistory();
-          if (applied === 0 && !hairApplied) {
+          if (applied === 0) {
             setFeedback(fb, "No recognised morph values found in that JSON.", true);
           } else {
-            setFeedback(fb, "Import applied: " + applied + " of 18 morphs set" +
-              (hairApplied ? ", hair shown" : ", hair off (bald)") +
-              ", baby-hair: " + SHELL_LABELS[shellStyle] + ".", false);
+            setFeedback(fb, "Import applied: " + applied + " of 18 morphs set.", false);
           }
         });
 
@@ -1342,9 +1175,6 @@
           views.full = { pos: new THREE.Vector3(center.x, center.y, center.z + fullDist), target: center.clone() };
           var headC = new THREE.Vector3(center.x, modelBox.max.y - size.y * 0.09, center.z);
           views.head = { pos: new THREE.Vector3(headC.x, headC.y, headC.z + Math.max(size.y * 0.42, 0.35)), target: headC };
-          // Hairline: tight on the forehead band, slightly above eye level.
-          var hairC = new THREE.Vector3(center.x, modelBox.max.y - size.y * 0.045, center.z + size.z * 0.10);
-          views.hairline = { pos: new THREE.Vector3(hairC.x + size.x * 0.10, hairC.y + size.y * 0.03, hairC.z + Math.max(size.y * 0.20, 0.16)), target: hairC };
           var upperC = new THREE.Vector3(center.x, modelBox.min.y + size.y * 0.78, center.z);
           views.upper = { pos: new THREE.Vector3(upperC.x, upperC.y, upperC.z + Math.max(size.y * 0.85, 0.6)), target: upperC };
           var lowerC = new THREE.Vector3(center.x, modelBox.min.y + size.y * 0.30, center.z);
@@ -1378,139 +1208,13 @@
           camBtns[ci].addEventListener("click", function () { goView(this.getAttribute("data-view")); });
         }
 
-        /* ================= Attachments: hair + shell ================= */
+        /* ================= Status ================= */
 
         function refreshStatus() {
-          if (hairError || shellError) {
-            var which = hairError ? "hair GLB (" + HAIR_GLB + "): " + hairError
-                                  : "shell GLB (" + SHELL_GLB + "): " + shellError;
-            statusEl.textContent = "Error loading " + which + (baseStatus ? " · " + baseStatus : "");
-            statusEl.className = "status err";
-            return;
-          }
           var parts = [];
           if (baseStatus) parts.push(baseStatus);
-          if (!state.hair) parts.push("Hair: none — bald base");
-          else if (hairLoaded) parts.push("Hair: " + HAIR_GLB + " attached");
-          else if (hairLoading) parts.push("Hair: loading " + HAIR_GLB + "…");
-          if (state.shell === "none") parts.push("Shell: none");
-          else if (shellLoaded) parts.push("Shell: " + SHELL_LABELS[state.shell]);
-          else if (shellLoading) parts.push("Shell: loading " + SHELL_GLB + "…");
           statusEl.textContent = parts.length ? parts.join(" · ") : "Loading model…";
           statusEl.className = "status";
-        }
-
-        function applyHairTransform() {
-          if (!hairObject) return;
-          hairObject.position.set(state.tf.ox, state.tf.oy, state.tf.oz);
-          hairObject.scale.set(state.tf.sx, state.tf.sy, state.tf.sz);
-          hairObject.visible = state.hair;
-        }
-
-        function loadHair() {
-          if (hairLoaded || hairLoading || !model) return;
-          hairLoading = true;
-          refreshStatus();
-          new THREE.GLTFLoader().load(
-            HAIR_URL,
-            function (gltf) {
-              hairLoading = false; hairLoaded = true; hairError = "";
-              hairObject = gltf.scene;
-              // Child of the avatar root (not a head bone — the bald base has
-              // no skeleton), so the hair moves with the avatar.
-              model.add(hairObject);
-              applyHairTransform();
-              refreshStatus();
-            },
-            undefined,
-            function (err) {
-              hairLoading = false;
-              hairError = err && err.message ? err.message : "unknown error";
-              refreshStatus();
-            }
-          );
-        }
-
-        function setHair(wanted, silent) {
-          state.hair = wanted;
-          var btns = document.querySelectorAll(".hair-pill");
-          for (var i = 0; i < btns.length; i++) {
-            btns[i].setAttribute("aria-pressed", (btns[i].getAttribute("data-hair") === "braids") === wanted ? "true" : "false");
-          }
-          if (!silent) autoFocusFor("head");
-          if (wanted) {
-            hairError = "";
-            if (hairObject) { applyHairTransform(); refreshStatus(); }
-            else loadHair();
-          } else {
-            if (hairObject) hairObject.visible = false;
-            refreshStatus();
-          }
-          if (!silent) pushHistory();
-        }
-        var hairPills = document.querySelectorAll(".hair-pill");
-        for (var hi = 0; hi < hairPills.length; hi++) {
-          hairPills[hi].addEventListener("click", function () { setHair(this.getAttribute("data-hair") === "braids"); });
-        }
-
-        /* ----- Baby-hair shell: one GLB, three style meshes, cycled by
-           visibility. The holder mesh (alpha-0 scalp band) is never shown. */
-        function applyShellVisibility() {
-          if (!shellObject) return;
-          Object.keys(SHELL_MESH).forEach(function (key) {
-            var m = shellStyleMeshes[key];
-            if (m) m.visible = (key === state.shell);
-          });
-          shellObject.visible = state.shell !== "none";
-        }
-        function loadShell() {
-          if (shellLoaded || shellLoading || !model) return;
-          shellLoading = true;
-          refreshStatus();
-          new THREE.GLTFLoader().load(
-            SHELL_URL,
-            function (gltf) {
-              shellLoading = false; shellLoaded = true; shellError = "";
-              shellObject = gltf.scene;
-              shellObject.traverse(function (obj) {
-                if (!obj.isMesh) return;
-                if (obj.name === "BabyHair_Holder") { obj.visible = false; return; }
-                Object.keys(SHELL_MESH).forEach(function (key) {
-                  if (obj.name === SHELL_MESH[key]) shellStyleMeshes[key] = obj;
-                });
-              });
-              // Fallback if a style mesh name is not found: match by suffix.
-              Object.keys(SHELL_MESH).forEach(function (key) {
-                if (shellStyleMeshes[key]) return;
-                shellObject.traverse(function (obj) {
-                  if (obj.isMesh && obj.name.toLowerCase().indexOf(key) !== -1) shellStyleMeshes[key] = obj;
-                });
-              });
-              model.add(shellObject);
-              applyShellVisibility();
-              refreshStatus();
-            },
-            undefined,
-            function (err) {
-              shellLoading = false;
-              shellError = err && err.message ? err.message : "unknown error";
-              refreshStatus();
-            }
-          );
-        }
-        function setShell(style, silent) {
-          state.shell = style;
-          var btns = document.querySelectorAll(".shell-pill");
-          for (var i = 0; i < btns.length; i++) {
-            btns[i].setAttribute("aria-pressed", btns[i].getAttribute("data-shell") === style ? "true" : "false");
-          }
-          if (style !== "none" && !shellLoaded) loadShell();
-          else { applyShellVisibility(); refreshStatus(); }
-          if (!silent) { autoFocusFor("hairline"); pushHistory(); }
-        }
-        var shellPills = document.querySelectorAll(".shell-pill");
-        for (var spi = 0; spi < shellPills.length; spi++) {
-          shellPills[spi].addEventListener("click", function () { setShell(this.getAttribute("data-shell")); });
         }
 
         /* ================= Model load ================= */
@@ -1570,10 +1274,6 @@
             baseStatus =
               "Model loaded · " + meshes.length + " meshes · " + morphMeshes.length +
               " with morphs · height " + size.y.toFixed(2) + " m";
-            if (!customModel) {
-              if (state.hair) loadHair();
-              if (state.shell !== "none") loadShell();
-            }
             refreshStatus();
           },
           function (xhr) {
@@ -1593,16 +1293,11 @@
           );
         }
         /* Player upload hook: swap in a custom GLB. Detaches the current
-           model (and any hair/shell, which are sized for the Neon base),
-           then loads the new one. Morph sliders only move if the custom
-           GLB carries matching morph targets. */
+           model, then loads the new one. Morph sliders only move if the
+           custom GLB carries matching morph targets. */
         window.NVAvatarEditor = window.NVAvatarEditor || {};
         window.NVAvatarEditor.loadCustomModel = function (url, label) {
           if (model) { scene.remove(model); model = null; }
-          if (typeof hairObject !== "undefined" && hairObject) { model && model.remove(hairObject); hairObject = null; }
-          if (typeof shellObject !== "undefined" && shellObject) { model && model.remove(shellObject); shellObject = null; }
-          /* Restoring the Neon base re-enables hair + shell; a player GLB
-             keeps them off (they are sized for the Neon base). */
           customModel = url.indexOf("Neon_Ultra_Bald_Morphs_v01.glb") === -1;
           baseStatus = label || "Custom model";
           var loadingEl = document.getElementById("stageLoading");
