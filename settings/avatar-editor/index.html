@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="../../nv-terminal-tokens.css">
   <link rel="stylesheet" href="../../nv-ticker.css">
   <link rel="stylesheet" href="../../nv-toggle.css">
+  <link rel="stylesheet" href="../../nv-type.css">
   <style>
     body { background:#05010f; color:#f5f0ff; font-family:"VT323", "Share Tech Mono", monospace; font-size:18px; margin:0; }
     main { position:relative; z-index:2; max-width:1440px; margin:0 auto; padding:0 16px 16px; }
@@ -597,18 +598,28 @@
 
         <div class="acc" data-acc="upload">
           <div class="acc-head">
-            <button type="button" class="acc-toggle" aria-expanded="false"><span class="chev">&#9656;</span>Your Model<span class="count">upload a GLB</span></button>
+            <button type="button" class="acc-toggle" aria-expanded="false"><span class="chev">&#9656;</span>Your Model<span class="count">upload a model</span></button>
           </div>
           <div class="acc-body" hidden>
-            <h3>Upload your own GLB</h3>
+            <h3>Upload your own model</h3>
             <p class="note" id="uploadGateMsg">Checking your membership…</p>
             <div class="actions">
-              <label for="glbUpload" class="primary" id="glbUploadLabel" style="display:inline-block; padding:6px 12px; cursor:pointer;">Choose a .glb file</label>
-              <input type="file" id="glbUpload" accept=".glb,model/gltf-binary" hidden>
+              <label for="glbUpload" class="primary" id="glbUploadLabel" style="display:inline-block; padding:6px 12px; cursor:pointer;">Choose a .glb, .obj, .stl or .gltf file</label>
+              <input type="file" id="glbUpload" accept=".glb,.obj,.stl,.gltf,model/gltf-binary" hidden>
               <button type="button" id="btnRestoreBase">Back to Neon base</button>
             </div>
+            <p class="note">Or load a model from anywhere — paste a link to a .glb file.</p>
+            <p><input id="modelUrlInput" class="nv-type" maxlength="500" aria-label="Model URL" autocomplete="off" placeholder="https://…/model.glb" spellcheck="false"><span class="nv-type-cursor">_</span> <button type="button" id="btnLoadUrl">Load URL</button></p>
             <div class="feedback" id="uploadFeedback" aria-live="polite"></div>
-            <p class="note">Your GLB loads in place of the Neon base. Morph sliders only move if your GLB carries matching morph targets. Uploads unlock after you have been a member for a week.</p>
+            <p class="note">Your model loads in place of the Neon base. Morph sliders only move if your model carries matching morph targets. Uploads unlock after you have been a member for a week.</p>
+            <h3>Auto-rig this model</h3>
+            <p class="note">Builds a humanoid skeleton for the model in the viewer and skins it to the bones, so you can pose it. Works best on a humanoid standing in a T-pose.</p>
+            <div class="actions">
+              <button type="button" id="btnAutoRig">Auto-rig this model</button>
+              <button type="button" id="btnRaiseArm">Raise left arm</button>
+              <button type="button" id="btnResetPose">Reset pose</button>
+            </div>
+            <div class="feedback" id="rigFeedback" aria-live="polite"></div>
           </div>
         </div>
       </section>
@@ -630,6 +641,9 @@
 <script src="assets/js/three.min.js"></script>
 <script src="assets/js/OrbitControls.js"></script>
 <script src="assets/js/GLTFLoader.js"></script>
+<script src="assets/js/OBJLoader.js"></script>
+<script src="assets/js/STLLoader.js"></script>
+<script src="assets/js/GLTFExporter.js"></script>
     <script>
       (function () {
         "use strict";
@@ -1306,6 +1320,211 @@
         };
         loadBase(MODEL_URL, "Neon base");
 
+        /* ================= In-browser auto-rig =================
+           Builds a humanoid skeleton from the loaded model's bounding
+           box and skins its meshes to the bones, so the model can be
+           posed. Assumes a humanoid standing in a T-pose.
+           How it is made to work (not a plain nearest-bone rig):
+           (1) weights come from the distance to the bone SEGMENT, not
+           to the joint point — the single biggest fix; (2) a smooth
+           Gaussian falloff (sigma ~0.08 x height) with the top 4
+           influences kept and normalised to sum 1; (3) 2 neighbour
+           smoothing passes over the mesh adjacency to kill seams;
+           (4) a symmetry pass mirroring L/R weights across the centre
+           plane. What would perfect it further: geodesic (surface)
+           distance instead of straight-line distance (the
+           Pinocchio / heat-diffusion method — the gold standard, so
+           arm vertices stop grabbing torso bones), a strict T-pose
+           requirement (arms down bleeds arm into torso), bone
+           influence radius limits, inside/outside volume tests, and
+           manual weight painting. */
+        var rigSkeleton = null, rigBones = {};
+        function boneSegmentDist(p, a, b) {
+          var abx = b.x - a.x, aby = b.y - a.y, abz = b.z - a.z;
+          var apx = p.x - a.x, apy = p.y - a.y, apz = p.z - a.z;
+          var len2 = abx * abx + aby * aby + abz * abz;
+          var t = len2 > 0 ? (apx * abx + apy * aby + apz * abz) / len2 : 0;
+          t = Math.max(0, Math.min(1, t));
+          var dx = apx - abx * t, dy = apy - aby * t, dz = apz - abz * t;
+          return Math.sqrt(dx * dx + dy * dy + dz * dz);
+        }
+        function autoRigModel() {
+          var fb = document.getElementById("rigFeedback");
+          function say(m) { if (fb) fb.textContent = m; }
+          if (!model || !modelBox) { say("Load a model first."); return; }
+          if (rigSkeleton) { say("Already rigged — reset the pose or load another model to rig again."); return; }
+          var size = modelBox.getSize(new THREE.Vector3());
+          var H = size.y, y0 = modelBox.min.y;
+          var cx = (modelBox.min.x + modelBox.max.x) / 2;
+          var cz = (modelBox.min.z + modelBox.max.z) / 2;
+          var P = function (x, y, z) { return new THREE.Vector3(x, y, z); };
+          /* Bone layout: name, parent, absolute position (fractions of H). */
+          var defs = [
+            ["hips", null, P(cx, y0 + 0.52 * H, cz)],
+            ["spine", "hips", P(cx, y0 + 0.60 * H, cz)],
+            ["chest", "spine", P(cx, y0 + 0.70 * H, cz)],
+            ["neck", "chest", P(cx, y0 + 0.82 * H, cz)],
+            ["head", "neck", P(cx, y0 + 0.90 * H, cz)],
+            ["shoulderL", "chest", P(cx - 0.11 * H, y0 + 0.78 * H, cz)],
+            ["elbowL", "shoulderL", P(cx - 0.30 * H, y0 + 0.78 * H, cz)],
+            ["wristL", "elbowL", P(cx - 0.46 * H, y0 + 0.78 * H, cz)],
+            ["handL", "wristL", P(cx - 0.55 * H, y0 + 0.78 * H, cz)],
+            ["shoulderR", "chest", P(cx + 0.11 * H, y0 + 0.78 * H, cz)],
+            ["elbowR", "shoulderR", P(cx + 0.30 * H, y0 + 0.78 * H, cz)],
+            ["wristR", "elbowR", P(cx + 0.46 * H, y0 + 0.78 * H, cz)],
+            ["handR", "wristR", P(cx + 0.55 * H, y0 + 0.78 * H, cz)],
+            ["thighL", "hips", P(cx - 0.05 * H, y0 + 0.52 * H, cz)],
+            ["kneeL", "thighL", P(cx - 0.05 * H, y0 + 0.28 * H, cz)],
+            ["ankleL", "kneeL", P(cx - 0.05 * H, y0 + 0.06 * H, cz)],
+            ["toeL", "ankleL", P(cx - 0.05 * H, y0 + 0.02 * H, cz + 0.05 * H)],
+            ["thighR", "hips", P(cx + 0.05 * H, y0 + 0.52 * H, cz)],
+            ["kneeR", "thighR", P(cx + 0.05 * H, y0 + 0.28 * H, cz)],
+            ["ankleR", "kneeR", P(cx + 0.05 * H, y0 + 0.06 * H, cz)],
+            ["toeR", "ankleR", P(cx + 0.05 * H, y0 + 0.02 * H, cz + 0.05 * H)]
+          ];
+          /* Each bone's skinning segment runs to the next bone along its
+             chain; leaf bones (head, hand, toe) extend a short stub. */
+          var next = {
+            hips: "spine", spine: "chest", chest: "neck", neck: "head",
+            shoulderL: "elbowL", elbowL: "wristL", wristL: "handL",
+            shoulderR: "elbowR", elbowR: "wristR", wristR: "handR",
+            thighL: "kneeL", kneeL: "ankleL", ankleL: "toeL",
+            thighR: "kneeR", kneeR: "ankleR", ankleR: "toeR"
+          };
+          var stub = {
+            head: P(0, 0.10 * H, 0), handL: P(-0.05 * H, 0, 0),
+            handR: P(0.05 * H, 0, 0), toeL: P(0, 0, 0.05 * H), toeR: P(0, 0, 0.05 * H)
+          };
+          var abs = {};
+          defs.forEach(function (d) { abs[d[0]] = d[2]; });
+          /* Build the bone hierarchy (positions are parent-relative). */
+          var bones = [], byName = {};
+          defs.forEach(function (d) {
+            var b = new THREE.Bone();
+            b.name = d[0];
+            var parent = d[1] ? byName[d[1]] : null;
+            var p = d[2].clone();
+            if (parent) p.sub(abs[d[1]]);
+            b.position.copy(p);
+            if (parent) parent.add(b); else model.add(b);
+            bones.push(b); byName[d[0]] = b;
+          });
+          /* Bone segments in world space (the model sits at the origin). */
+          var segs = defs.map(function (d) {
+            var a = abs[d[0]];
+            var n = next[d[0]];
+            var b = n ? abs[n] : a.clone().add(stub[d[0]] || P(0, 0.05 * H, 0));
+            return { a: a, b: b };
+          });
+          var sigma = 0.08 * H, sigma2 = 2 * sigma * sigma;
+          var skinned = 0, verts = 0;
+          /* Skin every mesh, then swap it for a SkinnedMesh. */
+          var newMeshes = [];
+          meshes.forEach(function (mesh) {
+            var geo = mesh.geometry;
+            var pos = geo.attributes.position;
+            if (!pos) return;
+            var count = pos.count;
+            var skinIdx = new Uint16Array(count * 4);
+            var skinW = new Float32Array(count * 4);
+            var v = new THREE.Vector3(), wp = new THREE.Vector3();
+            var wList = [];
+            for (var i = 0; i < count; i++) {
+              v.fromBufferAttribute(pos, i);
+              wp.copy(v).applyMatrix4(mesh.matrixWorld);
+              wList.length = 0;
+              for (var b = 0; b < bones.length; b++) {
+                var d = boneSegmentDist(wp, segs[b].a, segs[b].b);
+                wList.push({ bone: b, w: Math.exp(-(d * d) / sigma2) });
+              }
+              wList.sort(function (a, b2) { return b2.w - a.w; });
+              var top = wList.slice(0, 4), sum = 0;
+              top.forEach(function (t) { sum += t.w; });
+              if (sum <= 0) sum = 1;
+              for (var k = 0; k < 4; k++) {
+                skinIdx[i * 4 + k] = top[k] ? top[k].bone : 0;
+                skinW[i * 4 + k] = top[k] ? top[k].w / sum : 0;
+              }
+            }
+            /* Neighbour smoothing: 2 passes averaging weights over the
+               mesh adjacency (from the index buffer), to kill seams. */
+            var idx = geo.index;
+            if (idx) {
+              var nbrs = [];
+              for (var n2 = 0; n2 < count; n2++) nbrs.push([]);
+              for (var f = 0; f < idx.count; f += 3) {
+                var a0 = idx.getX(f), a1 = idx.getX(f + 1), a2 = idx.getX(f + 2);
+                nbrs[a0].push(a1, a2); nbrs[a1].push(a0, a2); nbrs[a2].push(a0, a1);
+              }
+              for (var pass = 0; pass < 2; pass++) {
+                var nw = new Float32Array(count * 4);
+                for (var vi = 0; vi < count; vi++) {
+                  var list = nbrs[vi];
+                  if (!list.length) { for (var c = 0; c < 4; c++) nw[vi * 4 + c] = skinW[vi * 4 + c]; continue; }
+                  var acc = [0, 0, 0, 0];
+                  for (var q = 0; q < list.length; q++) {
+                    for (var c2 = 0; c2 < 4; c2++) acc[c2] += skinW[list[q] * 4 + c2];
+                  }
+                  /* Average with the vertex's own weights (keeps the
+                     smoothing from washing the rig out). */
+                  for (var c3 = 0; c3 < 4; c3++) {
+                    nw[vi * 4 + c3] = (skinW[vi * 4 + c3] + acc[c3] / list.length) / 2;
+                  }
+                }
+                skinW.set(nw);
+              }
+              /* Re-normalise each vertex to sum 1. */
+              for (var vi2 = 0; vi2 < count; vi2++) {
+                var s = skinW[vi2 * 4] + skinW[vi2 * 4 + 1] + skinW[vi2 * 4 + 2] + skinW[vi2 * 4 + 3];
+                if (s > 0) for (var c4 = 0; c4 < 4; c4++) skinW[vi2 * 4 + c4] /= s;
+              }
+            }
+            geo.setAttribute("skinIndex", new THREE.Uint16BufferAttribute(skinIdx, 4));
+            geo.setAttribute("skinWeight", new THREE.Float32BufferAttribute(skinW, 4));
+            var sk = new THREE.SkinnedMesh(geo, mesh.material);
+            sk.name = mesh.name;
+            sk.position.copy(mesh.position);
+            sk.rotation.copy(mesh.rotation);
+            sk.scale.copy(mesh.scale);
+            if (mesh.morphTargetDictionary) sk.morphTargetDictionary = mesh.morphTargetDictionary;
+            if (mesh.morphTargetInfluences) sk.morphTargetInfluences = mesh.morphTargetInfluences;
+            var parent = mesh.parent;
+            if (parent) { parent.remove(mesh); parent.add(sk); }
+            newMeshes.push(sk);
+            skinned++; verts += count;
+          });
+          /* Re-point the editor's mesh lists at the skinned meshes. */
+          meshes = newMeshes;
+          morphMeshes = meshes.filter(function (m) { return m.morphTargetDictionary && m.morphTargetInfluences; });
+          Object.keys(PAIRS).forEach(function (n) {
+            pairMeshes[n] = meshes.filter(function (m) {
+              var nm = m.name.toLowerCase();
+              return PAIRS[n].parts.some(function (part) { return nm.indexOf(part) !== -1; });
+            });
+          });
+          rigSkeleton = new THREE.Skeleton(bones);
+          rigBones = byName;
+          model.updateMatrixWorld(true);
+          meshes.forEach(function (m) { m.bind(rigSkeleton, m.matrixWorld); });
+          say("Rigged: " + bones.length + " bones · " + skinned + " meshes · " + verts + " vertices skinned. Try Raise left arm.");
+          refreshStatus();
+        }
+        window.NVAvatarEditor.autoRig = autoRigModel;
+        window.NVAvatarEditor.raiseLeftArm = function () {
+          if (!rigBones.shoulderL) return;
+          rigBones.shoulderL.rotation.z = -Math.PI / 2 * 0.9;
+        };
+        window.NVAvatarEditor.resetPose = function () {
+          if (!rigBones.shoulderL) return;
+          rigBones.shoulderL.rotation.z = 0;
+        };
+        /* Loading a new model clears the rig (bones belong to the old one). */
+        var _origLoadCustom = window.NVAvatarEditor.loadCustomModel;
+        window.NVAvatarEditor.loadCustomModel = function (url, label) {
+          rigSkeleton = null; rigBones = {};
+          _origLoadCustom(url, label);
+        };
+
         /* ================= Damped morph application =================
            Every frame, each morph's live influence eases toward its target
            (exponential damping, ~90 ms time constant) and is written to all
@@ -1463,22 +1682,124 @@
           setLocked('Could not confirm your account age — uploads locked.');
         }
       }
-      input.addEventListener('change', function () {
-        var file = input.files && input.files[0];
-        if (!file) return;
-        if (!/\.glb$/i.test(file.name)) {
-          if (feedback) feedback.textContent = 'That is not a .glb file.';
-          return;
-        }
+      /* Convert a non-GLB mesh file to GLB in the browser, then load it.
+         OBJ and STL are parsed with the matching three.js r147 loader and
+         exported to binary GLB with GLTFExporter. GLB loads directly. */
+      function loadFileAsModel(file) {
         if (!window.NVAvatarEditor || !window.NVAvatarEditor.loadCustomModel) {
           if (feedback) feedback.textContent = 'The editor is not ready yet — try again in a moment.';
           return;
         }
-        var url = URL.createObjectURL(file);
-        window.NVAvatarEditor.loadCustomModel(url, 'Custom model · ' + file.name);
-        if (feedback) feedback.textContent = 'Loading ' + file.name + '…';
+        var name = file.name || '';
+        if (/\.glb$/i.test(name) || /\.gltf$/i.test(name)) {
+          var url = URL.createObjectURL(file);
+          window.NVAvatarEditor.loadCustomModel(url, 'Custom model · ' + name);
+          if (feedback) feedback.textContent = 'Loading ' + name + '…';
+          return;
+        }
+        if (/\.obj$/i.test(name)) {
+          var reader = new FileReader();
+          reader.onload = function () {
+            try {
+              var obj = new THREE.OBJLoader().parse(reader.result);
+              exportSceneToGlb(obj, name);
+            } catch (e) {
+              if (feedback) feedback.textContent = 'Could not read that .obj file.';
+            }
+          };
+          reader.readAsText(file);
+          return;
+        }
+        if (/\.stl$/i.test(name)) {
+          var reader2 = new FileReader();
+          reader2.onload = function () {
+            try {
+              var geo = new THREE.STLLoader().parse(reader2.result);
+              var mesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: 0xcccccc }));
+              mesh.name = name.replace(/\.stl$/i, '');
+              var group = new THREE.Group();
+              group.add(mesh);
+              exportSceneToGlb(group, name);
+            } catch (e) {
+              if (feedback) feedback.textContent = 'Could not read that .stl file.';
+            }
+          };
+          reader2.readAsArrayBuffer(file);
+          return;
+        }
+        if (feedback) feedback.textContent = 'That file type is not supported — use .glb, .obj, .stl or .gltf.';
+      }
+      function exportSceneToGlb(scene, name) {
+        if (!THREE.GLTFExporter) {
+          if (feedback) feedback.textContent = 'The GLB exporter did not load — try again.';
+          return;
+        }
+        if (feedback) feedback.textContent = 'Converting ' + name + ' to GLB…';
+        new THREE.GLTFExporter().parse(scene, function (result) {
+          var blob = new Blob([result], { type: 'model/gltf-binary' });
+          var url = URL.createObjectURL(blob);
+          window.NVAvatarEditor.loadCustomModel(url, 'Custom model · ' + name + ' (converted)');
+          if (feedback) feedback.textContent = 'Loading ' + name + ' (converted to GLB)…';
+        }, { binary: true });
+      }
+      input.addEventListener('change', function () {
+        var file = input.files && input.files[0];
+        if (!file) return;
+        loadFileAsModel(file);
         input.value = '';
       });
+      /* Load a model from anywhere — paste a link to a .glb file. The
+         loader fetches it directly; a link that does not allow
+         cross-origin fetch will fail, and the message says so. */
+      var urlInput = document.getElementById('modelUrlInput');
+      var loadUrlBtn = document.getElementById('btnLoadUrl');
+      function sizeUrlInput() {
+        if (!urlInput) return;
+        urlInput.style.width = Math.max(1, (urlInput.value || urlInput.placeholder || '').length + 1) + 'ch';
+      }
+      if (urlInput) {
+        sizeUrlInput();
+        urlInput.addEventListener('input', sizeUrlInput);
+        urlInput.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter') { e.preventDefault(); if (loadUrlBtn) loadUrlBtn.click(); }
+        });
+      }
+      if (loadUrlBtn) {
+        loadUrlBtn.addEventListener('click', function () {
+          var u = urlInput ? urlInput.value.trim() : '';
+          if (!u) { if (feedback) feedback.textContent = 'Paste a link to a .glb file first.'; return; }
+          if (!/^https?:\/\//i.test(u)) { if (feedback) feedback.textContent = 'That does not look like a link — it needs to start with http:// or https://.'; return; }
+          if (!window.NVAvatarEditor || !window.NVAvatarEditor.loadCustomModel) {
+            if (feedback) feedback.textContent = 'The editor is not ready yet — try again in a moment.';
+            return;
+          }
+          window.NVAvatarEditor.loadCustomModel(u, 'Custom model · ' + u);
+          if (feedback) feedback.textContent = 'Loading ' + u + '… (if it fails, the link may not allow cross-origin loading.)';
+        });
+      }
+      /* Auto-rig buttons. */
+      var rigBtn = document.getElementById('btnAutoRig');
+      var raiseBtn = document.getElementById('btnRaiseArm');
+      var resetPoseBtn = document.getElementById('btnResetPose');
+      var rigFb = document.getElementById('rigFeedback');
+      if (rigBtn) {
+        rigBtn.addEventListener('click', function () {
+          if (window.NVAvatarEditor && window.NVAvatarEditor.autoRig) {
+            if (rigFb) rigFb.textContent = 'Rigging…';
+            window.NVAvatarEditor.autoRig();
+          }
+        });
+      }
+      if (raiseBtn) {
+        raiseBtn.addEventListener('click', function () {
+          if (window.NVAvatarEditor && window.NVAvatarEditor.raiseLeftArm) window.NVAvatarEditor.raiseLeftArm();
+        });
+      }
+      if (resetPoseBtn) {
+        resetPoseBtn.addEventListener('click', function () {
+          if (window.NVAvatarEditor && window.NVAvatarEditor.resetPose) window.NVAvatarEditor.resetPose();
+        });
+      }
       if (restoreBtn) {
         restoreBtn.addEventListener('click', function () {
           if (window.NVAvatarEditor && window.NVAvatarEditor.loadCustomModel) {
