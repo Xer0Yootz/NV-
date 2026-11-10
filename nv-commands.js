@@ -30,12 +30,10 @@
     // palette routes to the same-origin shell wrappers (/gigas-garden/,
     // /remix/) instead of leaving neonvigil.app, and NV_Gridlog routes to
     // the real Grid Log page (/gridlog/) instead of the Bible test page.
-    // Avatar Editor rename + move Nov 8, 2026: "Aniimo" is now "Avatar
-    // Editor", living in Settings (/settings.html#avatar-editor); "aniimo"
-    // stays as a hidden search alias only, never as a shown name.
+    // Avatar Editor is a standalone page at /avatar-editor/ (Nov 9, 2026).
     { name: 'Virtual IWW: Gigas Garden', hint: 'Game', keys: 'virtual iww gigas garden game play', run: function () { location.href = '/gigas-garden/'; } },
     { name: 'NV_Gigas Garden — Remix', hint: 'Game', keys: 'nv gigas garden remix remix.gg game play', run: function () { location.href = '/remix/'; } },
-    { name: 'Avatar Editor', hint: 'Settings', keys: 'aniimo avatar editor editing settings profile', run: function () { location.href = '/settings.html#avatar-editor'; } },
+    { name: 'Avatar Editor', hint: 'Avatar', keys: 'avatar editor editing', run: function () { location.href = '/avatar-editor/'; } },
     { name: 'NV_Pet Pal', hint: 'Pet', keys: 'nv pet pal baby pigek pet game', run: function () { location.href = '/gigas-garden/'; } },
     { name: 'NV_808', hint: 'NV-808', keys: 'nv_808 nv-808 nv808 drum machine', run: function () { location.href = '/nv808/'; } },
     { name: 'NV_Gridlog', hint: 'Gridlog', keys: 'nv_gridlog gridlog grid log creatures', run: function () { location.href = '/gridlog/'; } },
