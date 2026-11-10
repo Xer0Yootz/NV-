@@ -10,6 +10,8 @@
   <link rel="stylesheet" href="../../nv-ticker.css">
   <link rel="stylesheet" href="../../nv-toggle.css">
   <link rel="stylesheet" href="../../nv-type.css">
+  <link rel="stylesheet" href="../../nv-symbiont-theme.css">
+  <script src="../../nv-symbiont-theme.js"></script>
   <style>
     body { background:#05010f; color:#f5f0ff; font-family:"VT323", "Share Tech Mono", monospace; font-size:18px; margin:0; }
     main { position:relative; z-index:2; max-width:1440px; margin:0 auto; padding:0 16px 16px; }
@@ -1646,6 +1648,8 @@
           var base = b.getAttribute('data-ia');
           mark(base);
           try { localStorage.setItem('nv_symbiont_base', base); } catch (e) {}
+          /* Recolor the whole system to the pick right now. */
+          try { if (window.NVSymbiontTheme) window.NVSymbiontTheme.apply(); } catch (e2) {}
           chime();
         });
       });
