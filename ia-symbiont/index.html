@@ -18,30 +18,30 @@
        in the shapes we defined (hexagon / sigil). */
     body { background:#05010f; color:#f5f0ff; font-family:"VT323", "Share Tech Mono", monospace; font-size:18px; margin:0; }
     main { position:relative; z-index:2; max-width:720px; margin:0 auto; padding:0 16px 16px; }
-    .card { border:1px solid #7c3aed; border-radius:16px; background:rgba(18,8,31,.88); padding:28px; }
+    .card { border:1px solid var(--nv-accent); border-radius:16px; background:rgba(18,8,31,.88); padding:28px; }
     h1 { margin:8px 0; }
-    h2 { color:#a78bfa; margin:32px 0 8px; }
-    a { color:#a78bfa; }
-    .note { color:#c9b8d6; }
+    h2 { color:var(--nv-accent-soft); margin:32px 0 8px; }
+    a { color:var(--nv-accent-soft); }
+    .note { color:var(--nv-accent-soft); }
     .back { margin-top:28px; }
-    .back a { color:#a78bfa; }
+    .back a { color:var(--nv-accent-soft); }
 
     /* IA picker: three hexagons, fluid color-changing motion. */
     .ia-grid { display:flex; flex-wrap:wrap; gap:16px; margin:20px 0 8px; }
     .ia-pick {
       display:flex; flex-direction:column; align-items:center; gap:8px;
-      background:transparent; border:1px solid #7c3aed; border-radius:16px;
+      background:transparent; border:1px solid var(--nv-accent); border-radius:16px;
       padding:18px 20px 14px; cursor:pointer; min-width:130px;
       font-family:inherit; color:#f5f0ff;
     }
-    .ia-pick:hover { border-color:#a78bfa; }
+    .ia-pick:hover { border-color:var(--nv-accent-soft); }
     .ia-pick[aria-pressed="true"] {
-      border-color:#22d3ee;
+      border-color:var(--nv-accent);
       box-shadow:0 0 0 1px #22d3ee, 0 0 22px rgba(34,211,238,.28);
     }
     .ia-pick .ia-hex { width:110px; height:110px; display:block; }
     .ia-pick .ia-name { font-size:20px; letter-spacing:.14em; text-transform:uppercase; }
-    .ia-pick .ia-sub { font-size:15px; color:#c9b8d6; }
+    .ia-pick .ia-sub { font-size:15px; color:var(--nv-accent-soft); }
     @keyframes nv-ia-flow {
       0% { stop-color: var(--ia-a); }
       50% { stop-color: var(--ia-b); }
@@ -156,7 +156,7 @@
       }
     }
     var audioCtx = null;
-    function chime() {
+    function chime() { if (window.NVSymbiontChime) return window.NVSymbiontChime();
       try {
         var AC = window.AudioContext || window.webkitAudioContext;
         if (!AC) return;
