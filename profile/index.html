@@ -15,7 +15,7 @@
     /* Profile — the player's profile page (Nov 9, 2026). Populated from
        the profile the player set in the Profile Editor (localStorage +
        Supabase user_metadata): picture, username, display name, pronouns,
-       bio, links, location, and their own IA Symbiont. */
+       bio, and their own IA Symbiont. */
     body { background:#05010f; color:#f5f0ff; font-family:"VT323", "Share Tech Mono", monospace; font-size:18px; margin:0; }
     main { position:relative; z-index:2; max-width:720px; margin:0 auto; padding:0 16px 16px; }
     .card { border:1px solid var(--nv-accent); border-radius:16px; background:rgba(18,8,31,.88); padding:28px; }
@@ -31,11 +31,11 @@
     .profile-user { color:var(--nv-accent-soft); font-size:20px; }
     .profile-pronouns { color:var(--nv-accent-soft); font-size:18px; margin-top:4px; }
     .profile-bio { color:#f5f0ff; white-space:pre-wrap; margin:16px 0; }
-    .profile-links { margin:8px 0; padding-left:20px; }
-    .profile-links li { margin:4px 0; word-break:break-all; }
+    
+    
     .profile-meta { color:var(--nv-accent-soft); margin:8px 0; }
     .profile-meta strong { color:var(--nv-accent-soft); font-weight:normal; }
-    .back { margin-top:28px; }
+    .back { margin-top:28px; } .back a { display:inline-block; background:color-mix(in srgb, var(--nv-accent) 20%, transparent); color:var(--nv-accent-deep) !important; border:1px solid var(--nv-accent); border-radius:999px; padding:10px 18px; font-weight:700; position:relative; overflow:hidden; box-shadow:0 0 12px color-mix(in srgb, var(--nv-accent) 45%, transparent), inset 0 1px 0 rgba(255,255,255,.45), inset 0 -6px 12px rgba(255,255,255,.08); transition:transform .18s ease, box-shadow .18s ease; text-decoration:none; } .back a::before { content:""; position:absolute; inset:0; border-radius:inherit; background:linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,.12) 45%, rgba(255,255,255,0) 60%); pointer-events:none; } .back a::after { content:""; position:absolute; top:0; bottom:0; left:-70%; width:45%; background:linear-gradient(100deg, transparent, rgba(255,255,255,.55), transparent); transform:skewX(-18deg); transition:left .45s ease; pointer-events:none; } .back a:hover, .back a:focus-visible { transform:translateY(-2px); box-shadow:0 6px 18px color-mix(in srgb, var(--nv-accent) 55%, transparent), 0 0 22px color-mix(in srgb, var(--nv-accent) 60%, transparent), inset 0 1px 0 rgba(255,255,255,.55); } .back a:hover::after, .back a:focus-visible::after { left:120%; } .back a:active { transform:translateY(1px) scale(.93, .87); box-shadow:0 0 10px color-mix(in srgb, var(--nv-accent) 50%, transparent), inset 0 1px 0 rgba(255,255,255,.45); } .back a:focus-visible { outline:2px solid var(--nv-accent-soft); outline-offset:2px; }
   </style>
   <script src="../config.js"></script>
 </head>
@@ -56,11 +56,8 @@
         </div>
       </div>
       <p class="profile-bio" id="profileBio"></p>
-      <div id="profileLinksWrap" hidden>
-        <h2>Links</h2>
-        <ul class="profile-links" id="profileLinks"></ul>
-      </div>
-      <p class="profile-meta" id="profileLocation"></p>
+      
+      
       <p class="profile-meta" id="profileSymbiont"></p>
       <p class="note" id="profileEmpty" hidden>No profile set yet — <a href="/settings/profile-editor/">set it up in the Profile Editor</a>.</p>
       <p class="back"><a href="/settings/profile-editor/">Edit profile</a> · <a href="/hub.html">Back to hub</a></p>
@@ -77,27 +74,7 @@
      Supabase account (user_metadata) when local is empty. */
   (function () {
     function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
-    function get(k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } }
-    function avatarUrl() {
-      var choice = get('nv_avatar_choice');
-      if (choice === 'blank') return '';
-      if (choice === 'upload') return get('nv_avatar_url');
-      if (choice === 'provider') return get('nv_provider_avatar_url');
-      return get('nv_provider_avatar_url') || get('nv_avatar_url');
-    }
-    function render() {
-      /* One name: the username. (Display name and username are the
-         same thing, called "username".) */
-      var username = get('nv_display_name');
-      var pronouns = get('nv_pronouns');
-      var bio = get('nv_bio');
-      var location = get('nv_location');
-      var symBase = get('nv_symbiont_base');
-      var symName = get('nv_symbiont_name');
-      var symGender = get('nv_symbiont_gender');
-      var links = [];
-      try { links = JSON.parse(get('nv_links') || '[]'); } catch (e) { links = []; }
-
+    function get(k) { 
       var pic = document.getElementById('profilePic');
       var url = avatarUrl();
       pic.innerHTML = url
@@ -107,8 +84,7 @@
       document.getElementById('profileDisplay').textContent = username || '—';
       document.getElementById('profilePronouns').textContent = pronouns || '';
       document.getElementById('profileBio').textContent = bio || '';
-      document.getElementById('profileLocation').innerHTML = location ? '<strong>Location:</strong> ' + esc(location) : '';
-
+      
       var symParts = [];
       if (symBase) symParts.push(symBase.charAt(0).toUpperCase() + symBase.slice(1));
       if (symName) symParts.push(symName);
@@ -117,19 +93,9 @@
         ? '<strong>IA Symbiont:</strong> ' + esc(symParts.join(' · '))
         : '';
 
-      var wrap = document.getElementById('profileLinksWrap');
-      var list = document.getElementById('profileLinks');
-      if (links.length) {
-        wrap.hidden = false;
-        list.innerHTML = links.map(function (u) {
-          return '<li><a href="' + esc(u) + '" target="_blank" rel="noopener">' + esc(u) + '</a></li>';
-        }).join('');
-      } else {
-        wrap.hidden = true;
-        list.innerHTML = '';
-      }
+      
 
-      var hasAny = username || bio || location || symBase || links.length || url;
+      var hasAny = username || bio || symBase || url;
       document.getElementById('profileEmpty').hidden = !!hasAny;
     }
     render();
@@ -144,9 +110,7 @@
           if (!get('nv_display_name') && md.display_name) localStorage.setItem('nv_display_name', md.display_name);
           if (!get('nv_pronouns') && md.pronouns) localStorage.setItem('nv_pronouns', md.pronouns);
           if (!get('nv_bio') && md.bio) localStorage.setItem('nv_bio', md.bio);
-          if (!get('nv_links') && md.links) localStorage.setItem('nv_links', JSON.stringify(md.links));
-          if (!get('nv_location') && md.location) localStorage.setItem('nv_location', md.location);
-          if (!get('nv_symbiont_base') && md.symbiont_base) localStorage.setItem('nv_symbiont_base', md.symbiont_base);
+                              if (!get('nv_symbiont_base') && md.symbiont_base) localStorage.setItem('nv_symbiont_base', md.symbiont_base);
           if (!get('nv_symbiont_name') && md.symbiont_name) localStorage.setItem('nv_symbiont_name', md.symbiont_name);
           if (!get('nv_symbiont_gender') && md.symbiont_gender) localStorage.setItem('nv_symbiont_gender', md.symbiont_gender);
           if (!get('nv_avatar_url') && md.avatar_url) localStorage.setItem('nv_avatar_url', md.avatar_url);
