@@ -30,9 +30,9 @@
     // palette routes to the same-origin shell wrappers (/gigas-garden/,
     // instead of leaving neonvigil.app, and NV_Gridlog routes to
     // the real Grid Log page (/gridlog/) instead of the Bible test page.
-    // Avatar Editor is a standalone page at /avatar-editor/ (Nov 9, 2026).
+    // Avatar Editor lives at /settings/avatar-editor/ (Nov 9, 2026).
     { name: 'Virtual IWW: Gigas Garden', hint: 'Game', keys: 'virtual iww gigas garden game play', run: function () { location.href = '/gigas-garden/'; } },
-    { name: 'Avatar Editor', hint: 'Avatar', keys: 'avatar editor editing', run: function () { location.href = '/avatar-editor/'; } },
+    { name: 'Avatar Editor', hint: 'Avatar', keys: 'avatar editor editing', run: function () { location.href = '/settings/avatar-editor/'; } },
     { name: 'IA Symbiont', hint: 'Companion', keys: 'ia symbiont hexa cyphr helix pet pal baby pigek companion', run: function () { location.href = '/ia-symbiont/'; } },
     { name: 'NV_808', hint: 'NV-808', keys: 'nv_808 nv-808 nv808 drum machine', run: function () { location.href = '/nv808/'; } },
     { name: 'NV_Gridlog', hint: 'Gridlog', keys: 'nv_gridlog gridlog grid log creatures', run: function () { location.href = '/gridlog/'; } },
