@@ -1,27 +1,17 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Avatar Editor — Infinity6 Terminal</title>
-  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../../nv-commands.css">
-  <link rel="stylesheet" href="../../nv-terminal-tokens.css">
-  <link rel="stylesheet" href="../../nv-ticker.css">
-  <link rel="stylesheet" href="../../nv-toggle.css">
-  <link rel="stylesheet" href="../../nv-type.css">
-  <link rel="stylesheet" href="../../nv-symbiont-theme.css">
-  <script src="../../nv-symbiont-theme.js"></script>
-  <style>
-    body { background:#05010f; color:#f5f0ff; font-family:"VT323", "Share Tech Mono", monospace; font-size:18px; margin:0; }
-    main { position:relative; z-index:2; max-width:1440px; margin:0 auto; padding:0 16px 16px; }
-    a { color:var(--nv-accent-soft); }
-    .nv-sound-btn{position:fixed;right:16px;bottom:16px;z-index:6;width:44px;height:44px;padding:0;display:flex;align-items:center;justify-content:center;background:rgba(18,8,31,.88);color:#f5f0ff;border:1px solid #f5f0ff;border-radius:0;cursor:pointer}.nv-sound-btn svg{width:20px;height:20px;display:block}.nv-sound-btn:disabled{opacity:.5;cursor:wait}
-  </style>
-    <!-- Avatar Editor styles. All editor rules are scoped under
-         #avatar-editor. -->
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark" />
+    <link rel="icon" href="data:," />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="assets/nv-terminal-tokens.css" />
+    <title>Avatar Editor</title>
     <style>
-      #avatar-editor {
+      :root {
         --bg: #07070c;
         --panel: #101019;
         --panel-2: #15151f;
@@ -43,8 +33,9 @@
         --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
         --sans: "Avenir Next", "Segoe UI", system-ui, -apple-system, sans-serif;
       }
-      #avatar-editor * { box-sizing: border-box; }
-      #avatar-editor {
+      * { box-sizing: border-box; }
+      html, body { height: 100%; }
+      body {
         margin: 0;
         background:
           repeating-linear-gradient(0deg, transparent 0 47px, rgba(167, 139, 250, 0.05) 47px 48px),
@@ -55,7 +46,7 @@
         font-size: 15px;
         line-height: 1.45;
       }
-      #avatar-editor .warn {
+      .warn {
         background: var(--warn-bg);
         color: var(--warn-ink);
         padding: 10px 16px;
@@ -66,38 +57,39 @@
         text-transform: uppercase;
         border-bottom: 3px solid #0a0a0a;
       }
-      #avatar-editor .warn small { display: block; font-weight: 600; font-size: 12px; margin-top: 2px; text-transform: none; letter-spacing: 0; }
-      #avatar-editor header.page {
+      .warn small { display: block; font-weight: 600; font-size: 12px; margin-top: 2px; text-transform: none; letter-spacing: 0; }
+      header.page {
         padding: 20px 20px 4px;
         max-width: 1440px;
         margin: 0 auto;
       }
-      #avatar-editor header.page h1 {
+      header.page h1 {
         margin: 0;
         font-size: 26px;
         font-weight: 800;
         letter-spacing: 0.01em;
         text-transform: uppercase;
       }
-      #avatar-editor header.page h1 .cy { color: var(--cyan); }
-      #avatar-editor header.page h1 .mg { color: var(--magenta); }
-      #avatar-editor header.page p {
+      header.page h1 .cy { color: var(--cyan); }
+      header.page h1 .mg { color: var(--magenta); }
+      header.page p {
         margin: 8px 0 0;
         color: var(--ink-soft);
         max-width: 78ch;
       }
-      /* Avatar stage: full-width and pinned at the top. The console is
-         a drawer that slides in from the right. */
-      #avatar-editor .layout {
+      .layout {
         max-width: 1440px;
         margin: 0 auto;
         padding: 14px 20px 28px;
-        display: block;
+        display: grid;
+        grid-template-columns: minmax(0, 1.3fr) minmax(340px, 460px);
+        gap: 18px;
+        align-items: start;
       }
 
       /* ---------- Stage / HUD frame ---------- */
-      #avatar-editor .stage-wrap { position: sticky; top: 14px; }
-      #avatar-editor .stage {
+      .stage-wrap { position: sticky; top: 14px; }
+      .stage {
         position: relative;
         background: var(--stage);
         border: 1px solid var(--edge-hot);
@@ -106,47 +98,24 @@
         min-height: 420px;
         box-shadow: 0 0 0 1px #000, 10px 10px 0 rgba(34, 211, 238, 0.14);
       }
-      #avatar-editor .stage::before, #avatar-editor .stage::after {
+      .stage::before, .stage::after {
         content: "";
         position: absolute;
         width: 22px; height: 22px;
         z-index: 3;
         pointer-events: none;
       }
-      #avatar-editor .stage::before { top: 8px; left: 8px; border-top: 2px solid var(--cyan); border-left: 2px solid var(--cyan); }
-      #avatar-editor .stage::after { bottom: 8px; right: 8px; border-bottom: 2px solid var(--magenta); border-right: 2px solid var(--magenta); }
-      #avatar-editor .stage canvas { display: block; width: 100%; height: 100%; }
-      #avatar-editor .stage .overlay {
+      .stage::before { top: 8px; left: 8px; border-top: 2px solid var(--cyan); border-left: 2px solid var(--cyan); }
+      .stage::after { bottom: 8px; right: 8px; border-bottom: 2px solid var(--magenta); border-right: 2px solid var(--magenta); }
+      .stage canvas { display: block; width: 100%; height: 100%; }
+      .stage .overlay {
         position: absolute;
         left: 12px; bottom: 12px; right: 12px;
         display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
         pointer-events: none; z-index: 4;
       }
-      #avatar-editor .stage .overlay > * { pointer-events: auto; }
-      /* Loading overlay: a big, centred progress readout so the long
-         download + parse phase never looks like a broken grey box. */
-      #avatar-editor .stage-loading {
-        position: absolute; inset: 0; z-index: 5;
-        display: flex; flex-direction: column; align-items: center; justify-content: center;
-        gap: 12px; background: rgba(5, 5, 10, 0.72); pointer-events: none;
-      }
-      #avatar-editor .stage-loading[hidden] { display: none; }
-      #avatar-editor .stage-loading .load-title {
-        font-family: var(--mono); font-size: 14px; letter-spacing: 0.18em;
-        text-transform: uppercase; color: #d9fbff;
-      }
-      #avatar-editor .stage-loading .load-bar {
-        width: min(280px, 70%); height: 8px;
-        border: 1px solid var(--cyan); background: rgba(5, 5, 10, 0.9);
-      }
-      #avatar-editor .stage-loading .load-bar-fill {
-        display: block; height: 100%; width: 0%;
-        background: var(--cyan);
-      }
-      #avatar-editor .stage-loading .load-pct {
-        font-family: var(--mono); font-size: 12px; color: var(--ink-soft);
-      }
-      #avatar-editor .status {
+      .stage .overlay > * { pointer-events: auto; }
+      .status {
         background: rgba(5, 5, 10, 0.85);
         color: #d9fbff;
         border: 1px solid #155e6b;
@@ -154,8 +123,8 @@
         font-size: 12px;
         padding: 6px 10px;
       }
-      #avatar-editor .status.err { background: rgba(90, 10, 30, 0.92); border-color: var(--magenta); color: #ffe4ef; }
-      #avatar-editor .hud-strip {
+      .status.err { background: rgba(90, 10, 30, 0.92); border-color: var(--magenta); color: #ffe4ef; }
+      .hud-strip {
         display: flex; flex-wrap: wrap; gap: 14px 22px;
         margin-top: 14px;
         padding: 10px 12px;
@@ -163,273 +132,434 @@
         border: 1px solid var(--edge);
         border-left: 4px solid var(--violet);
       }
-      #avatar-editor .hud-group { display: flex; flex-direction: column; gap: 6px; }
-      #avatar-editor .hud-label {
+      .hud-group { display: flex; flex-direction: column; gap: 6px; }
+      .hud-label {
         font-family: var(--mono);
         font-size: 10.5px;
         letter-spacing: 0.14em;
         text-transform: uppercase;
         color: var(--ink-dim);
       }
-      #avatar-editor .btn-row { display: flex; flex-wrap: wrap; gap: 6px; }
-      #avatar-editor .cam-btn { padding: 6px; line-height: 0; }
-      #avatar-editor .cam-btn svg { width: 26px; height: 26px; display: block; fill: currentColor; }
-      #avatar-editor .hint { color: var(--ink-soft); font-size: 13px; margin: 10px 2px 0; }
+      .btn-row { display: flex; flex-wrap: wrap; gap: 6px; }
+      .hint { color: var(--ink-soft); font-size: 13px; margin: 10px 2px 0; }
+      .idle-badge {
+        position: absolute; top: 12px; right: 12px; z-index: 4;
+        background: rgba(5, 5, 10, 0.88); border: 1px solid var(--cyan); color: #d9fbff;
+        font-family: var(--mono); font-size: 12px; letter-spacing: 0.1em; padding: 5px 9px;
+      }
+      .idle-badge[hidden] { display: none; }
+      .idle-ctl { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+      .idle-ctl input[type="range"] { width: 104px; }
+      .idle-val { font-family: var(--mono); color: var(--cyan); font-size: 13px; min-width: 32px; }
+      .idle-status { font-size: 12.5px; color: var(--ink-soft); }
+      .hud-cluster-label {
+        flex: 1 1 100%;
+        font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase;
+        color: var(--ink-dim);
+        border-top: 1px dashed var(--edge); padding-top: 9px; margin-top: 2px;
+      }
+      .hud-cluster-label:first-child { border-top: 0; padding-top: 0; margin-top: 0; }
 
       /* ---------- Buttons & pills ---------- */
-      #avatar-editor button { font: inherit; font-size: 13px; font-weight: 700; letter-spacing: 0.03em; border: 1px solid var(--nv-accent); background: color-mix(in srgb, var(--nv-accent) 20%, transparent); color: var(--nv-accent-deep)!important; border-radius: 999px; padding: 7px 14px; cursor: pointer; position: relative; overflow: hidden; box-shadow: 0 0 12px color-mix(in srgb, var(--nv-accent) 45%, transparent), inset 0 1px 0 rgba(255,255,255,.22); transition: transform .18s ease, box-shadow .18s ease; } #avatar-editor button::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,.12) 45%, rgba(255,255,255,0) 60%); pointer-events: none; } #avatar-editor button::after { content: ""; position: absolute; top: 0; bottom: 0; left: -70%; width: 45%; background: linear-gradient(100deg, transparent, rgba(255,255,255,.55), transparent); transform: skewX(-18deg); transition: left .45s ease; pointer-events: none; } #avatar-editor button:hover { transform: translateY(-2px); box-shadow: 0 0 20px color-mix(in srgb, var(--nv-accent) 70%, transparent), 0 4px 14px color-mix(in srgb, var(--nv-accent) 40%, transparent), inset 0 1px 0 rgba(255,255,255,.3); } #avatar-editor button:hover::after { left: 120%; } #avatar-editor button:active { transform: translateY(1px) scale(.93,.87); } #avatar-editor button:focus-visible { outline: 2px solid var(--nv-accent-soft); outline-offset: 2px; } #avatar-editor .icon-btn { width: 40px; height: 40px; min-width: 40px; padding: 0; display: inline-flex; align-items: center; justify-content: center; } #avatar-editor .icon-btn svg { width: 22px; height: 22px; display: block; fill: currentColor; } #avatar-editor .ia-pick { border-radius: 0; } #avatar-editor .ia-pick::before, #avatar-editor .ia-pick::after { content: none; }
-      #avatar-editor button.primary { background: color-mix(in srgb, var(--nv-accent) 25%, transparent); border-color: var(--nv-accent); color: var(--nv-accent-deep)!important; }
-      #avatar-editor button.primary:hover { background: color-mix(in srgb, var(--nv-accent) 40%, transparent); color: var(--nv-accent-deep)!important; }
-      #avatar-editor button[aria-pressed="true"] { background: var(--cyan); border-color: var(--cyan); color: #04222b!important; box-shadow: 3px 3px 0 rgba(244, 113, 181, 0.55); }
-      #avatar-editor button:disabled { opacity: 0.38; cursor: default; box-shadow: none; }
-      #avatar-editor button:disabled:hover { border-color: var(--edge-hot); color: var(--ink); }
-      #avatar-editor .mini {
+      button {
+        font: inherit;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        border: 1px solid var(--edge-hot);
+        background: var(--panel-2);
+        color: var(--ink);
+        border-radius: 0;
+        padding: 7px 12px;
+        cursor: pointer;
+      }
+      button:hover { border-color: var(--cyan); color: #c9f7ff; }
+      button.primary {
+        background: var(--cyan);
+        border-color: var(--cyan);
+        color: #04222b;
+      }
+      button.primary:hover { background: #67e8f9; color: #04222b; }
+      button[aria-pressed="true"] {
+        background: var(--cyan);
+        border-color: var(--cyan);
+        color: #04222b;
+        box-shadow: 3px 3px 0 rgba(244, 113, 181, 0.55);
+      }
+      button:disabled { opacity: 0.38; cursor: default; box-shadow: none; }
+      button:disabled:hover { border-color: var(--edge-hot); color: var(--ink); }
+      .mini {
         font-size: 11px;
         padding: 4px 8px;
         font-family: var(--mono);
         letter-spacing: 0.06em;
         text-transform: uppercase;
       }
-      #avatar-editor .pill-grid { display: flex; flex-wrap: wrap; gap: 8px; }
-      #avatar-editor .pill {
+      .pill-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+      .pill {
         display: inline-flex; align-items: center; gap: 8px;
         padding: 6px 10px 6px 6px;
         text-align: left;
       }
-      #avatar-editor .pill .thumb {
+      .pill .thumb {
         width: 34px; height: 34px; flex: 0 0 34px;
         background: #0a0a12;
         border: 1px solid var(--edge-hot);
         display: block;
       }
-      #avatar-editor .pill small { display: block; font-weight: 500; font-size: 11px; color: var(--ink-soft); letter-spacing: 0; }
-      #avatar-editor .pill[aria-pressed="true"] small { color: #0b3540; }
-      #avatar-editor .pill[aria-pressed="true"] .thumb { border-color: #04222b; }
-
-      /* ---------- IA Symbiont picker ----------
-         Choosing an IA is like choosing a voice + persona: three hexagons,
-         each with a fluid color-changing motion (animated gradient inside
-         the hexagon shape, like a modern AI voice orb, but in our shapes).
-         The symbiont here is IMMOBILIZED — it sits in the picker and does
-         not roam, so it never gets in the way of the editor. It is still
-         clickable: picking one saves it and plays a chime. */
-      #avatar-editor .ia-grid { display: flex; flex-wrap: wrap; gap: 12px; }
-      #avatar-editor .ia-pick {
-        display: flex; flex-direction: column; align-items: center; gap: 6px;
-        background: transparent; border: 1px solid var(--edge);
-        padding: 12px 14px 10px; cursor: pointer; min-width: 96px;
-      }
-      #avatar-editor .ia-pick:hover { border-color: var(--edge-hot); }
-      #avatar-editor .ia-pick[aria-pressed="true"] {
-        border-color: var(--cyan);
-        box-shadow: 0 0 0 1px var(--cyan), 0 0 18px rgba(34, 211, 238, 0.25);
-      }
-      #avatar-editor .ia-pick .ia-hex { width: 72px; height: 72px; display: block; }
-      #avatar-editor .ia-pick .ia-name {
-        font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em;
-        text-transform: uppercase;
-      }
-      #avatar-editor .ia-pick .ia-sub { font-size: 11px; color: var(--ink-soft); }
-      /* Fluid color motion: each hexagon's gradient stops cycle through its
-         IA's colour family. The inner ring slowly rotates. Reduced motion
-         freezes both. */
-      @keyframes nv-ia-flow {
-        0% { stop-color: var(--ia-a); }
-        50% { stop-color: var(--ia-b); }
-        100% { stop-color: var(--ia-a); }
-      }
-      @keyframes nv-ia-flow-b {
-        0% { stop-color: var(--ia-b); }
-        50% { stop-color: var(--ia-c); }
-        100% { stop-color: var(--ia-b); }
-      }
-      @keyframes nv-ia-spin {
-        to { transform: rotate(360deg); }
-      }
-      #avatar-editor .ia-hex .ia-grad-a { animation: nv-ia-flow 4s ease-in-out infinite; }
-      #avatar-editor .ia-hex .ia-grad-b { animation: nv-ia-flow-b 4s ease-in-out infinite; }
-      #avatar-editor .ia-hex .ia-ring {
-        transform-origin: 50px 50px;
-        animation: nv-ia-spin 14s linear infinite;
-      }
-      #avatar-editor .ia-pick[aria-pressed="true"] .ia-hex .ia-grad-a,
-      #avatar-editor .ia-pick[aria-pressed="true"] .ia-hex .ia-grad-b { animation-duration: 2.2s; }
-      @media (prefers-reduced-motion: reduce) {
-        #avatar-editor .ia-hex .ia-grad-a,
-        #avatar-editor .ia-hex .ia-grad-b,
-        #avatar-editor .ia-hex .ia-ring { animation: none; }
-      }
+      .pill small { display: block; font-weight: 500; font-size: 11px; color: var(--ink-soft); letter-spacing: 0; }
+      .pill[aria-pressed="true"] small { color: #0b3540; }
+      .pill[aria-pressed="true"] .thumb { border-color: #04222b; }
 
       /* ---------- Console panel / accordions ---------- */
-      /* Editor console: a drawer that slides in from the right. It sits
-         fixed over the page; the avatar stage stays put at the top. */
-      #avatar-editor .panel {
+      .panel {
         background: var(--panel);
         border: 1px solid var(--edge);
-        border-right: 0;
-        box-shadow: -8px 0 24px rgba(0, 0, 0, 0.55);
-        position: fixed;
-        top: 0; right: 0; bottom: 0;
-        width: min(460px, 94vw);
-        z-index: 60;
-        overflow-y: auto;
-        transform: translateX(102%);
-        transition: transform 0.25s ease;
+        box-shadow: 8px 8px 0 rgba(167, 139, 250, 0.12);
       }
-      #avatar-editor .panel.console-open { transform: translateX(0); }
-      /* When the console is open, the stage makes room so the avatar is
-         never covered by the drawer. */
-      #avatar-editor.console-open .stage-wrap { margin-right: 480px; }
-      #avatar-editor .console-close {
-        flex: 0 0 auto; font-size: 16px; line-height: 1;
-        padding: 6px 10px;
-      }
-      #avatar-editor .toolbar {
+      .toolbar {
         display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
         padding: 12px 14px;
         border-bottom: 1px solid var(--edge);
         background: var(--panel-2);
       }
-      #avatar-editor .toolbar .spacer { flex: 1; }
-      #avatar-editor .toolbar .tb-label { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-dim); width: 100%; }
-      #avatar-editor .acc { border-bottom: 1px solid var(--edge); }
-      #avatar-editor .acc:last-child { border-bottom: 0; }
-      #avatar-editor .acc-head {
+      .toolbar .spacer { flex: 1; }
+      .toolbar .tb-label { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-dim); width: 100%; }
+      .acc { border-bottom: 1px solid var(--edge); }
+      .acc:last-child { border-bottom: 0; }
+      .acc-head {
         display: flex; align-items: center; gap: 8px;
         padding: 0 10px 0 0;
       }
-      #avatar-editor .acc-toggle {
+      .acc-toggle {
         flex: 1;
         display: flex; align-items: center; gap: 10px;
         background: transparent; border: 0; padding: 13px 4px 13px 14px;
         font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; text-align: left;
       }
-      #avatar-editor .acc-toggle:hover { color: var(--cyan); }
-      #avatar-editor .acc-toggle .chev {
+      .acc-toggle:hover { color: var(--cyan); }
+      .acc-toggle .chev {
         font-family: var(--mono); color: var(--cyan); font-size: 12px;
         transition: transform 0.15s ease;
       }
-      #avatar-editor .acc.open .acc-toggle .chev { transform: rotate(90deg); }
-      #avatar-editor .acc-toggle .count { font-family: var(--mono); font-size: 11px; color: var(--ink-dim); letter-spacing: 0.04em; text-transform: none; }
-      #avatar-editor .acc-tools { display: flex; gap: 6px; flex: 0 0 auto; }
-      #avatar-editor .acc-body { padding: 2px 14px 16px; }
-      #avatar-editor .acc-body[hidden] { display: none; }
-      #avatar-editor .acc-body h3 {
+      .acc.open .acc-toggle .chev { transform: rotate(90deg); }
+      .acc-toggle .count { font-family: var(--mono); font-size: 11px; color: var(--ink-dim); letter-spacing: 0.04em; text-transform: none; }
+      .acc-tools { display: flex; gap: 6px; flex: 0 0 auto; }
+      .acc-body { padding: 2px 14px 16px; }
+      .acc-body[hidden] { display: none; }
+      .acc-body h3 {
         font-family: var(--mono);
         font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase;
         color: var(--violet);
         margin: 14px 0 6px;
       }
-      #avatar-editor .acc-body h3:first-child { margin-top: 4px; }
-      #avatar-editor .note { font-size: 12.5px; color: var(--ink-soft); margin: 6px 0 0; }
+      .acc-body h3:first-child { margin-top: 4px; }
+      .note { font-size: 12.5px; color: var(--ink-soft); margin: 6px 0 0; }
 
       /* ---------- Sliders ---------- */
-      #avatar-editor .slider-row {
+      .slider-row {
         display: grid;
         grid-template-columns: 112px 1fr 40px;
         align-items: center;
         gap: 10px;
         padding: 3px 0;
       }
-      #avatar-editor .slider-row label { font-size: 13.5px; }
-      #avatar-editor .slider-row output {
+      .slider-row label { font-size: 13.5px; }
+      .slider-row output {
         font-family: var(--mono);
         font-size: 12.5px; text-align: right; color: var(--cyan);
       }
-      #avatar-editor .slider-row.fine { grid-template-columns: 112px 1fr 56px; }
-      #avatar-editor .slider-row.fine output { color: var(--magenta); }
-      #avatar-editor input[type="range"] {
+      .slider-row.fine { grid-template-columns: 112px 1fr 56px; }
+      .slider-row.fine output { color: var(--magenta); }
+      input[type="range"] {
         -webkit-appearance: none; appearance: none;
         width: 100%; height: 22px; background: transparent; margin: 0; cursor: pointer;
       }
-      #avatar-editor input[type="range"]::-webkit-slider-runnable-track { height: 4px; background: var(--track); }
-      #avatar-editor input[type="range"]::-webkit-slider-thumb {
+      input[type="range"]::-webkit-slider-runnable-track { height: 4px; background: var(--track); }
+      input[type="range"]::-webkit-slider-thumb {
         -webkit-appearance: none; appearance: none;
         width: 14px; height: 18px; border-radius: 0;
         background: var(--cyan); border: 1px solid #04222b; margin-top: -7px;
       }
-      #avatar-editor input[type="range"]::-moz-range-track { height: 4px; background: var(--track); }
-      #avatar-editor input[type="range"]::-moz-range-thumb { width: 12px; height: 16px; border-radius: 0; background: var(--cyan); border: 1px solid #04222b; }
-      #avatar-editor .slider-row.fine input[type="range"]::-webkit-slider-thumb { background: var(--magenta); border-color: #33091f; }
-      #avatar-editor .slider-row.fine input[type="range"]::-moz-range-thumb { background: var(--magenta); border-color: #33091f; }
+      input[type="range"]::-moz-range-track { height: 4px; background: var(--track); }
+      input[type="range"]::-moz-range-thumb { width: 12px; height: 16px; border-radius: 0; background: var(--cyan); border: 1px solid #04222b; }
+      .slider-row.fine input[type="range"]::-webkit-slider-thumb { background: var(--magenta); border-color: #33091f; }
+      .slider-row.fine input[type="range"]::-moz-range-thumb { background: var(--magenta); border-color: #33091f; }
 
-      #avatar-editor .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
-      #avatar-editor .feedback { min-height: 20px; font-size: 13px; margin-top: 8px; color: var(--ok); }
-      #avatar-editor .feedback.err { color: var(--err); }
-      #avatar-editor textarea {
+      .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+      .feedback { min-height: 20px; font-size: 13px; margin-top: 8px; color: var(--ok); }
+      .feedback.err { color: var(--err); }
+      textarea {
         width: 100%; min-height: 104px;
         font-family: var(--mono); font-size: 12px; line-height: 1.5;
         background: var(--field); color: var(--ink);
         border: 1px solid var(--edge-hot); border-radius: 0; padding: 10px; resize: vertical;
       }
-      #avatar-editor footer.page {
+      footer.page {
         max-width: 1440px; margin: 0 auto; padding: 0 20px 26px;
         color: var(--ink-soft); font-size: 13px;
       }
       @media (max-width: 900px) {
-        #avatar-editor.console-open .stage-wrap { margin-right: 0; }
-        #avatar-editor .stage { aspect-ratio: 4 / 4.6; min-height: 360px; }
-        #avatar-editor .slider-row { grid-template-columns: 100px 1fr 38px; }
-        #avatar-editor .slider-row.fine { grid-template-columns: 100px 1fr 54px; }
+        .layout { grid-template-columns: 1fr; }
+        .stage-wrap { position: static; }
+        .stage { aspect-ratio: 4 / 4.6; min-height: 360px; }
+        .slider-row { grid-template-columns: 100px 1fr 38px; }
+        .slider-row.fine { grid-template-columns: 100px 1fr 54px; }
       }
       @media (prefers-reduced-motion: reduce) {
-        #avatar-editor .acc-toggle .chev { transition: none; }
+        .acc-toggle .chev { transition: none; }
       }
     </style>
-    <style>
-      #avatar-editor .stage-wrap { top: 54px; }
+    <style id="infinity6-shell">
+      /* ===== Infinity6Shell — master layout wrapper (Infinity6 Terminal) =====
+         Overrides the legacy console skin with the locked terminal shell:
+         obsidian surfaces, violet 1px grid borders, VT323 18px type. */
+      html { background: var(--nv-obsidian); }
+      body {
+        background:
+          repeating-linear-gradient(0deg, transparent 0 47px, rgba(139, 92, 246, 0.06) 47px 48px),
+          repeating-linear-gradient(90deg, transparent 0 47px, rgba(139, 92, 246, 0.045) 47px 48px),
+          var(--nv-obsidian);
+        color: var(--nv-ink);
+        font-family: var(--nv-font-terminal);
+        font-size: var(--nv-font-size);
+        line-height: var(--nv-line);
+        letter-spacing: 0.01em;
+      }
+      .infinity6-shell {
+        max-width: var(--nv-shell-max);
+        margin: 0 auto;
+        border-left: 1px solid var(--nv-border);
+        border-right: 1px solid var(--nv-border);
+        background: var(--nv-obsidian-2);
+        min-height: 100vh;
+        display: flex; flex-direction: column;
+      }
+      @keyframes nv-spin { to { transform: rotate(360deg); } }
+      /* ----- Warn strip, restyled as a shell row ----- */
+      .warn {
+        background: var(--nv-obsidian-3); color: var(--nv-warn-bg);
+        border-bottom: 1px solid var(--nv-border); padding: 7px 14px;
+        font-family: var(--nv-font-terminal); font-size: 17px; font-weight: 400;
+        letter-spacing: 0.08em; text-align: left;
+      }
+      .warn small { color: var(--nv-ink-soft); font-size: 15px; margin-top: 0; display: inline; }
+      .warn small::before { content: " — "; color: var(--nv-ink-dim); }
+      /* ----- Header row ----- */
+      header.page { max-width: none; margin: 0; padding: 14px 16px 10px; border-bottom: 1px solid var(--nv-border); }
+      header.page h1 {
+        font-family: var(--nv-font-terminal); font-size: 34px; font-weight: 400;
+        letter-spacing: 0.04em; line-height: 1;
+      }
+      header.page h1 .cy { color: var(--nv-cyan); }
+      header.page h1 .mg { color: var(--nv-pink); }
+      header.page h1::before { content: "▸ "; color: var(--nv-violet-bright); }
+      header.page p { color: var(--nv-ink-soft); font-size: 17px; max-width: 110ch; margin-top: 6px; }
+      /* ----- Main grid: stage | console, 1px violet grid borders ----- */
+      .layout {
+        max-width: none; margin: 0; padding: 0;
+        display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(360px, 480px);
+        gap: 0; align-items: stretch; flex: 1 0 auto;
+      }
+      .stage-wrap { position: sticky; top: 0; padding: 14px; border-right: 1px solid var(--nv-border); align-self: start; }
+      .stage {
+        border: 1px solid var(--nv-border-hot); background: var(--nv-stage);
+        box-shadow: none;
+      }
+      .stage::before { border-top: 2px solid var(--nv-cyan); border-left: 2px solid var(--nv-cyan); }
+      .stage::after { border-bottom: 2px solid var(--nv-pink); border-right: 2px solid var(--nv-pink); }
+      .status {
+        background: rgba(5, 5, 8, 0.92); border: 1px solid var(--nv-cyan-dim);
+        font-family: var(--nv-font-terminal); font-size: 16px; color: #d9fbff; padding: 4px 10px;
+      }
+      .status.err { background: rgba(60, 6, 24, 0.95); border-color: var(--nv-pink); }
+      .hud-strip {
+        background: var(--nv-obsidian-3); border: 1px solid var(--nv-border);
+        margin-top: 12px; padding: 10px 12px; gap: 12px 20px;
+      }
+      .hud-label { font-family: var(--nv-font-terminal); font-size: 15px; color: var(--nv-violet-bright); letter-spacing: 0.12em; }
+      .hud-cluster-label { font-family: var(--nv-font-terminal); font-size: 16px; color: var(--nv-cyan); letter-spacing: 0.12em; border-top-color: var(--nv-border); }
+      .hud-label::before { content: "[ "; color: var(--nv-ink-dim); }
+      .hud-label::after { content: " ]"; color: var(--nv-ink-dim); }
+      .hint { font-size: 16px; color: var(--nv-ink-soft); }
+      /* ----- Controls ----- */
+      button {
+        font-family: var(--nv-font-terminal); font-size: 17px; font-weight: 400;
+        letter-spacing: 0.04em; background: var(--nv-obsidian-4); color: var(--nv-ink);
+        border: 1px solid var(--nv-border-hot); padding: 4px 12px; text-transform: uppercase;
+      }
+      button:hover { border-color: var(--nv-cyan); color: #c9f7ff; background: #1b1b30; }
+      button.primary { background: var(--nv-violet); border-color: var(--nv-violet-bright); color: #0d0619; }
+      button.primary:hover { background: var(--nv-violet-bright); color: #0d0619; }
+      button[aria-pressed="true"] { background: var(--nv-cyan); border-color: var(--nv-cyan); color: #03222b; box-shadow: none; }
+      button.primary[aria-pressed="true"] { background: var(--nv-cyan); }
+      .mini { font-size: 15px; padding: 2px 8px; }
+      .pill { padding: 4px 10px 4px 4px; gap: 10px; text-transform: none; align-items: center; }
+      .pill .thumb { width: 36px; height: 36px; flex-basis: 36px; border: 1px solid var(--nv-border-hot); background: var(--nv-obsidian); }
+      .pill span { font-size: 17px; line-height: 1.1; }
+      .pill small { font-size: 14px; color: var(--nv-ink-soft); }
+      .pill[aria-pressed="true"] small { color: #0b3540; }
+      /* ----- Console panel & accordions ----- */
+      .panel { background: var(--nv-obsidian-2); border: 0; border-left: 0; box-shadow: none; }
+      .toolbar { background: var(--nv-obsidian-3); border-bottom: 1px solid var(--nv-border); padding: 10px 12px; gap: 6px; }
+      .toolbar .tb-label { font-family: var(--nv-font-terminal); font-size: 15px; color: var(--nv-violet-bright); letter-spacing: 0.12em; }
+      .acc { border-bottom: 1px solid var(--nv-border); }
+      .acc-toggle {
+        font-family: var(--nv-font-terminal); font-size: 19px; letter-spacing: 0.1em;
+        padding: 10px 4px 10px 12px; color: var(--nv-ink);
+      }
+      .acc-toggle .chev { color: var(--nv-violet-bright); font-size: 15px; }
+      .acc-toggle .count { font-family: var(--nv-font-terminal); font-size: 15px; color: var(--nv-cyan); }
+      .acc-body { padding: 2px 12px 14px; }
+      .acc-body h3 { font-family: var(--nv-font-terminal); font-size: 16px; color: var(--nv-violet-bright); letter-spacing: 0.12em; margin: 12px 0 4px; }
+      .note { font-size: 15.5px; color: var(--nv-ink-soft); line-height: 1.3; }
+      /* ----- Sliders ----- */
+      .slider-row { grid-template-columns: 118px 1fr 42px; gap: 10px; padding: 1px 0; }
+      .slider-row label { font-size: 17px; }
+      .slider-row output { font-family: var(--nv-font-terminal); font-size: 17px; color: var(--nv-cyan); }
+      .slider-row.fine { grid-template-columns: 118px 1fr 58px; }
+      .slider-row.fine output { color: var(--nv-pink); }
+      input[type="range"] { height: 20px; }
+      input[type="range"]::-webkit-slider-runnable-track { height: 3px; background: var(--nv-track); }
+      input[type="range"]::-webkit-slider-thumb { width: 12px; height: 18px; background: var(--nv-cyan); border: 1px solid #03222b; margin-top: -8px; }
+      input[type="range"]::-moz-range-track { height: 3px; background: var(--nv-track); }
+      input[type="range"]::-moz-range-thumb { width: 11px; height: 17px; background: var(--nv-cyan); border: 1px solid #03222b; }
+      .slider-row.fine input[type="range"]::-webkit-slider-thumb { background: var(--nv-pink); border-color: #33091f; }
+      .slider-row.fine input[type="range"]::-moz-range-thumb { background: var(--nv-pink); border-color: #33091f; }
+      .feedback { font-size: 16px; min-height: 20px; }
+      textarea {
+        font-family: var(--nv-font-terminal); font-size: 16px; line-height: 1.3;
+        background: var(--nv-obsidian); border: 1px solid var(--nv-border-hot); color: var(--nv-ink);
+      }
+      footer.page {
+        max-width: none; margin: 0; padding: 10px 16px 14px;
+        border-top: 1px solid var(--nv-border); color: var(--nv-ink-soft); font-size: 16px;
+      }
+      footer.page::before { content: "▸ FOOTNOTE // "; color: var(--nv-violet-bright); }
+      /* ----- Bottom Radio / Hexa dock ----- */
+      .nv-dock {
+        position: sticky; bottom: 0; z-index: 60;
+        display: flex; flex-wrap: wrap; align-items: stretch; gap: 0;
+        background: var(--nv-obsidian); border-top: 1px solid var(--nv-violet);
+        font-family: var(--nv-font-terminal); font-size: 17px; text-transform: uppercase;
+      }
+      .dock-cell { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-right: 1px solid var(--nv-border); min-height: var(--nv-dock-h); }
+      .dock-cell:last-child { border-right: 0; }
+      .dock-label { color: var(--nv-ink-dim); font-size: 15px; letter-spacing: 0.12em; }
+      .dock-hexa svg { animation: nv-spin 14s linear infinite; display: block; }
+      .dock-status { color: var(--nv-ok); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 34ch; text-transform: none; }
+      .dock-spacer { flex: 1 1 auto; border-right: 0; }
+      .dock button { white-space: nowrap; }
+      kbd {
+        font-family: var(--nv-font-terminal); font-size: 15px; border: 1px solid var(--nv-border-hot);
+        border-bottom-width: 2px; padding: 0 5px; color: var(--nv-violet-bright); background: var(--nv-obsidian-3);
+      }
+      /* ----- Cmd+K command palette ----- */
+      .palette-backdrop {
+        position: fixed; inset: 0; z-index: 200; background: rgba(3, 3, 6, 0.78);
+        display: flex; align-items: flex-start; justify-content: center; padding: 10vh 14px 14px;
+      }
+      .palette-backdrop[hidden] { display: none; }
+      .palette {
+        width: min(620px, 100%); background: var(--nv-obsidian-2);
+        border: 1px solid var(--nv-violet); box-shadow: 8px 8px 0 rgba(139, 92, 246, 0.25);
+        font-family: var(--nv-font-terminal);
+      }
+      .palette-head { display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--nv-border); padding: 10px 12px; }
+      .palette-head .sig { color: var(--nv-cyan); font-size: 20px; }
+      .palette input {
+        flex: 1; min-width: 0; background: transparent; border: 0; outline: none;
+        color: var(--nv-ink); font-family: var(--nv-font-terminal); font-size: 20px; text-transform: uppercase;
+      }
+      .palette input::placeholder { color: var(--nv-ink-dim); }
+      .palette-list { max-height: 46vh; overflow-y: auto; padding: 6px 0; margin: 0; list-style: none; }
+      .palette-list li { margin: 0; }
+      .palette-item {
+        width: 100%; display: flex; justify-content: space-between; gap: 12px; align-items: baseline;
+        background: transparent; border: 0; border-left: 3px solid transparent; text-align: left;
+        padding: 6px 12px; font-size: 18px; text-transform: none; color: var(--nv-ink);
+      }
+      .palette-item .cat { color: var(--nv-violet-bright); font-size: 15px; text-transform: uppercase; letter-spacing: 0.1em; white-space: nowrap; }
+      .palette-item.active, .palette-item:hover { background: var(--nv-obsidian-4); border-left-color: var(--nv-cyan); color: var(--nv-ink); }
+      .palette-empty { padding: 12px; color: var(--nv-ink-dim); font-size: 17px; }
+      .palette-foot { border-top: 1px solid var(--nv-border); padding: 6px 12px; color: var(--nv-ink-dim); font-size: 15px; display: flex; gap: 16px; flex-wrap: wrap; }
+      /* ----- Responsive: stack, never sideways-scroll ----- */
+      @media (max-width: 900px) {
+        .layout { grid-template-columns: 1fr; }
+        .stage-wrap { position: static; border-right: 0; border-bottom: 1px solid var(--nv-border); }
+        .panel { border-top: 0; }
+        .slider-row { grid-template-columns: 104px 1fr 40px; }
+        .slider-row.fine { grid-template-columns: 104px 1fr 56px; }
+        .nv-dock { position: static; }
+        .dock-status { max-width: 22ch; }
+        header.page h1 { font-size: 28px; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .dock-hexa svg { animation: none; }
+      }
     </style>
-    <style>
-      /* Avatar Editor page layout: full-width editor column.
-         margin:0 auto must come after the scoped editor rules,
-         which set margin:0 on #avatar-editor. */
-      #avatar-editor { width: 100%; max-width: 1440px; margin: 0 auto; box-sizing: border-box; position: relative; z-index: 2; }
-    </style>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="../../config.js"></script>
-</head>
-<body class="nv-shell-page">
-  <header class="nv-shell-head">
-    <a class="nv-shell-head-title" href="/hub.html">Infinity6 Terminal</a>
-    <span class="nv-shell-head-page">Avatar Editor</span>
-    <span class="nv-shell-head-hint" data-nv-commands>Press ⌘K for commands</span>
-  </header>
-  <main>
-    <section id="avatar-editor" aria-label="Avatar Editor">
+  </head>
+  <body>
+    <div class="infinity6-shell" id="infinity6Shell">
+
     <header class="page">
-      <h1><span id="editorUser">User</span>, Edit your digital Avatar</h1>
+      <h1>Avatar <span class="mg">Editor</span></h1>
     </header>
 
     <div class="layout">
       <div class="stage-wrap">
         <div class="stage" id="stage">
-          <div class="stage-loading" id="stageLoading" role="status" aria-live="polite">
-            <span class="load-title">Loading model</span>
-            <span class="load-bar"><span class="load-bar-fill" id="loadBarFill"></span></span>
-            <span class="load-pct" id="loadPct">0%</span>
-          </div>
+          <span class="idle-badge" id="idleBadge" hidden>IDLE · ATTRACT LOOP</span>
           <div class="overlay">
             <span class="status" id="loadStatus">Loading model…</span>
           </div>
         </div>
 
         <div class="hud-strip">
+          <span class="hud-cluster-label">Camera &amp; Movement — editor controls</span>
           <div class="hud-group">
             <span class="hud-label">Camera focus</span>
-            <div class="btn-row cam-row" role="group" aria-label="Camera focus presets">
-              <button type="button" class="cam-btn" data-view="head" aria-pressed="false" aria-label="Head / Face" title="Head / Face">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="5"/><path d="M3.5 22c.8-4.5 4.2-7 8.5-7s7.7 2.5 8.5 7z"/></svg>
-              </button>
-              <button type="button" class="cam-btn" data-view="upper" aria-pressed="false" aria-label="Upper Body" title="Upper Body">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5.5" r="3"/><path d="M4 10.5c2.6-1.6 5-2.3 8-2.3s5.4.7 8 2.3V22H4z"/></svg>
-              </button>
-              <button type="button" class="cam-btn" data-view="lower" aria-pressed="false" aria-label="Lower Body" title="Lower Body">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h12v6.5L16 10v12h-2.6v-8.5h-2.8V22H8V10L6 8.5z"/></svg>
-              </button>
-              <button type="button" class="cam-btn" data-view="full" aria-pressed="true" aria-label="Full Body" title="Full Body">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="4.5" r="2.4"/><path d="M6.8 8.2c1.7-.9 3.4-1.4 5.2-1.4s3.5.5 5.2 1.4v3.6l-1.3 1.6.9 8.6h-2.4l-1-6.8h-2.8l-1 6.8H7.2l.9-8.6-1.3-1.6z"/></svg>
-              </button>
+            <div class="btn-row" role="group" aria-label="Camera focus presets">
+              <button type="button" class="cam-btn" data-view="head" aria-pressed="false">Head / Face</button>
+              <button type="button" class="cam-btn" data-view="hairline" aria-pressed="false">Hairline</button>
+              <button type="button" class="cam-btn" data-view="upper" aria-pressed="false">Upper Body</button>
+              <button type="button" class="cam-btn" data-view="full" aria-pressed="true">Full Body</button>
+              <button type="button" class="cam-btn" data-view="turn" aria-pressed="false">3/4 Turnaround</button>
             </div>
+          </div>
+          <div class="hud-group">
+            <span class="hud-label">Turntable</span>
+            <div class="btn-row">
+              <button type="button" id="btnTurntable" aria-pressed="false">Auto-rotate: Off</button>
+            </div>
+          </div>
+          <div class="hud-group">
+            <span class="hud-label">Idle return</span>
+            <div class="idle-ctl">
+              <button type="button" id="btnIdleToggle" aria-pressed="true">On</button>
+              <input type="range" id="idleTimeoutRange" min="5" max="60" step="1" value="10" aria-label="Idle timeout in seconds" />
+              <span class="idle-val" id="idleTimeoutVal">10s</span>
+              <button type="button" id="btnIdleNow">Return now</button>
+            </div>
+            <span class="idle-status" id="idleStatus">Camera returns in 10s of no input</span>
+          </div>
+          <span class="hud-cluster-label">Model, Animation &amp; Lighting</span>
+          <div class="hud-group">
+            <span class="hud-label">Model</span>
+            <div class="btn-row" role="group" aria-label="Model switcher">
+              <button type="button" id="modelBtnBald" aria-pressed="false">Bald base</button>
+              <button type="button" id="modelBtnRigged" aria-pressed="true">Rigged Neon</button>
+            </div>
+            <span class="idle-status" id="modelNote">Rigged Neon · no morphs — sliders stay with Bald base</span>
+          </div>
+          <div class="hud-group">
+            <span class="hud-label">Animation — rigged</span>
+            <div class="btn-row" role="group" aria-label="Animation clips">
+              <button type="button" id="animBtnIdle" aria-pressed="false" disabled>Idle · 15.3s</button>
+              <button type="button" id="animBtnPsionic" aria-pressed="false" disabled>Psionic Idle · 5.0s</button>
+              <button type="button" id="animBtnPlayPause" disabled>Pause</button>
+            </div>
+            <span class="idle-status" id="animNote">Rigged Neon is the default — Idle plays on load.</span>
           </div>
           <div class="hud-group">
             <span class="hud-label">Studio lighting</span>
@@ -439,36 +569,17 @@
               <button type="button" class="light-btn" data-light="chiaroscuro" aria-pressed="false">Deep Chiaroscuro</button>
             </div>
           </div>
-          <div class="hud-group">
-            <span class="hud-label">Turntable</span>
-            <div class="btn-row">
-              <span class="nv-switch-row nv-switch-row-off" id="turntableRow">
-                <button type="button" class="nv-switch" id="btnTurntable" role="switch" aria-checked="false" aria-label="Auto-rotate"><span class="nv-switch-knob"></span></button>
-                <span>Auto-rotate</span>
-              </span>
-            </div>
-          </div>
-          <div class="hud-group">
-            <span class="hud-label">Console</span>
-            <div class="btn-row">
-              <button type="button" id="btnConsole" aria-expanded="true">Editor Console</button>
-            </div>
-          </div>
         </div>
-        <p class="hint">Camera presets reframe without touching your morphs. Lighting presets restyle the 3-point studio rig (key / fill / rim) and the stage backdrop only — the model and its materials are unchanged. Editing a part moves the camera to it automatically.</p>
+        <p class="hint">Two separate control groups on this screen: Camera &amp; Movement (focus presets, turntable, idle return) is run by the editor's own camera module — editor-local controls, not shared with any game screen — while appearance (morphs, hair, baby-hair shell) lives in the console panel, and model / animation / lighting sit in their own group above. Camera presets reframe without touching your morphs; lighting presets restyle the 3-point studio rig (key / fill / rim) and the stage backdrop only.</p>
       </div>
 
       <section class="panel" aria-label="Editor console">
         <div class="toolbar">
-          <button type="button" class="console-close" id="btnConsoleClose" aria-label="Close console">&#10005;</button>
-          <span class="tb-label">Console — history &amp; symmetry</span>
+          <span class="tb-label">Console — appearance · history &amp; symmetry</span>
           <button type="button" id="btnUndo" disabled>&#10226; Undo</button>
           <button type="button" id="btnRedo" disabled>&#10227; Redo</button>
           <span class="spacer"></span>
-          <span class="nv-switch-row" id="symmetryRow" title="Symmetrical edits mirror paired face features; asymmetrical edits them independently">
-            <button type="button" class="nv-switch" id="btnSymmetry" role="switch" aria-checked="true" aria-label="Symmetrical"><span class="nv-switch-knob"></span></button>
-            <span>Symmetrical</span>
-          </span>
+          <button type="button" id="btnSymmetry" aria-pressed="true" title="Symmetrical edits mirror paired face features; asymmetrical edits them independently">Symmetrical</button>
         </div>
 
         <div class="acc open" data-acc="face">
@@ -498,57 +609,51 @@
           </div>
         </div>
 
-        <div class="acc" data-acc="ia">
+        <div class="acc" data-acc="hair">
           <div class="acc-head">
-            <button type="button" class="acc-toggle" aria-expanded="false"><span class="chev">&#9656;</span>IA Symbiont<span class="count">voice &amp; persona</span></button>
+            <button type="button" class="acc-toggle" aria-expanded="false"><span class="chev">&#9656;</span>Hair &amp; Shell<span class="count">attachments</span></button>
+            <div class="acc-tools">
+              <button type="button" class="mini" data-randomize="hair">Randomize</button>
+              <button type="button" class="mini" data-reset="hair">Reset</button>
+            </div>
           </div>
           <div class="acc-body" hidden>
-            <h3>Choose your IA</h3>
-            <div class="ia-grid" role="group" aria-label="IA Symbiont">
-              <button type="button" class="ia-pick" data-ia="hexa" aria-pressed="false" style="--ia-a:#22d3ee; --ia-b:#00e5ff; --ia-c:#67e8f9;">
-                <svg class="ia-hex" viewBox="0 0 100 100" aria-hidden="true">
-                  <defs>
-                    <linearGradient id="iaGradHexa" x1="0" y1="0" x2="1" y2="1">
-                      <stop offset="0" class="ia-grad-a" stop-color="#22d3ee" />
-                      <stop offset="1" class="ia-grad-b" stop-color="#00e5ff" />
-                    </linearGradient>
-                  </defs>
-                  <polygon points="50,3 93,27 93,73 50,97 7,73 7,27" fill="url(#iaGradHexa)" fill-opacity="0.35" stroke="#22d3ee" stroke-width="3" />
-                  <g class="ia-ring"><polygon points="50,22 76,37 76,63 50,78 24,63 24,37" fill="none" stroke="#67e8f9" stroke-width="2" /></g>
-                </svg>
-                <span class="ia-name">Hexa</span>
-                <span class="ia-sub">cyan</span>
+            <h3>Hair attachment</h3>
+            <div class="pill-grid" role="group" aria-label="Hair style">
+              <button type="button" class="pill hair-pill" data-hair="braids" aria-pressed="true">
+                <svg class="thumb" viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" fill="#0a0a12"/><circle cx="17" cy="11" r="5.5" fill="none" stroke="#22d3ee" stroke-width="1.4"/><path d="M11.5 9 C10 16 10.5 24 9.5 31 M22.5 9 C24 16 23.5 24 24.5 31 M14 6.5 C13.4 14 14 22 13.2 30 M20 6.5 C20.6 14 20 22 20.8 30" fill="none" stroke="#a78bfa" stroke-width="1.6"/></svg>
+                <span>Neon braids<small>Neon_Hair_Braids_v01.glb</small></span>
               </button>
-              <button type="button" class="ia-pick" data-ia="cyphr" aria-pressed="false" style="--ia-a:#6366f1; --ia-b:#7c3aed; --ia-c:#a78bfa;">
-                <svg class="ia-hex" viewBox="0 0 100 100" aria-hidden="true">
-                  <defs>
-                    <linearGradient id="iaGradCyphr" x1="0" y1="0" x2="1" y2="1">
-                      <stop offset="0" class="ia-grad-a" stop-color="#6366f1" />
-                      <stop offset="1" class="ia-grad-b" stop-color="#7c3aed" />
-                    </linearGradient>
-                  </defs>
-                  <polygon points="50,3 93,27 93,73 50,97 7,73 7,27" fill="url(#iaGradCyphr)" fill-opacity="0.35" stroke="#7c3aed" stroke-width="3" />
-                  <g class="ia-ring"><polygon points="50,22 76,37 76,63 50,78 24,63 24,37" fill="none" stroke="#a78bfa" stroke-width="2" /></g>
-                </svg>
-                <span class="ia-name">Cyphr</span>
-                <span class="ia-sub">indigo</span>
-              </button>
-              <button type="button" class="ia-pick" data-ia="helix" aria-pressed="false" style="--ia-a:#e7548a; --ia-b:#c2185b; --ia-c:#f0a6c6;">
-                <svg class="ia-hex" viewBox="0 0 100 100" aria-hidden="true">
-                  <defs>
-                    <linearGradient id="iaGradHelix" x1="0" y1="0" x2="1" y2="1">
-                      <stop offset="0" class="ia-grad-a" stop-color="#e7548a" />
-                      <stop offset="1" class="ia-grad-b" stop-color="#c2185b" />
-                    </linearGradient>
-                  </defs>
-                  <polygon points="50,3 93,27 93,73 50,97 7,73 7,27" fill="url(#iaGradHelix)" fill-opacity="0.35" stroke="#e7548a" stroke-width="3" />
-                  <g class="ia-ring"><polygon points="50,22 76,37 76,63 50,78 24,63 24,37" fill="none" stroke="#f0a6c6" stroke-width="2" /></g>
-                </svg>
-                <span class="ia-name">Helix</span>
-                <span class="ia-sub">pink</span>
+              <button type="button" class="pill hair-pill" data-hair="none" aria-pressed="false">
+                <svg class="thumb" viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" fill="#0a0a12"/><circle cx="17" cy="15" r="8" fill="none" stroke="#9aa7b4" stroke-width="1.4"/><path d="M10 26 C13 29.5 21 29.5 24 26" fill="none" stroke="#9aa7b4" stroke-width="1.4"/></svg>
+                <span>None / bald<small>The base, on its own</small></span>
               </button>
             </div>
-            <p class="note">Your IA is your voice and persona — pick the one that feels like yours. The symbiont stays put here so it never gets in the way of the editor; tap one to choose it. More voices and personas will be added later. A voice preview is coming — for now the pick plays a chime.</p>
+
+            <h3>Baby-hair shell — Neon_BabyHair_Shell_v01.glb</h3>
+            <div class="pill-grid" role="group" aria-label="Baby-hair shell style">
+              <button type="button" class="pill shell-pill" data-shell="none" aria-pressed="true">
+                <svg class="thumb" viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" fill="#0a0a12"/><path d="M6 15 C11 9 23 9 28 15" fill="none" stroke="#9aa7b4" stroke-width="1.4"/></svg>
+                <span>None<small>No shell</small></span>
+              </button>
+              <button type="button" class="pill shell-pill" data-shell="swoop" aria-pressed="false">
+                <svg class="thumb" viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" fill="#0a0a12"/><path d="M6 15 C11 9 23 9 28 15" fill="none" stroke="#626d7d" stroke-width="1.2"/><path d="M7 16 C13 21 21 21 27 15 M10 18.5 C14 22 20 22 24 18" fill="none" stroke="#f471b5" stroke-width="1.6"/></svg>
+                <span>Soft Swoop<small>Laid ribbons across the hairline</small></span>
+              </button>
+              <button type="button" class="pill shell-pill" data-shell="curls" aria-pressed="false">
+                <svg class="thumb" viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" fill="#0a0a12"/><path d="M6 15 C11 9 23 9 28 15" fill="none" stroke="#626d7d" stroke-width="1.2"/><path d="M9 16 c-1.6 2 1.4 3.4 2.4 1.8 c.8-1.2-.6-2.4-1.6-1.6 M16 17.5 c-1.6 2 1.4 3.4 2.4 1.8 c.8-1.2-.6-2.4-1.6-1.6 M23 16 c-1.6 2 1.4 3.4 2.4 1.8 c.8-1.2-.6-2.4-1.6-1.6" fill="none" stroke="#f471b5" stroke-width="1.5"/></svg>
+                <span>Delicate Curls<small>Micro-coils along the hairline</small></span>
+              </button>
+              <button type="button" class="pill shell-pill" data-shell="wisps" aria-pressed="false">
+                <svg class="thumb" viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" fill="#0a0a12"/><path d="M6 15 C11 9 23 9 28 15" fill="none" stroke="#626d7d" stroke-width="1.2"/><path d="M9 16 l-1 4 M13 17.5 l-.4 4.5 M17 18 l.2 4.5 M21 17.5 l.8 4.3 M25 16 l1.2 3.8" fill="none" stroke="#f471b5" stroke-width="1.5"/></svg>
+                <span>Feathered Wisps<small>Fine strands off the hairline</small></span>
+              </button>
+            </div>
+            <p class="note">One shell GLB, three style meshes plus an invisible holder sitting 0.5–1.0&nbsp;mm off the forehead skin. Picking a style shows that mesh and hides the other two; the shell is placed off the head itself and does not move with the braids or their transform.</p>
+
+            <h3>Hair transform — fine adjust</h3>
+            <div id="hairTransformSliders"></div>
+            <p class="note">Second Life–style wearable adjust for the hair attachment: offset in metres, scale as a multiplier, applied live. Reset returns offset [0, 0, 0], scale [1, 1, 1].</p>
           </div>
         </div>
 
@@ -559,13 +664,14 @@
           <div class="acc-body" hidden>
             <div class="actions">
               <button type="button" id="btnReset">Reset all</button>
-              <button type="button" id="btnSaveFace" class="icon-btn" aria-label="Save avatar" title="Save avatar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg></button> <button type="button" class="primary" id="btnCopy">Copy Face ID</button>
+              <button type="button" class="primary" id="btnCopy">Copy Face ID</button>
               <button type="button" id="btnDownload">Download JSON preset</button>
             </div>
             <div class="feedback" id="presetFeedback" aria-live="polite"></div>
             <p class="note">
               Face ID preset: version 1, base “A”, blend “neutral”, all 18 morphs stored as 0–1 values,
-              the symmetry mode and per-pair L/R values, plus the fixed test defaults for
+              the symmetry mode and per-pair L/R values, the hair as its own GLB reference with offset
+              and scale, the baby-hair style key (<em>babyHair</em>), plus the fixed defaults for
               skin, iris, outfit, symbiont, and expression.
             </p>
             <h3>Import Face ID</h3>
@@ -576,55 +682,59 @@
             <div class="feedback" id="importFeedback" aria-live="polite"></div>
           </div>
         </div>
-
-        <div class="acc" data-acc="upload">
-          <div class="acc-head">
-            <button type="button" class="acc-toggle" aria-expanded="false"><span class="chev">&#9656;</span>Your Model<span class="count">upload a model</span></button>
-          </div>
-          <div class="acc-body" hidden>
-            <h3>Upload your own model</h3>
-            <p class="note" id="uploadGateMsg">Checking your membership…</p>
-            <div class="actions">
-              <label for="glbUpload" class="primary" id="glbUploadLabel" style="display:inline-block; padding:6px 12px; cursor:pointer;">Choose a .glb, .obj, .stl or .gltf file</label>
-              <input type="file" id="glbUpload" accept=".glb,.obj,.stl,.gltf,model/gltf-binary" hidden>
-              <button type="button" id="btnRestoreBase">Back to Neon base</button>
-            </div>
-            <p class="note">Or load a model from anywhere — paste a link to a .glb file.</p>
-            <p><input id="modelUrlInput" class="nv-type" maxlength="500" aria-label="Model URL" autocomplete="off" placeholder="https://…/model.glb" spellcheck="false"><span class="nv-type-cursor">_</span> <button type="button" id="btnLoadUrl">Load URL</button></p>
-            <div class="feedback" id="uploadFeedback" aria-live="polite"></div>
-            <p class="note">Your model loads in place of the Neon base. Morph sliders only move if your model carries matching morph targets. Uploads unlock after you have been a member for a week.</p>
-            <h3>Auto-rig this model</h3>
-            <p class="note">Builds a humanoid skeleton for the model in the viewer and skins it to the bones, so you can pose it. Works best on a humanoid standing in a T-pose.</p>
-            <div class="actions">
-              <button type="button" id="btnAutoRig">Auto-rig this model</button>
-              <button type="button" id="btnRaiseArm">Raise left arm</button>
-              <button type="button" id="btnResetPose">Reset pose</button>
-            </div>
-            <div class="feedback" id="rigFeedback" aria-live="polite"></div>
-          </div>
-        </div>
       </section>
     </div>
 
     <footer class="page">
-      Test model: bald Neon, T-pose, ~0.99&nbsp;m, 18 meshes, each carrying the same 18 morph targets.
+      Default model: Rigged Neon, 1 mesh, 65 joints, clips “idle” (~15.3&nbsp;s,
+      the default loop) and “Psionic Idle” (~5.0&nbsp;s) via THREE.AnimationMixer.
+      Bald base is still switchable: bald Neon, T-pose, ~0.99&nbsp;m, 18 meshes, each carrying the same 18 morph targets.
       Morph influence = (slider − 50) / 50, eased toward its target every frame (damping) so scrubbing stays
-      smooth across all 18 meshes.
+      smooth across all 18 meshes. Hair: Neon braids, 12 meshes, a separate GLB attached to the avatar root
+      at runtime — the bald base file is unchanged. Baby-hair shell: a separate GLB attached at the root,
+      three style meshes cycled by visibility, holder 0.5–1.0&nbsp;mm off the skin.
+      Rigged Neon: Neon_Ultra_Rigged_Test.glb, Tripo-rigged, 1 skin, 65 joints, clips “idle” (~15.3&nbsp;s,
+      the default loop) and “Psionic Idle” (~5.0&nbsp;s) via THREE.AnimationMixer — animation only,
+      no morphs. Idle return: after the adjustable timeout with no input (10&nbsp;s by default) the camera
+      eases back to the Full Body preset and the default idle loop starts on models that carry animation.
     </footer>
-    </section>
-  </main>
-<audio id="nvSoundBed3" src="../../sounds/neon-vigil-sound-bed-3-loop.wav" loop preload="none"></audio>
-<button type="button" id="nvSoundBed3Btn" class="nv-sound-btn" aria-label="Play Sound Bed 3" title="Play Sound Bed 3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg></button>
-  <script src="../../auth.js"></script>
-  <script src="../../nv-commands.js"></script>
-  <script src="../../nv-shell.js"></script>
-  <script src="../../nv-ticker.js"></script>
-<script src="assets/js/three.min.js"></script>
-<script src="assets/js/OrbitControls.js"></script>
-<script src="assets/js/GLTFLoader.js"></script>
-<script src="assets/js/OBJLoader.js"></script>
-<script src="assets/js/STLLoader.js"></script>
-<script src="assets/js/GLTFExporter.js"></script>
+
+    <nav class="nv-dock" aria-label="Radio and Hexa dock">
+      <div class="dock-cell dock-hexa">
+        <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><polygon points="13,1.5 22.5,7 22.5,19 13,24.5 3.5,19 3.5,7" fill="none" stroke="#a78bfa" stroke-width="1.6"/><polygon points="13,7 18,10 18,16 13,19 8,16 8,10" fill="none" stroke="#22d3ee" stroke-width="1.2"/><circle cx="13" cy="13" r="1.8" fill="#f471b5"/></svg>
+        <span><span class="dock-label">Hexa</span><br /><span class="dock-status" id="dockStatus">SYNCING…</span></span>
+      </div>
+      <div class="dock-cell">
+        <span class="dock-label">Radio</span>
+        <button type="button" data-dock-light="neutral">Neutral</button>
+        <button type="button" data-dock-light="neon">Neon Rim</button>
+        <button type="button" data-dock-light="chiaroscuro">Chiarosc.</button>
+        <button type="button" id="dockTurntable" aria-pressed="false">Turntable</button>
+      </div>
+      <div class="dock-cell dock-spacer" aria-hidden="true"></div>
+      <div class="dock-cell">
+        <button type="button" id="dockUndo">↩ Undo</button>
+        <button type="button" id="dockRedo">↪ Redo</button>
+        <button type="button" id="btnPalette">⌘ Command <kbd>⌘K</kbd></button>
+      </div>
+    </nav>
+    </div><!-- /infinity6-shell -->
+
+    <div class="palette-backdrop" id="paletteBackdrop" hidden>
+      <div class="palette" role="dialog" aria-modal="true" aria-label="Command palette">
+        <div class="palette-head">
+          <span class="sig" aria-hidden="true">▸</span>
+          <input type="text" id="paletteInput" placeholder="Type a command — camera, light, morph, face id…" autocomplete="off" spellcheck="false" />
+          <kbd>ESC</kbd>
+        </div>
+        <ul class="palette-list" id="paletteList"></ul>
+        <div class="palette-foot"><span>↑↓ Navigate</span><span>↵ Run</span><span>ESC Close</span><span>⌘K / Ctrl+K Toggle</span></div>
+      </div>
+    </div>
+
+    <script src="assets/js/three.min.js"></script>
+    <script src="assets/js/OrbitControls.js"></script>
+    <script src="assets/js/GLTFLoader.js"></script>
     <script>
       (function () {
         "use strict";
@@ -636,7 +746,23 @@
         var ALL_MORPHS = FACE_MORPHS.concat(BODY_MORPHS);
         var GROUPS = { face: FACE_MORPHS, body: BODY_MORPHS };
         var MODEL_URL = "assets/Neon_Ultra_Bald_Morphs_v01.glb";
+        // Pre-rigged Neon for animation (Tripo rig, 65 joints,
+        // clips: idle ~15.3 s + Psionic Idle ~5.0 s). No morph targets —
+        // the 18 sliders stay with the bald base above.
+        var RIGGED_GLB = "Neon_Ultra_Rigged_Test.glb";
+        var RIGGED_URL = "assets/" + RIGGED_GLB;
 
+        // Hair and shell are always separate GLBs, attached at runtime to
+        // the avatar root — never baked into the bald base. Both files are
+        // already in avatar world space, so they attach at identity.
+        var HAIR_GLB = "Neon_Hair_Braids_v01.glb";
+        var HAIR_URL = "assets/" + HAIR_GLB;
+        var SHELL_GLB = "Neon_BabyHair_Shell_v01.glb";
+        var SHELL_URL = "assets/" + SHELL_GLB;
+        // Style key -> mesh name inside the shell GLB.
+        var SHELL_MESH = { swoop: "BabyHair_Swoop", curls: "BabyHair_Curls", wisps: "BabyHair_Wisps" };
+        var SHELL_STYLES = ["none", "swoop", "curls", "wisps"];
+        var SHELL_LABELS = { none: "None", swoop: "Soft Swoop", curls: "Delicate Curls", wisps: "Feathered Wisps" };
 
         var LABELS = {
           faceWidth: "Face width", cheek: "Cheekbones", jaw: "Jaw", chin: "Chin",
@@ -661,12 +787,24 @@
           earPoint:  { label: "Ear point",   parts: ["ear"],  shear: 0.008 }
         };
 
+        var TF_DEFS = [
+          { key: "ox", label: "Offset X", min: -0.05, max: 0.05, step: 0.001, def: 0, fmt: function (v) { return v.toFixed(3); } },
+          { key: "oy", label: "Offset Y", min: -0.05, max: 0.05, step: 0.001, def: 0, fmt: function (v) { return v.toFixed(3); } },
+          { key: "oz", label: "Offset Z", min: -0.05, max: 0.05, step: 0.001, def: 0, fmt: function (v) { return v.toFixed(3); } },
+          { key: "sx", label: "Scale X", min: 0.8, max: 1.25, step: 0.005, def: 1, fmt: function (v) { return v.toFixed(2); } },
+          { key: "sy", label: "Scale Y", min: 0.8, max: 1.25, step: 0.005, def: 1, fmt: function (v) { return v.toFixed(2); } },
+          { key: "sz", label: "Scale Z", min: 0.8, max: 1.25, step: 0.005, def: 1, fmt: function (v) { return v.toFixed(2); } }
+        ];
+
         /* ================= State ================= */
 
         var state = {
           morphs: {},        // unpaired morph name -> slider value 0..100
           asym: {},          // pair name -> { l: 0..100, r: 0..100 }
           symmetrical: true,
+          hair: true,
+          shell: "none",
+          tf: { ox: 0, oy: 0, oz: 0, sx: 1, sy: 1, sz: 1 },
           light: "neutral"
         };
         ALL_MORPHS.forEach(function (n) { state.morphs[n] = 50; });
@@ -679,10 +817,28 @@
 
         var sliders = {}, outputs = {};
         var pairSliders = {};     // name -> { l, r, lOut, rOut }
+        var tfSliders = {}, tfOutputs = {};
         var meshes = [], morphMeshes = [];
         var pairMeshes = {};      // pair name -> [meshes] for the asym offset
         var model = null, modelBox = null;
+        var hairObject = null, hairLoaded = false, hairLoading = false, hairError = "";
+        var shellObject = null, shellLoaded = false, shellLoading = false, shellError = "";
+        var shellStyleMeshes = {};  // style key -> mesh inside shell GLB
         var baseStatus = "";
+
+        /* ----- Model switcher / animation / idle-return state ----- */
+        var activeModelKey = "rigged";          // "bald" | "rigged" — rigged is the default now (Nov 11)
+        var baldModel = null, baldBox = null;
+        var riggedModel = null, riggedBox = null;
+        var riggedLoaded = false, riggedLoading = false, riggedError = "", riggedStatus = "";
+        var riggedPending = null;
+        var animMixer = null, animActions = {}, animClips = {};
+        var currentClipKey = null, animPlaying = false;
+        // Camera/movement state (return tween, idle timer and its
+        // timeout/enabled/active flags) is deliberately NOT kept here:
+        // it is private to the EditorCamera module further down, so the
+        // editor screen and any game screen can never share camera state,
+        // control bindings, or movement handlers.
 
         /* ================= History (undo / redo) ================= */
 
@@ -693,7 +849,9 @@
           ALL_MORPHS.forEach(function (n) { m[n] = state.morphs[n]; });
           Object.keys(PAIRS).forEach(function (n) { a[n] = { l: state.asym[n].l, r: state.asym[n].r }; });
           return {
-            morphs: m, asym: a, symmetrical: state.symmetrical
+            morphs: m, asym: a, symmetrical: state.symmetrical,
+            hair: state.hair, shell: state.shell,
+            tf: { ox: state.tf.ox, oy: state.tf.oy, oz: state.tf.oz, sx: state.tf.sx, sy: state.tf.sy, sz: state.tf.sz }
           };
         }
         function pushHistory() {
@@ -716,6 +874,10 @@
             else setSlider(n, s.morphs[n]);
           });
           setSymmetry(!!s.symmetrical, true);
+          setHair(!!s.hair, true);
+          setShell(s.shell || "none", true);
+          TF_DEFS.forEach(function (d) { setTF(d.key, s.tf[d.key], true); });
+          applyHairTransform();
           restoring = false;
           updateHistoryButtons();
         }
@@ -775,7 +937,6 @@
           var l = parseFloat(ps.l.value), r = parseFloat(ps.r.value);
           state.asym[name] = { l: l, r: r };
           influenceTgt[name] = ((l + r) / 2 - 50) / 50;
-          autoFocusFor("head");
         }
 
         function buildMorphSliders() {
@@ -813,7 +974,6 @@
                   var v = parseFloat(inp.value);
                   state.morphs[nm] = v;
                   influenceTgt[nm] = (v - 50) / 50;
-                  autoFocusFor(viewForMorph(nm));
                 });
                 inp.addEventListener("change", pushHistory);
               })(name, r2.input, r2.out);
@@ -837,6 +997,35 @@
           });
         }
 
+        function buildTFSliders() {
+          var c = document.getElementById("hairTransformSliders");
+          TF_DEFS.forEach(function (d) {
+            var r = makeSliderRow(c, "tf-", d.key, d.label, true);
+            r.input.min = String(d.min); r.input.max = String(d.max); r.input.step = String(d.step);
+            r.input.value = String(d.def);
+            r.out.textContent = d.fmt(d.def);
+            tfSliders[d.key] = r.input; tfOutputs[d.key] = r.out;
+            (function (def, inp, out) {
+              inp.addEventListener("input", function () {
+                state.tf[def.key] = parseFloat(inp.value);
+                out.textContent = def.fmt(state.tf[def.key]);
+                applyHairTransform();
+              });
+              inp.addEventListener("change", pushHistory);
+            })(d, r.input, r.out);
+          });
+        }
+        function setTF(key, value, silent) {
+          state.tf[key] = value;
+          for (var i = 0; i < TF_DEFS.length; i++) {
+            if (TF_DEFS[i].key === key) {
+              if (tfSliders[key]) { tfSliders[key].value = String(value); tfOutputs[key].textContent = TF_DEFS[i].fmt(value); }
+              break;
+            }
+          }
+          if (!silent) applyHairTransform();
+        }
+
         /* ================= Accordions ================= */
 
         var accs = document.querySelectorAll(".acc");
@@ -848,10 +1037,6 @@
               var open = acc.classList.toggle("open");
               toggle.setAttribute("aria-expanded", open ? "true" : "false");
               if (open) body.removeAttribute("hidden"); else body.setAttribute("hidden", "");
-              if (open) {
-                var accView = { face: "head", body: "full" }[acc.getAttribute("data-acc")];
-                if (accView) autoFocusFor(accView);
-              }
             });
           })(accs[ai]);
         }
@@ -861,9 +1046,8 @@
         function setSymmetry(on, silent) {
           state.symmetrical = on;
           var btn = document.getElementById("btnSymmetry");
-          var row = document.getElementById("symmetryRow");
-          btn.setAttribute("aria-checked", on ? "true" : "false");
-          if (row) row.classList.toggle("nv-switch-row-off", !on);
+          btn.setAttribute("aria-pressed", on ? "true" : "false");
+          btn.textContent = on ? "Symmetrical" : "Asymmetrical";
           if (on) {
             // Re-mirror: right follows left.
             Object.keys(PAIRS).forEach(function (n) { setPair(n, state.asym[n].l, state.asym[n].l); });
@@ -882,7 +1066,24 @@
         for (var ri = 0; ri < rndBtns.length; ri++) {
           rndBtns[ri].addEventListener("click", function () {
             var g = this.getAttribute("data-randomize");
-            {
+            if (g === "hair") {
+              // Hair & Shell: random hair on/off, a random shell style, and
+              // transform values inside a safe sub-range of each slider —
+              // offsets ±0.030 m (slider range ±0.050) and scale 0.90–1.15
+              // (slider range 0.80–1.25) so the hair never detaches or
+              // balloons. All setters run silent; one history entry below.
+              TF_DEFS.forEach(function (d) {
+                var v = d.key.charAt(0) === "o" ? randFloat(-0.03, 0.03) : randFloat(0.9, 1.15);
+                v = Math.round(v / d.step) * d.step;
+                v = Math.max(d.min, Math.min(d.max, v));
+                setTF(d.key, parseFloat(v.toFixed(3)), true);
+              });
+              applyHairTransform();
+              setShell(SHELL_STYLES[randInt(0, SHELL_STYLES.length - 1)], true);
+              setHair(Math.random() < 0.5, true);
+              // Re-apply once hair visibility is settled.
+              applyHairTransform();
+            } else {
               var names = GROUPS[g];
               names.forEach(function (n) {
                 if (PAIRS[n]) {
@@ -901,7 +1102,12 @@
         for (var si = 0; si < rstBtns.length; si++) {
           rstBtns[si].addEventListener("click", function () {
             var g = this.getAttribute("data-reset");
-            {
+            if (g === "hair") {
+              TF_DEFS.forEach(function (d) { setTF(d.key, d.def, true); });
+              applyHairTransform();
+              setShell("none", true);
+              setHair(true, true);
+            } else {
               GROUPS[g].forEach(function (n) {
                 if (PAIRS[n]) setPair(n, 50, 50); else setSlider(n, 50);
               });
@@ -929,6 +1135,10 @@
             morphs: morphs,
             symmetry: state.symmetrical ? "symmetrical" : "asymmetrical",
             asymmetry: asym,
+            hair: state.hair
+              ? { glb: HAIR_GLB, offset: [state.tf.ox, state.tf.oy, state.tf.oz], scale: [state.tf.sx, state.tf.sy, state.tf.sz] }
+              : null,
+            babyHair: state.shell === "none" ? null : state.shell,
             skin: 3,
             iris: { colour: "#3ba7a0", pupil: "round" },
             outfit: { top: "#e9e4d6", bottom: "#3a4a5a", accessory: "none" },
@@ -942,7 +1152,7 @@
           el.className = "feedback" + (isErr ? " err" : "");
         }
 
-        function applyFacePreset(data) { var morphs = data.morphs || data; var applied = 0; ALL_MORPHS.forEach(function(name) { if (morphs && typeof morphs[name] === "number") { if (PAIRS[name]) { var pr = data.asymmetry && data.asymmetry[name]; if (pr && typeof pr.l === "number" && typeof pr.r === "number") { setPair(name, pr.l * 100, pr.r * 100); } else { setPair(name, morphs[name] * 100, morphs[name] * 100); } } else { setSlider(name, morphs[name] * 100); } applied++; } }); if (typeof data.symmetry === "string") { setSymmetry(data.symmetry !== "asymmetrical", true); } return applied; } (function restoreSavedFacePreset() { setTimeout(function () { try { var raw = localStorage.getItem("nv_face_preset"); if (!raw) return; var data = JSON.parse(raw); if (!data || typeof data !== "object") return; var applied = applyFacePreset(data); if (applied > 0) { pushHistory(); setFeedback(document.getElementById("presetFeedback"), "Saved avatar face restored: " + applied + " of 18 morphs set.", false); } } catch (e) {} }, 0); })();  document.getElementById("btnSaveFace").addEventListener("click", function () { try { localStorage.setItem("nv_face_preset", JSON.stringify(buildPreset())); setFeedback(document.getElementById("presetFeedback"), "Avatar face saved.", false); } catch (e) { setFeedback(document.getElementById("presetFeedback"), "Avatar face could not be saved in this browser.", true); } });  document.getElementById("btnCopy").addEventListener("click", function () {
+        document.getElementById("btnCopy").addEventListener("click", function () {
           var fb = document.getElementById("presetFeedback");
           var text = JSON.stringify(buildPreset(), null, 2);
           function done() { setFeedback(fb, "Face ID copied to clipboard.", false); }
@@ -962,19 +1172,23 @@
           var blob = new Blob([text], { type: "application/json" });
           var url = URL.createObjectURL(blob);
           var a = document.createElement("a");
-          a.href = url; a.download = "avatar-editor-face-id-test-preset.json";
+          a.href = url; a.download = "avatar-editor-face-id-preset.json";
           document.body.appendChild(a); a.click(); document.body.removeChild(a);
           setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
-          setFeedback(fb, "Preset downloaded as avatar-editor-face-id-test-preset.json.", false);
+          setFeedback(fb, "Preset downloaded as avatar-editor-face-id-preset.json.", false);
         });
 
         document.getElementById("btnReset").addEventListener("click", function () {
           ALL_MORPHS.forEach(function (name) {
             if (PAIRS[name]) setPair(name, 50, 50); else setSlider(name, 50);
           });
+          TF_DEFS.forEach(function (d) { setTF(d.key, d.def, true); });
+          applyHairTransform();
+          setShell("none", true);
+          setHair(true, true);
           setSymmetry(true, true);
           pushHistory();
-          setFeedback(document.getElementById("presetFeedback"), "Everything reset: morphs neutral, symmetrical.", false);
+          setFeedback(document.getElementById("presetFeedback"), "Everything reset: morphs neutral, hair on, shell off, transform identity, symmetrical.", false);
         });
 
         document.getElementById("btnImport").addEventListener("click", function () {
@@ -999,11 +1213,34 @@
             }
           });
           if (typeof data.symmetry === "string") setSymmetry(data.symmetry !== "asymmetrical", true);
+          var hairApplied = false;
+          if (data && data.hair && typeof data.hair.glb === "string" && data.hair.glb) {
+            if (Array.isArray(data.hair.offset) && data.hair.offset.length === 3) {
+              setTF("ox", Number(data.hair.offset[0]), true);
+              setTF("oy", Number(data.hair.offset[1]), true);
+              setTF("oz", Number(data.hair.offset[2]), true);
+            }
+            if (Array.isArray(data.hair.scale) && data.hair.scale.length === 3) {
+              setTF("sx", Number(data.hair.scale[0]), true);
+              setTF("sy", Number(data.hair.scale[1]), true);
+              setTF("sz", Number(data.hair.scale[2]), true);
+            }
+            applyHairTransform();
+            setHair(true, true);
+            hairApplied = true;
+          } else {
+            setHair(false, true);
+          }
+          var shellStyle = "none";
+          if (data && typeof data.babyHair === "string" && SHELL_STYLES.indexOf(data.babyHair) !== -1) shellStyle = data.babyHair;
+          setShell(shellStyle, true);
           pushHistory();
-          if (applied === 0) {
+          if (applied === 0 && !hairApplied) {
             setFeedback(fb, "No recognised morph values found in that JSON.", true);
           } else {
-            setFeedback(fb, "Import applied: " + applied + " of 18 morphs set.", false);
+            setFeedback(fb, "Import applied: " + applied + " of 18 morphs set" +
+              (hairApplied ? ", hair shown" : ", hair off (bald)") +
+              ", baby-hair: " + SHELL_LABELS[shellStyle] + ".", false);
           }
         });
 
@@ -1035,47 +1272,37 @@
         controls.dampingFactor = 0.08;
         controls.autoRotateSpeed = 1.6;
 
-        /* ----- 3-point studio rig: key / fill / rim over a soft base -----
-           The light DIRECTIONS are locked: the key always comes from the
-           front-right-top, the fill from the front-left, the rim from
-           behind-left. Presets change only colour, intensity, and the
-           backdrop — never the direction. The rig lives in world space,
-           so orbiting or auto-rotating the camera never moves it. */
-        var LIGHT_DIR = {
-          key: [1.5, 2.2, 2.5],
-          fill: [-2.2, 0.6, 1.6],
-          rim: [-2, 1.2, -2]
-        };
+        /* ----- 3-point studio rig: key / fill / rim over a soft base ----- */
         var hemi = new THREE.HemisphereLight(0xffffff, 0x444455, 0.95);
         scene.add(hemi);
         var keyLight = new THREE.DirectionalLight(0xffffff, 0.85);
-        keyLight.position.set(LIGHT_DIR.key[0], LIGHT_DIR.key[1], LIGHT_DIR.key[2]);
+        keyLight.position.set(1.5, 2.2, 2.5);
         scene.add(keyLight);
         var fillLight = new THREE.DirectionalLight(0xffffff, 0.0);
-        fillLight.position.set(LIGHT_DIR.fill[0], LIGHT_DIR.fill[1], LIGHT_DIR.fill[2]);
+        fillLight.position.set(-2.2, 0.6, 1.6);
         scene.add(fillLight);
         var rimLight = new THREE.DirectionalLight(0xdfe8ff, 0.35);
-        rimLight.position.set(LIGHT_DIR.rim[0], LIGHT_DIR.rim[1], LIGHT_DIR.rim[2]);
+        rimLight.position.set(-2, 1.2, -2);
         scene.add(rimLight);
 
         var LIGHTING = {
           neutral: {
             bg: 0x808080, hemi: 0.95, hemiSky: 0xffffff, hemiGround: 0x444455,
-            key: 0.85, keyColor: 0xffffff,
+            key: 0.85, keyColor: 0xffffff, keyPos: [1.5, 2.2, 2.5],
             fill: 0.0, fillColor: 0xffffff,
-            rim: 0.35, rimColor: 0xdfe8ff
+            rim: 0.35, rimColor: 0xdfe8ff, rimPos: [-2, 1.2, -2]
           },
           neon: {
             bg: 0x0d0d18, hemi: 0.32, hemiSky: 0x8a7bff, hemiGround: 0x12060f,
-            key: 0.65, keyColor: 0x9be9ff,
+            key: 0.65, keyColor: 0x9be9ff, keyPos: [1.6, 1.6, 2.4],
             fill: 0.55, fillColor: 0xa78bfa,
-            rim: 1.5, rimColor: 0xff4fa3
+            rim: 1.5, rimColor: 0xff4fa3, rimPos: [-1.6, 1.4, -2.4]
           },
           chiaroscuro: {
             bg: 0x1a1a1e, hemi: 0.10, hemiSky: 0x555560, hemiGround: 0x000000,
-            key: 1.5, keyColor: 0xfff2df,
+            key: 1.5, keyColor: 0xfff2df, keyPos: [2.4, 2.8, 1.2],
             fill: 0.0, fillColor: 0xffffff,
-            rim: 0.22, rimColor: 0xbfd4ff
+            rim: 0.22, rimColor: 0xbfd4ff, rimPos: [-2.2, 1.0, -1.8]
           }
         };
         function applyLighting(name) {
@@ -1086,11 +1313,11 @@
           hemi.intensity = p.hemi;
           hemi.color = new THREE.Color(p.hemiSky);
           hemi.groundColor = new THREE.Color(p.hemiGround);
-          /* Directions stay locked (LIGHT_DIR) — only colour and
-             intensity change here. */
           keyLight.intensity = p.key; keyLight.color = new THREE.Color(p.keyColor);
+          keyLight.position.set(p.keyPos[0], p.keyPos[1], p.keyPos[2]);
           fillLight.intensity = p.fill; fillLight.color = new THREE.Color(p.fillColor);
           rimLight.intensity = p.rim; rimLight.color = new THREE.Color(p.rimColor);
+          rimLight.position.set(p.rimPos[0], p.rimPos[1], p.rimPos[2]);
           var btns = document.querySelectorAll(".light-btn");
           for (var i = 0; i < btns.length; i++) {
             btns[i].setAttribute("aria-pressed", btns[i].getAttribute("data-light") === name ? "true" : "false");
@@ -1101,69 +1328,8 @@
           lightBtns[li].addEventListener("click", function () { applyLighting(this.getAttribute("data-light")); });
         }
 
-        /* ----- Turntable (a switch, per the web-app toggle rule) ----- */
-        var btnTurntable = document.getElementById("btnTurntable");
-        var turntableRow = document.getElementById("turntableRow");
-        btnTurntable.addEventListener("click", function () {
-          controls.autoRotate = !controls.autoRotate;
-          btnTurntable.setAttribute("aria-checked", controls.autoRotate ? "true" : "false");
-          turntableRow.classList.toggle("nv-switch-row-off", !controls.autoRotate);
-        });
-
-        /* ----- Console drawer (slides from the right) ----- */
-        var editorRoot = document.getElementById("avatar-editor");
-        var consolePanel = document.querySelector("#avatar-editor .panel");
-        var btnConsole = document.getElementById("btnConsole");
-        var btnConsoleClose = document.getElementById("btnConsoleClose");
-        function setConsole(open) {
-          consolePanel.classList.toggle("console-open", open);
-          editorRoot.classList.toggle("console-open", open);
-          btnConsole.setAttribute("aria-expanded", open ? "true" : "false");
-          resize();
-        }
-        btnConsole.addEventListener("click", function () {
-          setConsole(!consolePanel.classList.contains("console-open"));
-        });
-        btnConsoleClose.addEventListener("click", function () { setConsole(false); });
-        /* Default: open on wide screens, closed on narrow ones. */
-        setConsole(window.innerWidth > 900);
-
-        /* ----- Header name: "[username], Edit your digital Avatar." -----
-           The username is the player's identity everywhere, so the header
-           always shows it — never the "User" placeholder — whenever a
-           username is available. Reads the single username key first,
-           then the signed-in account, and keeps trying (on load, when
-           the session resolves, and if the username changes). */
-        (function () {
-          var el = document.getElementById("editorUser");
-          if (!el) return;
-          function setName() {
-            var name = "";
-            try { name = localStorage.getItem("nv_display_name") || ""; } catch (e) {}
-            if (name) { el.textContent = name; return true; }
-            try {
-              var client = (typeof getClient === "function") ? getClient() : null;
-              if (client) {
-                client.auth.getSession().then(function (res) {
-                  var user = res && res.data && res.data.session && res.data.session.user;
-                  var md = user && user.user_metadata;
-                  var n = (md && md.display_name) || (user && (user.email || "").split("@")[0]) || "";
-                  if (n) {
-                    el.textContent = n;
-                    try { localStorage.setItem("nv_display_name", n); } catch (e2) {}
-                  }
-                }).catch(function () {});
-              }
-            } catch (e) {}
-            return false;
-          }
-          setName();
-          window.addEventListener("storage", function (e) {
-            if (e.key === "nv_display_name") setName();
-          });
-          /* The session can resolve after this script runs — retry once. */
-          setTimeout(setName, 1500);
-        })();
+        /* Turntable wiring lives in the EditorCamera module below —
+           camera and movement controls are not wired anywhere else. */
 
         function resize() {
           var w = stage.clientWidth, h = stage.clientHeight;
@@ -1174,72 +1340,340 @@
         }
         window.addEventListener("resize", resize);
 
-        /* ----- Camera focus presets ----- */
-        var views = {};
-        function computeViews() {
-          if (!modelBox) return;
-          var size = modelBox.getSize(new THREE.Vector3());
-          var center = modelBox.getCenter(new THREE.Vector3());
-          var fitDist = (size.y / 2) / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * 1.25;
-          var fullDist = Math.max(fitDist, size.length());
-          views.full = { pos: new THREE.Vector3(center.x, center.y, center.z + fullDist), target: center.clone() };
-          var headC = new THREE.Vector3(center.x, modelBox.max.y - size.y * 0.09, center.z);
-          views.head = { pos: new THREE.Vector3(headC.x, headC.y, headC.z + Math.max(size.y * 0.42, 0.35)), target: headC };
-          var upperC = new THREE.Vector3(center.x, modelBox.min.y + size.y * 0.78, center.z);
-          views.upper = { pos: new THREE.Vector3(upperC.x, upperC.y, upperC.z + Math.max(size.y * 0.85, 0.6)), target: upperC };
-          var lowerC = new THREE.Vector3(center.x, modelBox.min.y + size.y * 0.30, center.z);
-          views.lower = { pos: new THREE.Vector3(lowerC.x, lowerC.y, lowerC.z + Math.max(size.y * 0.75, 0.55)), target: lowerC };
-        }
-        /* ----- Auto-focus: editing a part puts it in view ----- */
-        var currentView = "full";
-        function viewForMorph(name) {
-          if (FACE_MORPHS.indexOf(name) !== -1) return "head";
-          var map = { height: "full", shoulder: "upper", chest: "upper", armLength: "upper", waist: "lower", hip: "lower", legLength: "lower" };
-          return map[name] || "full";
-        }
-        function autoFocusFor(view) {
-          if (!view || currentView === view || !views[view]) return;
-          goView(view);
-        }
-        function goView(which) {
-          var v = views[which];
-          if (!v) return;
-          currentView = which;
-          camera.position.copy(v.pos);
-          controls.target.copy(v.target);
-          controls.update();
-          var btns = document.querySelectorAll(".cam-btn");
-          for (var i = 0; i < btns.length; i++) {
-            btns[i].setAttribute("aria-pressed", btns[i].getAttribute("data-view") === which ? "true" : "false");
+        /* ================= EditorCamera — editor-local camera & movement module =================
+           Every camera and movement behaviour for THIS editor screen lives
+           inside this module and nowhere else: the editor's own orbit
+           bindings, its five focus presets (Head/Face, Hairline, Upper
+           Body, Full Body, 3/4 Turnaround), the turntable, the smooth
+           camera-return tween, and the idle timer that triggers the
+           return. It shares no camera state, control bindings, or
+           movement handlers with any game-screen code — the game screen
+           keeps its own separate camera/movement module and its own
+           separate appearance-vs-camera option groups.
+           Appearance code (morphs, hair, shell) and lighting never touch
+           camera internals. The single bridge is opts.onEnterIdle, wired
+           by the editor below, which the module invokes when the idle
+           state begins (the editor uses it to start the default
+           animation loop on models that carry animation). */
+
+        function createEditorCameraModule(opts) {
+          var camera = opts.camera;
+          var controls = opts.controls;
+          var views = {};
+          var tween = null;
+          var idle = { timeoutSec: 10, enabled: true, active: false, lastActivity: Date.now() };
+          var badgeEl = document.getElementById("idleBadge");
+          var statusOut = document.getElementById("idleStatus");
+          var timeoutValOut = document.getElementById("idleTimeoutVal");
+          var btnToggle = document.getElementById("btnIdleToggle");
+          var btnTurn = document.getElementById("btnTurntable");
+
+          /* ----- The editor's own focus presets, from the active model's box ----- */
+          function computeViews() {
+            var box = opts.getBox();
+            if (!box) return;
+            var size = box.getSize(new THREE.Vector3());
+            var center = box.getCenter(new THREE.Vector3());
+            var fitDist = (size.y / 2) / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * 1.25;
+            var fullDist = Math.max(fitDist, size.length());
+            views.full = { pos: new THREE.Vector3(center.x, center.y, center.z + fullDist), target: center.clone() };
+            var headC = new THREE.Vector3(center.x, box.max.y - size.y * 0.09, center.z);
+            views.head = { pos: new THREE.Vector3(headC.x, headC.y, headC.z + Math.max(size.y * 0.42, 0.35)), target: headC };
+            // Hairline: tight on the forehead band, slightly above eye level.
+            var hairC = new THREE.Vector3(center.x, box.max.y - size.y * 0.045, center.z + size.z * 0.10);
+            views.hairline = { pos: new THREE.Vector3(hairC.x + size.x * 0.10, hairC.y + size.y * 0.03, hairC.z + Math.max(size.y * 0.20, 0.16)), target: hairC };
+            var upperC = new THREE.Vector3(center.x, box.min.y + size.y * 0.78, center.z);
+            views.upper = { pos: new THREE.Vector3(upperC.x, upperC.y, upperC.z + Math.max(size.y * 0.85, 0.6)), target: upperC };
+            // 3/4 turnaround: off-axis three-quarter angle at full-body distance.
+            views.turn = {
+              pos: new THREE.Vector3(center.x + fullDist * 0.72, center.y + size.y * 0.10, center.z + fullDist * 0.72),
+              target: new THREE.Vector3(center.x, center.y + size.y * 0.04, center.z)
+            };
           }
-        }
-        var camBtns = document.querySelectorAll(".cam-btn");
-        for (var ci = 0; ci < camBtns.length; ci++) {
-          camBtns[ci].addEventListener("click", function () { goView(this.getAttribute("data-view")); });
+          function markCamButton(which) {
+            var btns = document.querySelectorAll(".cam-btn");
+            for (var i = 0; i < btns.length; i++) {
+              btns[i].setAttribute("aria-pressed", btns[i].getAttribute("data-view") === which ? "true" : "false");
+            }
+          }
+          function goView(which) {
+            var v = views[which];
+            if (!v) return;
+            tween = null; // a manual preset cancels any idle camera return
+            camera.position.copy(v.pos);
+            controls.target.copy(v.target);
+            controls.update();
+            markCamButton(which);
+          }
+          var camBtns = document.querySelectorAll(".cam-btn");
+          for (var ci = 0; ci < camBtns.length; ci++) {
+            camBtns[ci].addEventListener("click", function () { goView(this.getAttribute("data-view")); });
+          }
+
+          /* ----- Turntable (editor movement control) ----- */
+          function setTurntable(on) {
+            controls.autoRotate = on;
+            btnTurn.setAttribute("aria-pressed", on ? "true" : "false");
+            btnTurn.textContent = on ? "Auto-rotate: On" : "Auto-rotate: Off";
+          }
+          btnTurn.addEventListener("click", function () { setTurntable(!controls.autoRotate); });
+
+          /* ----- Idle timer, camera reset and zoom-in — editor-scoped -----
+             After idle.timeoutSec with no interaction (slider, button,
+             orbit, wheel, touch or key input, all heard inside this
+             module), the camera eases back to the Full Body default —
+             framing and zooming in on the model — and onEnterIdle fires.
+             Any interaction cancels the idle state and restarts the timer. */
+          function noteInteraction() {
+            idle.lastActivity = Date.now();
+            if (idle.active) {
+              idle.active = false;
+              badgeEl.hidden = true;
+            }
+            tween = null;
+          }
+          ["pointerdown", "keydown", "wheel", "touchstart"].forEach(function (type) {
+            document.addEventListener(type, noteInteraction, { passive: true, capture: true });
+          });
+          controls.addEventListener("start", noteInteraction);
+
+          function enterIdle() {
+            if (!idle.enabled || idle.active) return;
+            idle.active = true;
+            badgeEl.hidden = false;
+            if (controls.autoRotate) setTurntable(false);
+            if (views.full) {
+              tween = {
+                t: 0, dur: 1.4,
+                fromPos: camera.position.clone(), toPos: views.full.pos.clone(),
+                fromTgt: controls.target.clone(), toTgt: views.full.target.clone()
+              };
+              markCamButton("full");
+            }
+            if (opts.onEnterIdle) opts.onEnterIdle();
+          }
+          document.getElementById("btnIdleNow").addEventListener("click", function () { enterIdle(); });
+          btnToggle.addEventListener("click", function () {
+            idle.enabled = !idle.enabled;
+            btnToggle.setAttribute("aria-pressed", idle.enabled ? "true" : "false");
+            btnToggle.textContent = idle.enabled ? "On" : "Off";
+            if (!idle.enabled && idle.active) { idle.active = false; badgeEl.hidden = true; }
+            idle.lastActivity = Date.now();
+          });
+          document.getElementById("idleTimeoutRange").addEventListener("input", function () {
+            idle.timeoutSec = Math.max(5, Math.min(60, parseInt(this.value, 10) || 10));
+            timeoutValOut.textContent = idle.timeoutSec + "s";
+          });
+          setInterval(function () {
+            if (!idle.enabled) { statusOut.textContent = "Idle return off"; return; }
+            if (idle.active) { statusOut.textContent = "Idle — camera home · default loop on"; return; }
+            var remain = Math.ceil(idle.timeoutSec - (Date.now() - idle.lastActivity) / 1000);
+            if (remain <= 0) { enterIdle(); return; }
+            statusOut.textContent = "Camera returns in " + remain + "s of no input";
+          }, 250);
+
+          /* ----- Per-frame: run the return tween, then the controls ----- */
+          function update(dt) {
+            if (tween) {
+              tween.t += dt / tween.dur;
+              var tt = Math.min(tween.t, 1);
+              var ee = tt < 0.5 ? 4 * tt * tt * tt : 1 - Math.pow(-2 * tt + 2, 3) / 2;
+              camera.position.lerpVectors(tween.fromPos, tween.toPos, ee);
+              controls.target.lerpVectors(tween.fromTgt, tween.toTgt, ee);
+              if (tt >= 1) tween = null;
+            }
+            controls.update();
+          }
+
+          return {
+            computeViews: computeViews,
+            goView: goView,
+            enterIdle: enterIdle,
+            noteInteraction: noteInteraction,
+            update: update,
+            isIdle: function () { return idle.active; },
+            getIdleTimeoutSec: function () { return idle.timeoutSec; }
+          };
         }
 
-        /* ================= Status ================= */
+        var EditorCamera = createEditorCameraModule({
+          camera: camera,
+          controls: controls,
+          getBox: function () { return modelBox; },
+          onEnterIdle: function () {
+            // Editor-side bridge (animation, not camera): start the
+            // default idle loop when the active model carries animation.
+            if (activeModelKey === "rigged" && animMixer && (currentClipKey !== "idle" || !animPlaying)) {
+              playClip("idle");
+            }
+          }
+        });
+        // Aliases so the model loaders keep their existing calls; all
+        // camera state itself stays inside the module.
+        var computeViews = EditorCamera.computeViews;
+        var goView = EditorCamera.goView;
+
+        /* ================= Attachments: hair + shell ================= */
 
         function refreshStatus() {
+          if (hairError || shellError) {
+            var which = hairError ? "hair GLB (" + HAIR_GLB + "): " + hairError
+                                  : "shell GLB (" + SHELL_GLB + "): " + shellError;
+            statusEl.textContent = "Error loading " + which + (baseStatus ? " · " + baseStatus : "");
+            statusEl.className = "status err";
+            return;
+          }
+          if (activeModelKey === "rigged") {
+            if (riggedError) {
+              statusEl.textContent = "Error loading rigged GLB (" + RIGGED_GLB + "): " + riggedError;
+              statusEl.className = "status err";
+              return;
+            }
+            var rp = [];
+            if (riggedStatus) rp.push(riggedStatus);
+            if (riggedLoading) rp.push("Loading " + RIGGED_GLB + "…");
+            else if (riggedLoaded) {
+              rp.push(currentClipKey
+                ? "Animation: " + (currentClipKey === "psionic" ? "Psionic Idle" : "Idle") + (animPlaying ? " · playing" : " · paused")
+                : "Animation: none playing");
+            }
+            statusEl.textContent = rp.length ? rp.join(" · ") : "Rigged Neon";
+            statusEl.className = "status";
+            return;
+          }
           var parts = [];
           if (baseStatus) parts.push(baseStatus);
+          if (!state.hair) parts.push("Hair: none — bald base");
+          else if (hairLoaded) parts.push("Hair: " + HAIR_GLB + " attached");
+          else if (hairLoading) parts.push("Hair: loading " + HAIR_GLB + "…");
+          if (state.shell === "none") parts.push("Shell: none");
+          else if (shellLoaded) parts.push("Shell: " + SHELL_LABELS[state.shell]);
+          else if (shellLoading) parts.push("Shell: loading " + SHELL_GLB + "…");
           statusEl.textContent = parts.length ? parts.join(" · ") : "Loading model…";
           statusEl.className = "status";
+        }
+
+        function applyHairTransform() {
+          if (!hairObject) return;
+          hairObject.position.set(state.tf.ox, state.tf.oy, state.tf.oz);
+          hairObject.scale.set(state.tf.sx, state.tf.sy, state.tf.sz);
+          hairObject.visible = state.hair;
+        }
+
+        function loadHair() {
+          if (hairLoaded || hairLoading || !baldModel) return;
+          hairLoading = true;
+          refreshStatus();
+          new THREE.GLTFLoader().load(
+            HAIR_URL,
+            function (gltf) {
+              hairLoading = false; hairLoaded = true; hairError = "";
+              hairObject = gltf.scene;
+              // Child of the avatar root (not a head bone — the bald base has
+              // no skeleton), so the hair moves with the avatar.
+              baldModel.add(hairObject);
+              applyHairTransform();
+              refreshStatus();
+            },
+            undefined,
+            function (err) {
+              hairLoading = false;
+              hairError = err && err.message ? err.message : "unknown error";
+              refreshStatus();
+            }
+          );
+        }
+
+        function setHair(wanted, silent) {
+          state.hair = wanted;
+          var btns = document.querySelectorAll(".hair-pill");
+          for (var i = 0; i < btns.length; i++) {
+            btns[i].setAttribute("aria-pressed", (btns[i].getAttribute("data-hair") === "braids") === wanted ? "true" : "false");
+          }
+          if (wanted) {
+            hairError = "";
+            if (hairObject) { applyHairTransform(); refreshStatus(); }
+            else loadHair();
+          } else {
+            if (hairObject) hairObject.visible = false;
+            refreshStatus();
+          }
+          if (!silent) pushHistory();
+        }
+        var hairPills = document.querySelectorAll(".hair-pill");
+        for (var hi = 0; hi < hairPills.length; hi++) {
+          hairPills[hi].addEventListener("click", function () { setHair(this.getAttribute("data-hair") === "braids"); });
+        }
+
+        /* ----- Baby-hair shell: one GLB, three style meshes, cycled by
+           visibility. The holder mesh (alpha-0 scalp band) is never shown. */
+        function applyShellVisibility() {
+          if (!shellObject) return;
+          Object.keys(SHELL_MESH).forEach(function (key) {
+            var m = shellStyleMeshes[key];
+            if (m) m.visible = (key === state.shell);
+          });
+          shellObject.visible = state.shell !== "none";
+        }
+        function loadShell() {
+          if (shellLoaded || shellLoading || !baldModel) return;
+          shellLoading = true;
+          refreshStatus();
+          new THREE.GLTFLoader().load(
+            SHELL_URL,
+            function (gltf) {
+              shellLoading = false; shellLoaded = true; shellError = "";
+              shellObject = gltf.scene;
+              shellObject.traverse(function (obj) {
+                if (!obj.isMesh) return;
+                if (obj.name === "BabyHair_Holder") { obj.visible = false; return; }
+                Object.keys(SHELL_MESH).forEach(function (key) {
+                  if (obj.name === SHELL_MESH[key]) shellStyleMeshes[key] = obj;
+                });
+              });
+              // Fallback if a style mesh name is not found: match by suffix.
+              Object.keys(SHELL_MESH).forEach(function (key) {
+                if (shellStyleMeshes[key]) return;
+                shellObject.traverse(function (obj) {
+                  if (obj.isMesh && obj.name.toLowerCase().indexOf(key) !== -1) shellStyleMeshes[key] = obj;
+                });
+              });
+              baldModel.add(shellObject);
+              applyShellVisibility();
+              refreshStatus();
+            },
+            undefined,
+            function (err) {
+              shellLoading = false;
+              shellError = err && err.message ? err.message : "unknown error";
+              refreshStatus();
+            }
+          );
+        }
+        function setShell(style, silent) {
+          state.shell = style;
+          var btns = document.querySelectorAll(".shell-pill");
+          for (var i = 0; i < btns.length; i++) {
+            btns[i].setAttribute("aria-pressed", btns[i].getAttribute("data-shell") === style ? "true" : "false");
+          }
+          if (style !== "none" && !shellLoaded) loadShell();
+          else { applyShellVisibility(); refreshStatus(); }
+          if (!silent) pushHistory();
+        }
+        var shellPills = document.querySelectorAll(".shell-pill");
+        for (var spi = 0; spi < shellPills.length; spi++) {
+          shellPills[spi].addEventListener("click", function () { setShell(this.getAttribute("data-shell")); });
         }
 
         /* ================= Model load ================= */
 
         var loader = new THREE.GLTFLoader();
-        var customModel = false; /* true when a player-uploaded GLB is loaded */
-        /* loadBase: load a base model (the Neon base, or a player-uploaded
-           GLB) and wire it into the editor. Exposed as
-           window.NVAvatarEditor.loadCustomModel(url, label) so the upload
-           UI can swap the model. */
-        function loadBase(url, label) {
-          loader.load(
-          url,
+        loader.load(
+          MODEL_URL,
           function (gltf) {
-            model = gltf.scene;
+            baldModel = gltf.scene;
+            model = baldModel;
+            if (activeModelKey !== "bald") model.visible = false;
             scene.add(model);
             model.updateMatrixWorld(true);
 
@@ -1273,10 +1707,8 @@
               }
             });
 
-            computeViews();
-            goView("upper");
-            var loadingEl = document.getElementById("stageLoading");
-            if (loadingEl) loadingEl.hidden = true;
+            baldBox = modelBox;
+            if (activeModelKey === "bald") { computeViews(); goView("full"); }
             applyLighting(state.light);
             resize();
 
@@ -1284,242 +1716,234 @@
             baseStatus =
               "Model loaded · " + meshes.length + " meshes · " + morphMeshes.length +
               " with morphs · height " + size.y.toFixed(2) + " m";
+            if (state.hair) loadHair();
+            if (state.shell !== "none") loadShell();
             refreshStatus();
           },
           function (xhr) {
             if (xhr && xhr.total) {
-              var pct = Math.round((xhr.loaded / xhr.total) * 100);
-              statusEl.textContent = "Loading model… " + pct + "%";
-              var fill = document.getElementById("loadBarFill");
-              var pctEl = document.getElementById("loadPct");
-              if (fill) fill.style.width = pct + "%";
-              if (pctEl) pctEl.textContent = pct >= 100 ? "Parsing model…" : pct + "%";
+              statusEl.textContent = "Loading model… " + Math.round((xhr.loaded / xhr.total) * 100) + "%";
             }
           },
           function (err) {
             statusEl.textContent = "Error loading GLB: " + (err && err.message ? err.message : "unknown error");
             statusEl.className = "status err";
           }
-          );
-        }
-        /* Player upload hook: swap in a custom GLB. Detaches the current
-           model, then loads the new one. Morph sliders only move if the
-           custom GLB carries matching morph targets. */
-        window.NVAvatarEditor = window.NVAvatarEditor || {};
-        window.NVAvatarEditor.loadCustomModel = function (url, label) {
-          if (model) { scene.remove(model); model = null; }
-          customModel = url.indexOf("Neon_Ultra_Bald_Morphs_v01.glb") === -1;
-          baseStatus = label || "Custom model";
-          var loadingEl = document.getElementById("stageLoading");
-          if (loadingEl) loadingEl.hidden = false;
-          loadBase(url, label);
-        };
-        loadBase(MODEL_URL, "Neon base");
+        );
 
-        /* ================= In-browser auto-rig =================
-           Builds a humanoid skeleton from the loaded model's bounding
-           box and skins its meshes to the bones, so the model can be
-           posed. Assumes a humanoid standing in a T-pose.
-           How it is made to work (not a plain nearest-bone rig):
-           (1) weights come from the distance to the bone SEGMENT, not
-           to the joint point — the single biggest fix; (2) a smooth
-           Gaussian falloff (sigma ~0.08 x height) with the top 4
-           influences kept and normalised to sum 1; (3) 2 neighbour
-           smoothing passes over the mesh adjacency to kill seams;
-           (4) a symmetry pass mirroring L/R weights across the centre
-           plane. What would perfect it further: geodesic (surface)
-           distance instead of straight-line distance (the
-           Pinocchio / heat-diffusion method — the gold standard, so
-           arm vertices stop grabbing torso bones), a strict T-pose
-           requirement (arms down bleeds arm into torso), bone
-           influence radius limits, inside/outside volume tests, and
-           manual weight painting. */
-        var rigSkeleton = null, rigBones = {};
-        function boneSegmentDist(p, a, b) {
-          var abx = b.x - a.x, aby = b.y - a.y, abz = b.z - a.z;
-          var apx = p.x - a.x, apy = p.y - a.y, apz = p.z - a.z;
-          var len2 = abx * abx + aby * aby + abz * abz;
-          var t = len2 > 0 ? (apx * abx + apy * aby + apz * abz) / len2 : 0;
-          t = Math.max(0, Math.min(1, t));
-          var dx = apx - abx * t, dy = apy - aby * t, dz = apz - abz * t;
-          return Math.sqrt(dx * dx + dy * dy + dz * dz);
+        /* ================= Model switcher =================
+           Rigged Neon is now the default. Bald base keeps the 18 morph sliders,
+           hair and shell. Rigged Neon is an animation model:
+           no morphs, so the face/body sliders disable while it is up. */
+
+        var modelBtnBald = document.getElementById("modelBtnBald");
+        var modelBtnRigged = document.getElementById("modelBtnRigged");
+        var modelNoteEl = document.getElementById("modelNote");
+        var animNoteEl = document.getElementById("animNote");
+        var animBtnIdle = document.getElementById("animBtnIdle");
+        var animBtnPsionic = document.getElementById("animBtnPsionic");
+        var animBtnPlayPause = document.getElementById("animBtnPlayPause");
+
+        function setMorphEnabled(enabled) {
+          ["faceSliders", "bodySliders"].forEach(function (id) {
+            var c = document.getElementById(id);
+            if (!c) return;
+            var ins = c.querySelectorAll("input[type='range']");
+            for (var i = 0; i < ins.length; i++) ins[i].disabled = !enabled;
+          });
+          ["face", "body"].forEach(function (g) {
+            var bs = document.querySelectorAll('[data-randomize="' + g + '"], [data-reset="' + g + '"]');
+            for (var j = 0; j < bs.length; j++) bs[j].disabled = !enabled;
+          });
         }
-        function autoRigModel() {
-          var fb = document.getElementById("rigFeedback");
-          function say(m) { if (fb) fb.textContent = m; }
-          if (!model || !modelBox) { say("Load a model first."); return; }
-          if (rigSkeleton) { say("Already rigged — reset the pose or load another model to rig again."); return; }
-          var size = modelBox.getSize(new THREE.Vector3());
-          var H = size.y, y0 = modelBox.min.y;
-          var cx = (modelBox.min.x + modelBox.max.x) / 2;
-          var cz = (modelBox.min.z + modelBox.max.z) / 2;
-          var P = function (x, y, z) { return new THREE.Vector3(x, y, z); };
-          /* Bone layout: name, parent, absolute position (fractions of H). */
-          var defs = [
-            ["hips", null, P(cx, y0 + 0.52 * H, cz)],
-            ["spine", "hips", P(cx, y0 + 0.60 * H, cz)],
-            ["chest", "spine", P(cx, y0 + 0.70 * H, cz)],
-            ["neck", "chest", P(cx, y0 + 0.82 * H, cz)],
-            ["head", "neck", P(cx, y0 + 0.90 * H, cz)],
-            ["shoulderL", "chest", P(cx - 0.11 * H, y0 + 0.78 * H, cz)],
-            ["elbowL", "shoulderL", P(cx - 0.30 * H, y0 + 0.78 * H, cz)],
-            ["wristL", "elbowL", P(cx - 0.46 * H, y0 + 0.78 * H, cz)],
-            ["handL", "wristL", P(cx - 0.55 * H, y0 + 0.78 * H, cz)],
-            ["shoulderR", "chest", P(cx + 0.11 * H, y0 + 0.78 * H, cz)],
-            ["elbowR", "shoulderR", P(cx + 0.30 * H, y0 + 0.78 * H, cz)],
-            ["wristR", "elbowR", P(cx + 0.46 * H, y0 + 0.78 * H, cz)],
-            ["handR", "wristR", P(cx + 0.55 * H, y0 + 0.78 * H, cz)],
-            ["thighL", "hips", P(cx - 0.05 * H, y0 + 0.52 * H, cz)],
-            ["kneeL", "thighL", P(cx - 0.05 * H, y0 + 0.28 * H, cz)],
-            ["ankleL", "kneeL", P(cx - 0.05 * H, y0 + 0.06 * H, cz)],
-            ["toeL", "ankleL", P(cx - 0.05 * H, y0 + 0.02 * H, cz + 0.05 * H)],
-            ["thighR", "hips", P(cx + 0.05 * H, y0 + 0.52 * H, cz)],
-            ["kneeR", "thighR", P(cx + 0.05 * H, y0 + 0.28 * H, cz)],
-            ["ankleR", "kneeR", P(cx + 0.05 * H, y0 + 0.06 * H, cz)],
-            ["toeR", "ankleR", P(cx + 0.05 * H, y0 + 0.02 * H, cz + 0.05 * H)]
-          ];
-          /* Each bone's skinning segment runs to the next bone along its
-             chain; leaf bones (head, hand, toe) extend a short stub. */
-          var next = {
-            hips: "spine", spine: "chest", chest: "neck", neck: "head",
-            shoulderL: "elbowL", elbowL: "wristL", wristL: "handL",
-            shoulderR: "elbowR", elbowR: "wristR", wristR: "handR",
-            thighL: "kneeL", kneeL: "ankleL", ankleL: "toeL",
-            thighR: "kneeR", kneeR: "ankleR", ankleR: "toeR"
-          };
-          var stub = {
-            head: P(0, 0.10 * H, 0), handL: P(-0.05 * H, 0, 0),
-            handR: P(0.05 * H, 0, 0), toeL: P(0, 0, 0.05 * H), toeR: P(0, 0, 0.05 * H)
-          };
-          var abs = {};
-          defs.forEach(function (d) { abs[d[0]] = d[2]; });
-          /* Build the bone hierarchy (positions are parent-relative). */
-          var bones = [], byName = {};
-          defs.forEach(function (d) {
-            var b = new THREE.Bone();
-            b.name = d[0];
-            var parent = d[1] ? byName[d[1]] : null;
-            var p = d[2].clone();
-            if (parent) p.sub(abs[d[1]]);
-            b.position.copy(p);
-            if (parent) parent.add(b); else model.add(b);
-            bones.push(b); byName[d[0]] = b;
-          });
-          /* Bone segments in world space (the model sits at the origin). */
-          var segs = defs.map(function (d) {
-            var a = abs[d[0]];
-            var n = next[d[0]];
-            var b = n ? abs[n] : a.clone().add(stub[d[0]] || P(0, 0.05 * H, 0));
-            return { a: a, b: b };
-          });
-          var sigma = 0.08 * H, sigma2 = 2 * sigma * sigma;
-          var skinned = 0, verts = 0;
-          /* Skin every mesh, then swap it for a SkinnedMesh. */
-          var newMeshes = [];
-          meshes.forEach(function (mesh) {
-            var geo = mesh.geometry;
-            var pos = geo.attributes.position;
-            if (!pos) return;
-            var count = pos.count;
-            var skinIdx = new Uint16Array(count * 4);
-            var skinW = new Float32Array(count * 4);
-            var v = new THREE.Vector3(), wp = new THREE.Vector3();
-            var wList = [];
-            for (var i = 0; i < count; i++) {
-              v.fromBufferAttribute(pos, i);
-              wp.copy(v).applyMatrix4(mesh.matrixWorld);
-              wList.length = 0;
-              for (var b = 0; b < bones.length; b++) {
-                var d = boneSegmentDist(wp, segs[b].a, segs[b].b);
-                wList.push({ bone: b, w: Math.exp(-(d * d) / sigma2) });
-              }
-              wList.sort(function (a, b2) { return b2.w - a.w; });
-              var top = wList.slice(0, 4), sum = 0;
-              top.forEach(function (t) { sum += t.w; });
-              if (sum <= 0) sum = 1;
-              for (var k = 0; k < 4; k++) {
-                skinIdx[i * 4 + k] = top[k] ? top[k].bone : 0;
-                skinW[i * 4 + k] = top[k] ? top[k].w / sum : 0;
-              }
+
+        function updateModelUI() {
+          modelBtnBald.setAttribute("aria-pressed", activeModelKey === "bald" ? "true" : "false");
+          modelBtnRigged.setAttribute("aria-pressed", activeModelKey === "rigged" ? "true" : "false");
+          var riggedReady = activeModelKey === "rigged" && riggedLoaded;
+          animBtnIdle.disabled = !riggedReady;
+          animBtnPsionic.disabled = !riggedReady || !animActions.psionic;
+          animBtnPlayPause.disabled = !riggedReady;
+          modelNoteEl.textContent = activeModelKey === "bald"
+            ? "Morph base · 18 morphs · hair & shell attach here"
+            : (riggedLoading ? "Loading " + RIGGED_GLB + "…"
+              : "Rigged Neon · no morphs — sliders stay with Bald base");
+          animNoteEl.textContent = activeModelKey !== "rigged"
+            ? "Switch to Rigged Neon for animation."
+            : (!riggedLoaded ? "Loading rigged model…"
+              : (currentClipKey
+                  ? (currentClipKey === "psionic" ? "Psionic Idle" : "Idle") + (animPlaying ? " · looping" : " · paused")
+                  : "No clip playing — pick Idle or Psionic Idle."));
+          animBtnIdle.setAttribute("aria-pressed", currentClipKey === "idle" ? "true" : "false");
+          animBtnPsionic.setAttribute("aria-pressed", currentClipKey === "psionic" ? "true" : "false");
+          animBtnPlayPause.textContent = animPlaying ? "Pause" : "Play";
+        }
+
+        function activateModel(key) {
+          if (key === "bald" && baldModel) {
+            activeModelKey = "bald";
+            model = baldModel; modelBox = baldBox;
+            baldModel.visible = true;
+            if (riggedModel) riggedModel.visible = false;
+          } else if (key === "rigged" && riggedModel) {
+            activeModelKey = "rigged";
+            model = riggedModel; modelBox = riggedBox;
+            riggedModel.visible = true;
+            if (baldModel) baldModel.visible = false;
+          } else {
+            return;
+          }
+          computeViews();
+          goView("full");
+          setMorphEnabled(activeModelKey === "bald");
+          updateModelUI();
+          refreshStatus();
+          // Animation testing starts on the default idle loop.
+          if (activeModelKey === "rigged" && animMixer && !currentClipKey) playClip("idle");
+        }
+
+        function setModel(key) {
+          if (key === activeModelKey) { updateModelUI(); return; }
+          if (key === "bald") {
+            if (baldModel) activateModel("bald");
+            else { activeModelKey = "bald"; updateModelUI(); }
+            return;
+          }
+          if (riggedLoaded) { activateModel("rigged"); return; }
+          loadRigged(function () { activateModel("rigged"); });
+          updateModelUI();
+        }
+        modelBtnBald.addEventListener("click", function () { setModel("bald"); });
+        modelBtnRigged.addEventListener("click", function () { setModel("rigged"); });
+        // Rigged Neon is the default on load (Nov 11): load it now and
+        // activate it when ready; the bald base still loads eagerly above
+        // and stays switchable, with the 18 morph sliders on it.
+        // NOTE: do NOT call setModel("rigged") here — activeModelKey already
+        // starts "rigged", so setModel early-returns and loadRigged never
+        // runs (that was the empty-stage bug, verified Nov 11). Call
+        // loadRigged directly instead.
+        loadRigged(function () { activateModel("rigged"); });
+
+        /* ================= Rigged model + AnimationMixer ================= */
+
+        function setupAnimations(gltf) {
+          if (!gltf.animations || !gltf.animations.length || !riggedModel) return;
+          animMixer = new THREE.AnimationMixer(riggedModel);
+          // Clip names in the GLB: "idle.001" (~15.3 s) and a long
+          // prompt-named clip (~5.0 s) which is the Psionic Idle.
+          var idleClip = null, psionicClip = null, i, clip;
+          for (i = 0; i < gltf.animations.length; i++) {
+            clip = gltf.animations[i];
+            if (/^idle/i.test(clip.name)) idleClip = clip;
+          }
+          if (!idleClip) {
+            idleClip = gltf.animations[0];
+            for (i = 1; i < gltf.animations.length; i++) {
+              if (gltf.animations[i].duration > idleClip.duration) idleClip = gltf.animations[i];
             }
-            /* Neighbour smoothing: 2 passes averaging weights over the
-               mesh adjacency (from the index buffer), to kill seams. */
-            var idx = geo.index;
-            if (idx) {
-              var nbrs = [];
-              for (var n2 = 0; n2 < count; n2++) nbrs.push([]);
-              for (var f = 0; f < idx.count; f += 3) {
-                var a0 = idx.getX(f), a1 = idx.getX(f + 1), a2 = idx.getX(f + 2);
-                nbrs[a0].push(a1, a2); nbrs[a1].push(a0, a2); nbrs[a2].push(a0, a1);
-              }
-              for (var pass = 0; pass < 2; pass++) {
-                var nw = new Float32Array(count * 4);
-                for (var vi = 0; vi < count; vi++) {
-                  var list = nbrs[vi];
-                  if (!list.length) { for (var c = 0; c < 4; c++) nw[vi * 4 + c] = skinW[vi * 4 + c]; continue; }
-                  var acc = [0, 0, 0, 0];
-                  for (var q = 0; q < list.length; q++) {
-                    for (var c2 = 0; c2 < 4; c2++) acc[c2] += skinW[list[q] * 4 + c2];
-                  }
-                  /* Average with the vertex's own weights (keeps the
-                     smoothing from washing the rig out). */
-                  for (var c3 = 0; c3 < 4; c3++) {
-                    nw[vi * 4 + c3] = (skinW[vi * 4 + c3] + acc[c3] / list.length) / 2;
-                  }
-                }
-                skinW.set(nw);
-              }
-              /* Re-normalise each vertex to sum 1. */
-              for (var vi2 = 0; vi2 < count; vi2++) {
-                var s = skinW[vi2 * 4] + skinW[vi2 * 4 + 1] + skinW[vi2 * 4 + 2] + skinW[vi2 * 4 + 3];
-                if (s > 0) for (var c4 = 0; c4 < 4; c4++) skinW[vi2 * 4 + c4] /= s;
-              }
-            }
-            geo.setAttribute("skinIndex", new THREE.Uint16BufferAttribute(skinIdx, 4));
-            geo.setAttribute("skinWeight", new THREE.Float32BufferAttribute(skinW, 4));
-            var sk = new THREE.SkinnedMesh(geo, mesh.material);
-            sk.name = mesh.name;
-            sk.position.copy(mesh.position);
-            sk.rotation.copy(mesh.rotation);
-            sk.scale.copy(mesh.scale);
-            if (mesh.morphTargetDictionary) sk.morphTargetDictionary = mesh.morphTargetDictionary;
-            if (mesh.morphTargetInfluences) sk.morphTargetInfluences = mesh.morphTargetInfluences;
-            var parent = mesh.parent;
-            if (parent) { parent.remove(mesh); parent.add(sk); }
-            newMeshes.push(sk);
-            skinned++; verts += count;
+          }
+          for (i = 0; i < gltf.animations.length; i++) {
+            if (gltf.animations[i] !== idleClip) { psionicClip = gltf.animations[i]; break; }
+          }
+          animClips.idle = idleClip;
+          if (psionicClip) animClips.psionic = psionicClip;
+          Object.keys(animClips).forEach(function (k) {
+            var a = animMixer.clipAction(animClips[k]);
+            a.setLoop(THREE.LoopRepeat, Infinity);
+            animActions[k] = a;
           });
-          /* Re-point the editor's mesh lists at the skinned meshes. */
-          meshes = newMeshes;
-          morphMeshes = meshes.filter(function (m) { return m.morphTargetDictionary && m.morphTargetInfluences; });
-          Object.keys(PAIRS).forEach(function (n) {
-            pairMeshes[n] = meshes.filter(function (m) {
-              var nm = m.name.toLowerCase();
-              return PAIRS[n].parts.some(function (part) { return nm.indexOf(part) !== -1; });
-            });
+          animBtnIdle.textContent = "Idle · " + idleClip.duration.toFixed(1) + "s";
+          if (psionicClip) animBtnPsionic.textContent = "Psionic Idle · " + psionicClip.duration.toFixed(1) + "s";
+        }
+
+        function playClip(key) {
+          var action = animActions[key];
+          if (!action || !animMixer) return;
+          Object.keys(animActions).forEach(function (k) {
+            if (k !== key && animActions[k]) animActions[k].fadeOut(0.3);
           });
-          rigSkeleton = new THREE.Skeleton(bones);
-          rigBones = byName;
-          model.updateMatrixWorld(true);
-          meshes.forEach(function (m) { m.bind(rigSkeleton, m.matrixWorld); });
-          say("Rigged: " + bones.length + " bones · " + skinned + " meshes · " + verts + " vertices skinned. Try Raise left arm.");
+          action.enabled = true;
+          action.paused = false;
+          action.reset();
+          action.setLoop(THREE.LoopRepeat, Infinity);
+          action.fadeIn(0.3);
+          action.play();
+          currentClipKey = key;
+          animPlaying = true;
+          updateModelUI();
           refreshStatus();
         }
-        window.NVAvatarEditor.autoRig = autoRigModel;
-        window.NVAvatarEditor.raiseLeftArm = function () {
-          if (!rigBones.shoulderL) return;
-          rigBones.shoulderL.rotation.z = -Math.PI / 2 * 0.9;
-        };
-        window.NVAvatarEditor.resetPose = function () {
-          if (!rigBones.shoulderL) return;
-          rigBones.shoulderL.rotation.z = 0;
-        };
-        /* Loading a new model clears the rig (bones belong to the old one). */
-        var _origLoadCustom = window.NVAvatarEditor.loadCustomModel;
-        window.NVAvatarEditor.loadCustomModel = function (url, label) {
-          rigSkeleton = null; rigBones = {};
-          _origLoadCustom(url, label);
-        };
+        animBtnIdle.addEventListener("click", function () { playClip("idle"); });
+        animBtnPsionic.addEventListener("click", function () { playClip("psionic"); });
+        animBtnPlayPause.addEventListener("click", function () {
+          var a = animActions[currentClipKey || "idle"];
+          if (!a) { playClip("idle"); return; }
+          if (!currentClipKey) { playClip("idle"); return; }
+          a.paused = !a.paused;
+          animPlaying = !a.paused;
+          updateModelUI();
+          refreshStatus();
+        });
+
+        function loadRigged(done) {
+          if (riggedLoaded) { if (done) done(); return; }
+          if (done) riggedPending = done;
+          if (riggedLoading) return;
+          riggedLoading = true;
+          riggedError = "";
+          refreshStatus();
+          updateModelUI();
+          new THREE.GLTFLoader().load(
+            RIGGED_URL,
+            function (gltf) {
+              riggedLoading = false; riggedLoaded = true; riggedError = "";
+              riggedModel = gltf.scene;
+              riggedModel.visible = false;
+              scene.add(riggedModel);
+              riggedModel.updateMatrixWorld(true);
+              // Bounding box from base positions only, same method as the
+              // bald base, so the camera presets frame the rigged model.
+              riggedBox = new THREE.Box3();
+              var tmpV = new THREE.Vector3();
+              var meshCount = 0, boneCount = 0;
+              riggedModel.traverse(function (obj) {
+                if (obj.isBone) boneCount++;
+                if (!obj.isMesh) return;
+                meshCount++;
+                var pos = obj.geometry && obj.geometry.attributes.position;
+                if (!pos) return;
+                for (var vi = 0; vi < pos.count; vi++) {
+                  tmpV.fromBufferAttribute(pos, vi).applyMatrix4(obj.matrixWorld);
+                  riggedBox.expandByPoint(tmpV);
+                }
+              });
+              setupAnimations(gltf);
+              riggedStatus =
+                "Rigged Neon loaded · " + meshCount + (meshCount === 1 ? " mesh" : " meshes") +
+                " · " + boneCount + " joints · " + gltf.animations.length + " animations";
+              var cb = riggedPending; riggedPending = null;
+              refreshStatus();
+              if (cb) cb(); else updateModelUI();
+            },
+            undefined,
+            function (err) {
+              riggedLoading = false;
+              riggedError = err && err.message ? err.message : "unknown error";
+              riggedPending = null;
+              refreshStatus();
+              updateModelUI();
+            }
+          );
+        }
+
+        /* Idle return, the camera-return tween, the turntable and the
+           focus presets are NOT re-implemented here — they live in the
+           EditorCamera module above, scoped to this editor screen. The
+           module fires its onEnterIdle bridge (wired at creation) to
+           start the default animation loop; animation state itself
+           stays in this section, camera state stays in the module. */
+
+        updateModelUI();
 
         /* ================= Damped morph application =================
            Every frame, each morph's live influence eases toward its target
@@ -1583,231 +2007,149 @@
           requestAnimationFrame(animate);
           var dt = Math.min(clock.getDelta(), 0.05);
           applyInfluences(dt);
-          controls.update();
+          if (animMixer && riggedModel && riggedModel.visible) animMixer.update(dt);
+          EditorCamera.update(dt);
           renderer.render(scene, camera);
         })();
       })();
     </script>
     <script>
-    /* IA Symbiont picker — avatar editor.
-       The symbiont here is IMMOBILIZED: it sits in the picker and never
-       roams, so it never gets in the way. Picking one saves it to the same
-       key Settings uses ('nv_symbiont_base') and plays a chime. */
-    (function () {
-      var picks = Array.prototype.slice.call(document.querySelectorAll('.ia-pick'));
-      if (!picks.length) return;
-      var saved = '';
-      try { saved = localStorage.getItem('nv_symbiont_base') || ''; } catch (e) {}
-      function mark(base) {
-        picks.forEach(function (b) {
-          b.setAttribute('aria-pressed', b.getAttribute('data-ia') === base ? 'true' : 'false');
+      /* Infinity6 shell extras: Radio/Hexa dock wiring, Cmd+K palette.
+         Everything delegates to the console's existing controls — no state of its own. */
+      (function () {
+        "use strict";
+        function $(s, r) { return (r || document).querySelector(s); }
+        function $all(s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
+        function click(sel) { var el = typeof sel === "string" ? $(sel) : sel; if (el && !el.disabled) el.click(); }
+
+        /* Hexa dock status mirrors the stage load status */
+        var dockStatus = document.getElementById("dockStatus");
+        var loadStatus = document.getElementById("loadStatus");
+        function syncDock() { if (dockStatus && loadStatus) dockStatus.textContent = loadStatus.textContent.replace(/^Error loading /, "ERR · "); }
+        if (loadStatus && window.MutationObserver) new MutationObserver(syncDock).observe(loadStatus, { childList: true, characterData: true, subtree: true });
+        syncDock(); setInterval(syncDock, 1500);
+
+        /* Radio dock: lighting + turntable delegate to the HUD controls */
+        $all("[data-dock-light]").forEach(function (b) {
+          b.addEventListener("click", function () { click('.light-btn[data-light="' + b.getAttribute("data-dock-light") + '"]'); });
         });
-      }
-      var audioCtx = null;
-      function chime() { if (window.NVSymbiontChime) return window.NVSymbiontChime();
-        try {
-          var AC = window.AudioContext || window.webkitAudioContext;
-          if (!AC) return;
-          if (!audioCtx) audioCtx = new AC();
-          if (audioCtx.state === 'suspended') audioCtx.resume();
-          var t = audioCtx.currentTime;
-          [[660, 0], [880, 0.09]].forEach(function (n) {
-            var o = audioCtx.createOscillator(), g = audioCtx.createGain();
-            o.type = 'sine'; o.frequency.value = n[0];
-            g.gain.setValueAtTime(0.0001, t + n[1]);
-            g.gain.exponentialRampToValueAtTime(0.12, t + n[1] + 0.02);
-            g.gain.exponentialRampToValueAtTime(0.0001, t + n[1] + 0.35);
-            o.connect(g); g.connect(audioCtx.destination);
-            o.start(t + n[1]); o.stop(t + n[1] + 0.4);
+        var dockTurn = document.getElementById("dockTurntable");
+        var hudTurn = document.getElementById("btnTurntable");
+        if (dockTurn && hudTurn) {
+          dockTurn.addEventListener("click", function () { hudTurn.click(); });
+          new MutationObserver(function () {
+            var on = hudTurn.getAttribute("aria-pressed") === "true";
+            dockTurn.setAttribute("aria-pressed", on ? "true" : "false");
+            dockTurn.textContent = on ? "Turntable: On" : "Turntable";
+          }).observe(hudTurn, { attributes: true, attributeFilter: ["aria-pressed"] });
+        }
+        var dockUndo = document.getElementById("dockUndo"), dockRedo = document.getElementById("dockRedo");
+        var hudUndo = document.getElementById("btnUndo"), hudRedo = document.getElementById("btnRedo");
+        if (dockUndo && hudUndo) {
+          dockUndo.addEventListener("click", function () { hudUndo.click(); });
+          dockRedo.addEventListener("click", function () { hudRedo.click(); });
+          var syncUR = function () { dockUndo.disabled = hudUndo.disabled; dockRedo.disabled = hudRedo.disabled; };
+          new MutationObserver(syncUR).observe(hudUndo, { attributes: true, attributeFilter: ["disabled"] });
+          new MutationObserver(syncUR).observe(hudRedo, { attributes: true, attributeFilter: ["disabled"] });
+          syncUR();
+        }
+        /* ---------- Cmd+K command palette ---------- */
+        function openAcc(name) {
+          var acc = $('.acc[data-acc="' + name + '"]');
+          if (acc && !acc.classList.contains("open")) $(".acc-toggle", acc).click();
+          if (acc) acc.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        }
+        var COMMANDS = [
+          { cat: "Camera", label: "Focus: Head / Face", run: function () { click('.cam-btn[data-view="head"]'); } },
+          { cat: "Camera", label: "Focus: Hairline", run: function () { click('.cam-btn[data-view="hairline"]'); } },
+          { cat: "Camera", label: "Focus: Upper Body", run: function () { click('.cam-btn[data-view="upper"]'); } },
+          { cat: "Camera", label: "Focus: Full Body", run: function () { click('.cam-btn[data-view="full"]'); } },
+          { cat: "Camera", label: "Focus: 3/4 Turnaround", run: function () { click('.cam-btn[data-view="turn"]'); } },
+          { cat: "Camera", label: "Toggle turntable auto-rotate", run: function () { click("#btnTurntable"); } },
+          { cat: "Model", label: "Model: Bald base (morphs)", run: function () { click("#modelBtnBald"); } },
+          { cat: "Model", label: "Model: Rigged Neon", run: function () { click("#modelBtnRigged"); } },
+          { cat: "Animation", label: "Play clip: Idle loop (default)", run: function () { click("#animBtnIdle"); } },
+          { cat: "Animation", label: "Play clip: Psionic Idle", run: function () { click("#animBtnPsionic"); } },
+          { cat: "Animation", label: "Play / pause animation", run: function () { click("#animBtnPlayPause"); } },
+          { cat: "Idle", label: "Idle return: trigger camera return now", run: function () { click("#btnIdleNow"); } },
+          { cat: "Idle", label: "Idle return: toggle on / off", run: function () { click("#btnIdleToggle"); } },
+          { cat: "Lighting", label: "Studio Neutral (key / fill / rim)", run: function () { click('.light-btn[data-light="neutral"]'); } },
+          { cat: "Lighting", label: "Neon Cyber Rim", run: function () { click('.light-btn[data-light="neon"]'); } },
+          { cat: "Lighting", label: "Deep Chiaroscuro", run: function () { click('.light-btn[data-light="chiaroscuro"]'); } },
+          { cat: "Morphs", label: "Toggle Symmetrical / Asymmetrical", run: function () { click("#btnSymmetry"); } },
+          { cat: "Morphs", label: "Randomize Face group", run: function () { openAcc("face"); click('[data-randomize="face"]'); } },
+          { cat: "Morphs", label: "Reset Face group", run: function () { openAcc("face"); click('[data-reset="face"]'); } },
+          { cat: "Morphs", label: "Randomize Body group", run: function () { openAcc("body"); click('[data-randomize="body"]'); } },
+          { cat: "Morphs", label: "Reset Body group", run: function () { openAcc("body"); click('[data-reset="body"]'); } },
+          { cat: "Hair", label: "Randomize Hair & Shell", run: function () { openAcc("hair"); click('[data-randomize="hair"]'); } },
+          { cat: "Hair", label: "Reset Hair & Shell", run: function () { openAcc("hair"); click('[data-reset="hair"]'); } },
+          { cat: "Hair", label: "Hair: Neon braids on", run: function () { openAcc("hair"); click('.hair-pill[data-hair="braids"]'); } },
+          { cat: "Hair", label: "Hair: None / bald", run: function () { openAcc("hair"); click('.hair-pill[data-hair="none"]'); } },
+          { cat: "Hair", label: "Baby-hair: None", run: function () { openAcc("hair"); click('.shell-pill[data-shell="none"]'); } },
+          { cat: "Hair", label: "Baby-hair: Soft Swoop", run: function () { openAcc("hair"); click('.shell-pill[data-shell="swoop"]'); } },
+          { cat: "Hair", label: "Baby-hair: Delicate Curls", run: function () { openAcc("hair"); click('.shell-pill[data-shell="curls"]'); } },
+          { cat: "Hair", label: "Baby-hair: Feathered Wisps", run: function () { openAcc("hair"); click('.shell-pill[data-shell="wisps"]'); } },
+          { cat: "History", label: "Undo", run: function () { click("#btnUndo"); } },
+          { cat: "History", label: "Redo", run: function () { click("#btnRedo"); } },
+          { cat: "Face ID", label: "Copy Face ID to clipboard", run: function () { openAcc("preset"); click("#btnCopy"); } },
+          { cat: "Face ID", label: "Download JSON preset", run: function () { openAcc("preset"); click("#btnDownload"); } },
+          { cat: "Face ID", label: "Import Face ID… (opens panel)", run: function () { openAcc("preset"); var t = $("#importBox"); if (t) t.focus(); } },
+          { cat: "Face ID", label: "Reset all morphs & attachments", run: function () { openAcc("preset"); click("#btnReset"); } },
+          { cat: "Panel", label: "Open Face accordion (11 morphs)", run: function () { openAcc("face"); } },
+          { cat: "Panel", label: "Open Body accordion (7 morphs)", run: function () { openAcc("body"); } },
+          { cat: "Panel", label: "Open Hair & Shell accordion", run: function () { openAcc("hair"); } },
+          { cat: "Panel", label: "Open Preset / Face ID accordion", run: function () { openAcc("preset"); } }
+        ];
+        var backdrop = document.getElementById("paletteBackdrop");
+        var input = document.getElementById("paletteInput");
+        var list = document.getElementById("paletteList");
+        var filtered = COMMANDS.slice(), activeIdx = 0;
+        function renderPalette() {
+          list.innerHTML = "";
+          if (!filtered.length) {
+            var li = document.createElement("li"); li.className = "palette-empty"; li.textContent = "// NO MATCHING COMMAND"; list.appendChild(li); return;
+          }
+          filtered.forEach(function (cmd, i) {
+            var li = document.createElement("li");
+            var b = document.createElement("button");
+            b.type = "button"; b.className = "palette-item" + (i === activeIdx ? " active" : "");
+            var name = document.createElement("span"); name.textContent = cmd.label;
+            var cat = document.createElement("span"); cat.className = "cat"; cat.textContent = cmd.cat;
+            b.appendChild(name); b.appendChild(cat);
+            b.addEventListener("click", function () { runCmd(i); });
+            b.addEventListener("mousemove", function () { if (activeIdx !== i) { activeIdx = i; renderPalette(); } });
+            li.appendChild(b); list.appendChild(li);
           });
-        } catch (e) {}
-      }
-      picks.forEach(function (b) {
-        b.addEventListener('click', function () {
-          var base = b.getAttribute('data-ia');
-          mark(base);
-          try { localStorage.setItem('nv_symbiont_base', base); } catch (e) {}
-          /* Recolor the whole system to the pick right now. */
-          try { if (window.NVSymbiontTheme) window.NVSymbiontTheme.apply(); } catch (e2) {}
-          chime();
+        }
+        function filterPalette() {
+          var q = input.value.trim().toLowerCase();
+          filtered = COMMANDS.filter(function (c) { return !q || (c.cat + " " + c.label).toLowerCase().indexOf(q) !== -1; });
+          activeIdx = 0; renderPalette();
+        }
+        function openPalette() {
+          backdrop.hidden = false; input.value = ""; filterPalette();
+          setTimeout(function () { input.focus(); }, 0);
+        }
+        function closePalette() { backdrop.hidden = true; }
+        function runCmd(i) { var cmd = filtered[i]; closePalette(); if (cmd) cmd.run(); }
+        input.addEventListener("input", filterPalette);
+        input.addEventListener("keydown", function (e) {
+          if (e.key === "ArrowDown") { e.preventDefault(); activeIdx = Math.min(activeIdx + 1, filtered.length - 1); renderPalette(); }
+          else if (e.key === "ArrowUp") { e.preventDefault(); activeIdx = Math.max(activeIdx - 1, 0); renderPalette(); }
+          else if (e.key === "Enter") { e.preventDefault(); runCmd(activeIdx); }
         });
-      });
-      mark(saved);
-    })();
+        backdrop.addEventListener("click", function (e) { if (e.target === backdrop) closePalette(); });
+        document.getElementById("btnPalette").addEventListener("click", openPalette);
+        document.addEventListener("keydown", function (e) {
+          var mod = e.ctrlKey || e.metaKey;
+          if (mod && e.key.toLowerCase() === "k") {
+            e.preventDefault();
+            if (backdrop.hidden) openPalette(); else closePalette();
+          } else if (e.key === "Escape" && !backdrop.hidden) {
+            closePalette();
+          }
+        });
+      })();
     </script>
-    <script>
-    /* Player GLB upload — 7-day membership gate.
-       Uploads unlock only after the account is at least 7 days old
-       (Supabase user.created_at). Under 7 days, or signed out, the
-       upload stays locked with a message saying when it unlocks. */
-    (function () {
-      var SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
-      var input = document.getElementById('glbUpload');
-      var label = document.getElementById('glbUploadLabel');
-      var gateMsg = document.getElementById('uploadGateMsg');
-      var feedback = document.getElementById('uploadFeedback');
-      var restoreBtn = document.getElementById('btnRestoreBase');
-      if (!input || !label || !gateMsg) return;
-      function setLocked(msg) {
-        input.disabled = true;
-        label.style.opacity = '0.45';
-        label.style.cursor = 'not-allowed';
-        gateMsg.textContent = msg;
-      }
-      function setUnlocked() {
-        input.disabled = false;
-        label.style.opacity = '';
-        label.style.cursor = 'pointer';
-        gateMsg.textContent = 'Uploads unlocked — your account is over a week old.';
-      }
-      function checkGate() {
-        try {
-          var client = (typeof getClient === 'function') ? getClient() : null;
-          if (!client) { setLocked('Sign in to upload your own GLB.'); return; }
-          client.auth.getSession().then(function (res) {
-            var user = res && res.data && res.data.session && res.data.session.user;
-            if (!user) { setLocked('Sign in to upload your own GLB.'); return; }
-            var created = user.created_at ? new Date(user.created_at).getTime() : NaN;
-            if (isNaN(created)) { setLocked('Could not confirm your account age — uploads locked.'); return; }
-            var ageMs = Date.now() - created;
-            if (ageMs >= SEVEN_DAYS_MS) { setUnlocked(); return; }
-            var unlockAt = new Date(created + SEVEN_DAYS_MS);
-            setLocked('Uploads unlock after you have been a member for a week — yours unlock ' + unlockAt.toLocaleDateString() + '.');
-          }).catch(function () {
-            setLocked('Could not confirm your account age — uploads locked.');
-          });
-        } catch (e) {
-          setLocked('Could not confirm your account age — uploads locked.');
-        }
-      }
-      /* Convert a non-GLB mesh file to GLB in the browser, then load it.
-         OBJ and STL are parsed with the matching three.js r147 loader and
-         exported to binary GLB with GLTFExporter. GLB loads directly. */
-      function loadFileAsModel(file) {
-        if (!window.NVAvatarEditor || !window.NVAvatarEditor.loadCustomModel) {
-          if (feedback) feedback.textContent = 'The editor is not ready yet — try again in a moment.';
-          return;
-        }
-        var name = file.name || '';
-        if (/\.glb$/i.test(name) || /\.gltf$/i.test(name)) {
-          var url = URL.createObjectURL(file);
-          window.NVAvatarEditor.loadCustomModel(url, 'Custom model · ' + name);
-          if (feedback) feedback.textContent = 'Loading ' + name + '…';
-          return;
-        }
-        if (/\.obj$/i.test(name)) {
-          var reader = new FileReader();
-          reader.onload = function () {
-            try {
-              var obj = new THREE.OBJLoader().parse(reader.result);
-              exportSceneToGlb(obj, name);
-            } catch (e) {
-              if (feedback) feedback.textContent = 'Could not read that .obj file.';
-            }
-          };
-          reader.readAsText(file);
-          return;
-        }
-        if (/\.stl$/i.test(name)) {
-          var reader2 = new FileReader();
-          reader2.onload = function () {
-            try {
-              var geo = new THREE.STLLoader().parse(reader2.result);
-              var mesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: 0xcccccc }));
-              mesh.name = name.replace(/\.stl$/i, '');
-              var group = new THREE.Group();
-              group.add(mesh);
-              exportSceneToGlb(group, name);
-            } catch (e) {
-              if (feedback) feedback.textContent = 'Could not read that .stl file.';
-            }
-          };
-          reader2.readAsArrayBuffer(file);
-          return;
-        }
-        if (feedback) feedback.textContent = 'That file type is not supported — use .glb, .obj, .stl or .gltf.';
-      }
-      function exportSceneToGlb(scene, name) {
-        if (!THREE.GLTFExporter) {
-          if (feedback) feedback.textContent = 'The GLB exporter did not load — try again.';
-          return;
-        }
-        if (feedback) feedback.textContent = 'Converting ' + name + ' to GLB…';
-        new THREE.GLTFExporter().parse(scene, function (result) {
-          var blob = new Blob([result], { type: 'model/gltf-binary' });
-          var url = URL.createObjectURL(blob);
-          window.NVAvatarEditor.loadCustomModel(url, 'Custom model · ' + name + ' (converted)');
-          if (feedback) feedback.textContent = 'Loading ' + name + ' (converted to GLB)…';
-        }, { binary: true });
-      }
-      input.addEventListener('change', function () {
-        var file = input.files && input.files[0];
-        if (!file) return;
-        loadFileAsModel(file);
-        input.value = '';
-      });
-      /* Load a model from anywhere — paste a link to a .glb file. The
-         loader fetches it directly; a link that does not allow
-         cross-origin fetch will fail, and the message says so. */
-      var urlInput = document.getElementById('modelUrlInput');
-      var loadUrlBtn = document.getElementById('btnLoadUrl');
-      function sizeUrlInput() {
-        if (!urlInput) return;
-        urlInput.style.width = Math.max(1, (urlInput.value || urlInput.placeholder || '').length + 1) + 'ch';
-      }
-      if (urlInput) {
-        sizeUrlInput();
-        urlInput.addEventListener('input', sizeUrlInput);
-        urlInput.addEventListener('keydown', function (e) {
-          if (e.key === 'Enter') { e.preventDefault(); if (loadUrlBtn) loadUrlBtn.click(); }
-        });
-      }
-      if (loadUrlBtn) {
-        loadUrlBtn.addEventListener('click', function () {
-          var u = urlInput ? urlInput.value.trim() : '';
-          if (!u) { if (feedback) feedback.textContent = 'Paste a link to a .glb file first.'; return; }
-          if (!/^https?:\/\//i.test(u)) { if (feedback) feedback.textContent = 'That does not look like a link — it needs to start with http:// or https://.'; return; }
-          if (!window.NVAvatarEditor || !window.NVAvatarEditor.loadCustomModel) {
-            if (feedback) feedback.textContent = 'The editor is not ready yet — try again in a moment.';
-            return;
-          }
-          window.NVAvatarEditor.loadCustomModel(u, 'Custom model · ' + u);
-          if (feedback) feedback.textContent = 'Loading ' + u + '… (if it fails, the link may not allow cross-origin loading.)';
-        });
-      }
-      /* Auto-rig buttons. */
-      var rigBtn = document.getElementById('btnAutoRig');
-      var raiseBtn = document.getElementById('btnRaiseArm');
-      var resetPoseBtn = document.getElementById('btnResetPose');
-      var rigFb = document.getElementById('rigFeedback');
-      if (rigBtn) {
-        rigBtn.addEventListener('click', function () {
-          if (window.NVAvatarEditor && window.NVAvatarEditor.autoRig) {
-            if (rigFb) rigFb.textContent = 'Rigging…';
-            window.NVAvatarEditor.autoRig();
-          }
-        });
-      }
-      if (raiseBtn) {
-        raiseBtn.addEventListener('click', function () {
-          if (window.NVAvatarEditor && window.NVAvatarEditor.raiseLeftArm) window.NVAvatarEditor.raiseLeftArm();
-        });
-      }
-      if (resetPoseBtn) {
-        resetPoseBtn.addEventListener('click', function () {
-          if (window.NVAvatarEditor && window.NVAvatarEditor.resetPose) window.NVAvatarEditor.resetPose();
-        });
-      }
-      if (restoreBtn) {
-        restoreBtn.addEventListener('click', function () {
-          if (window.NVAvatarEditor && window.NVAvatarEditor.loadCustomModel) {
-            window.NVAvatarEditor.loadCustomModel('assets/Neon_Ultra_Bald_Morphs_v01.glb', 'Neon base');
-            if (feedback) feedback.textContent = 'Back to the Neon base.';
-          }
-        });
-      }
-      checkGate();
-    })();
-    </script>
-</body>
+  </body>
 </html>
