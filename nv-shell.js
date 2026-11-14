@@ -111,8 +111,16 @@
 
   function init() {
     /* Ticker + palette are shared modules; load them if the page did not
-       include them directly (the shell still works if they are present). */
-    ensureScript(base + 'nv-ticker.js', '__nvTickerLoaded');
+       include them directly (the shell still works if they are present).
+       Phase 1 (Nov 13, 2026): pages with data-nv-no-ticker on <html>
+       (the Gigas Garden game frame; My Room) get NO ticker — this module
+       does not load nv-ticker.js there at all, and nv-ticker.js itself
+       also refuses to render on those routes. The element is removed,
+       never created — not hidden, and no replacement strip is added.
+       The dock and the palette still load as normal. */
+    if (!document.documentElement.hasAttribute('data-nv-no-ticker')) {
+      ensureScript(base + 'nv-ticker.js', '__nvTickerLoaded');
+    }
     ensureScript(base + 'nv-commands.js', '__nvCommandsLoaded');
     mountDock();
   }
