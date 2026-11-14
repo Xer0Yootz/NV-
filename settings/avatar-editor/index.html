@@ -29,20 +29,20 @@
     <style>
       :root {
         --bg: #07070c;
-        --panel: #101019;
-        --panel-2: #15151f;
-        --edge: #2a2a3d;
-        --edge-hot: #3d3d5c;
+        --panel: #101014;
+        --panel-2: #15151a;
+        --edge: #2a2a32;
+        --edge-hot: #3d3d46;
         --ink: #e9f4f6;
         --ink-soft: #9aa7b4;
         --ink-dim: #626d7d;
         --cyan: #22d3ee;
         --magenta: #f471b5;
-        --violet: #a78bfa;
+        --violet: #c9c9d4;
         --warn-bg: #f5c542;
         --warn-ink: #231a02;
         --stage: #808080;
-        --track: #262633;
+        --track: #26262b;
         --field: #0b0b13;
         --ok: #34d399;
         --err: #fb7185;
@@ -54,7 +54,7 @@
       body {
         margin: 0;
         background:
-          repeating-linear-gradient(0deg, transparent 0 47px, rgba(167, 139, 250, 0.05) 47px 48px),
+          repeating-linear-gradient(0deg, transparent 0 47px, rgba(201, 201, 212, 0.05) 47px 48px),
           repeating-linear-gradient(90deg, transparent 0 47px, rgba(34, 211, 238, 0.05) 47px 48px),
           var(--bg);
         color: var(--ink);
@@ -231,7 +231,7 @@
       .panel {
         background: var(--panel);
         border: 1px solid var(--edge);
-        box-shadow: 8px 8px 0 rgba(167, 139, 250, 0.12);
+        box-shadow: 8px 8px 0 rgba(201, 201, 212, 0.12);
       }
       .toolbar {
         display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
@@ -333,8 +333,8 @@
       html { background: var(--nv-obsidian); }
       body {
         background:
-          repeating-linear-gradient(0deg, transparent 0 47px, rgba(139, 92, 246, 0.06) 47px 48px),
-          repeating-linear-gradient(90deg, transparent 0 47px, rgba(139, 92, 246, 0.045) 47px 48px),
+          repeating-linear-gradient(0deg, transparent 0 47px, rgba(180, 182, 194, 0.06) 47px 48px),
+          repeating-linear-gradient(90deg, transparent 0 47px, rgba(180, 182, 194, 0.045) 47px 48px),
           var(--nv-obsidian);
         color: var(--nv-ink);
         font-family: var(--nv-font-terminal);
@@ -408,9 +408,9 @@
         letter-spacing: 0.04em; background: var(--nv-obsidian-4); color: var(--nv-ink);
         border: 1px solid var(--nv-border-hot); padding: 4px 12px; text-transform: uppercase;
       }
-      button:hover { border-color: var(--nv-cyan); color: #c9f7ff; background: #1b1b30; }
-      button.primary { background: var(--nv-violet); border-color: var(--nv-violet-bright); color: #0d0619; }
-      button.primary:hover { background: var(--nv-violet-bright); color: #0d0619; }
+      button:hover { border-color: var(--nv-cyan); color: #c9f7ff; background: #1b1b24; }
+      button.primary { background: var(--nv-violet); border-color: var(--nv-violet-bright); color: #0d0d12; }
+      button.primary:hover { background: var(--nv-violet-bright); color: #0d0d12; }
       button[aria-pressed="true"] { background: var(--nv-cyan); border-color: var(--nv-cyan); color: #03222b; box-shadow: none; }
       button.primary[aria-pressed="true"] { background: var(--nv-cyan); }
       .mini { font-size: 15px; padding: 2px 8px; }
@@ -482,7 +482,7 @@
       .palette-backdrop[hidden] { display: none; }
       .palette {
         width: min(620px, 100%); background: var(--nv-obsidian-2);
-        border: 1px solid var(--nv-violet); box-shadow: 8px 8px 0 rgba(139, 92, 246, 0.25);
+        border: 1px solid var(--nv-violet); box-shadow: 8px 8px 0 rgba(180, 182, 194, 0.25);
         font-family: var(--nv-font-terminal);
       }
       .palette-head { display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--nv-border); padding: 10px 12px; }
@@ -649,7 +649,7 @@
 
     <nav class="nv-dock" aria-label="Radio and Hexa dock">
       <div class="dock-cell dock-hexa">
-        <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><polygon points="13,1.5 22.5,7 22.5,19 13,24.5 3.5,19 3.5,7" fill="none" stroke="#a78bfa" stroke-width="1.6"/><polygon points="13,7 18,10 18,16 13,19 8,16 8,10" fill="none" stroke="#22d3ee" stroke-width="1.2"/><circle cx="13" cy="13" r="1.8" fill="#f471b5"/></svg>
+        <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><polygon points="13,1.5 22.5,7 22.5,19 13,24.5 3.5,19 3.5,7" fill="none" stroke="#c9c9d4" stroke-width="1.6"/><polygon points="13,7 18,10 18,16 13,19 8,16 8,10" fill="none" stroke="#22d3ee" stroke-width="1.2"/><circle cx="13" cy="13" r="1.8" fill="#f471b5"/></svg>
         <span><span class="dock-label">Hexa</span><br /><span class="dock-status" id="dockStatus">SYNCING…</span></span>
       </div>
       <div class="dock-cell">
@@ -663,7 +663,7 @@
       <div class="dock-cell">
         <button type="button" id="dockUndo">↩ Undo</button>
         <button type="button" id="dockRedo">↪ Redo</button>
-        <button type="button" id="btnPalette"><svg class="cmdk-hexa" width="20" height="20" viewBox="0 0 26 26" aria-hidden="true"><polygon points="13,1.5 22.5,7 22.5,19 13,24.5 3.5,19 3.5,7" fill="none" stroke="#a78bfa" stroke-width="1.6"/><polygon points="13,7 18,10 18,16 13,19 8,16 8,10" fill="none" stroke="#22d3ee" stroke-width="1.2"/><circle cx="13" cy="13" r="1.8" fill="#f471b5"/></svg> Command</button>
+        <button type="button" id="btnPalette"><svg class="cmdk-hexa" width="20" height="20" viewBox="0 0 26 26" aria-hidden="true"><polygon points="13,1.5 22.5,7 22.5,19 13,24.5 3.5,19 3.5,7" fill="none" stroke="#c9c9d4" stroke-width="1.6"/><polygon points="13,7 18,10 18,16 13,19 8,16 8,10" fill="none" stroke="#22d3ee" stroke-width="1.2"/><circle cx="13" cy="13" r="1.8" fill="#f471b5"/></svg> Command</button>
       </div>
     </nav>
     </div><!-- /infinity6-shell -->
@@ -671,12 +671,12 @@
     <div class="palette-backdrop" id="paletteBackdrop" hidden>
       <div class="palette" role="dialog" aria-modal="true" aria-label="Command palette">
         <div class="palette-head">
-          <span class="sig" aria-hidden="true"><svg class="cmdk-hexa" width="20" height="20" viewBox="0 0 26 26" aria-hidden="true"><polygon points="13,1.5 22.5,7 22.5,19 13,24.5 3.5,19 3.5,7" fill="none" stroke="#a78bfa" stroke-width="1.6"/><polygon points="13,7 18,10 18,16 13,19 8,16 8,10" fill="none" stroke="#22d3ee" stroke-width="1.2"/><circle cx="13" cy="13" r="1.8" fill="#f471b5"/></svg></span>
+          <span class="sig" aria-hidden="true"><svg class="cmdk-hexa" width="20" height="20" viewBox="0 0 26 26" aria-hidden="true"><polygon points="13,1.5 22.5,7 22.5,19 13,24.5 3.5,19 3.5,7" fill="none" stroke="#c9c9d4" stroke-width="1.6"/><polygon points="13,7 18,10 18,16 13,19 8,16 8,10" fill="none" stroke="#22d3ee" stroke-width="1.2"/><circle cx="13" cy="13" r="1.8" fill="#f471b5"/></svg></span>
           <input type="text" id="paletteInput" placeholder="Type a command — camera, light, morph…" autocomplete="off" spellcheck="false" />
           <kbd>ESC</kbd>
         </div>
         <ul class="palette-list" id="paletteList"></ul>
-        <div class="palette-foot"><span>↑↓ Navigate</span><span>↵ Run</span><span>ESC Close</span><span><svg class="cmdk-hexa" width="20" height="20" viewBox="0 0 26 26" aria-hidden="true"><polygon points="13,1.5 22.5,7 22.5,19 13,24.5 3.5,19 3.5,7" fill="none" stroke="#a78bfa" stroke-width="1.6"/><polygon points="13,7 18,10 18,16 13,19 8,16 8,10" fill="none" stroke="#22d3ee" stroke-width="1.2"/><circle cx="13" cy="13" r="1.8" fill="#f471b5"/></svg> / Ctrl+K Toggle</span></div>
+        <div class="palette-foot"><span>↑↓ Navigate</span><span>↵ Run</span><span>ESC Close</span><span><svg class="cmdk-hexa" width="20" height="20" viewBox="0 0 26 26" aria-hidden="true"><polygon points="13,1.5 22.5,7 22.5,19 13,24.5 3.5,19 3.5,7" fill="none" stroke="#c9c9d4" stroke-width="1.6"/><polygon points="13,7 18,10 18,16 13,19 8,16 8,10" fill="none" stroke="#22d3ee" stroke-width="1.2"/><circle cx="13" cy="13" r="1.8" fill="#f471b5"/></svg> / Ctrl+K Toggle</span></div>
       </div>
     </div>
 
