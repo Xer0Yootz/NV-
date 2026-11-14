@@ -25,7 +25,7 @@
        page). pointer-events:none so it never blocks clicks. z-index sits
        above the content layers and below the command palette. */
     #nvRippleLayer { position:fixed; inset:0; z-index:5; pointer-events:none; overflow:hidden; }
-    .nv-ripple-ring { position:absolute; width:12px; height:12px; margin:-6px 0 0 -6px; border:1px solid rgba(167,139,250,.55); border-radius:50%; pointer-events:none; animation:nv-ripple-expand .9s ease-out forwards; }
+    .nv-ripple-ring { position:absolute; width:12px; height:12px; margin:-6px 0 0 -6px; border:1px solid rgba(201,201,212,.55); border-radius:50%; pointer-events:none; animation:nv-ripple-expand .9s ease-out forwards; }
     @keyframes nv-ripple-expand { 0% { transform:scale(1); opacity:.8; } 100% { transform:scale(8); opacity:0; } }
     .static-top { position:fixed; inset:0; z-index:1; pointer-events:none; opacity:.38; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.25' numOctaves='3'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E"); }
     main { position:relative; z-index:2; width:100%; max-width:560px; padding:32px; box-sizing:border-box; text-align:center; border:1px solid var(--nv-accent); border-radius:16px; background:rgba(18,8,31,.88); }
