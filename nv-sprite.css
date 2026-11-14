@@ -19,6 +19,7 @@
   padding: 0;
   z-index: 8; /* above hub content (z 2), below the Commands palette (z 10) */
   pointer-events: none;
+  transition: opacity 0.45s ease; /* the PROWL pattern dims the sprite while it sits still — fade, never snap */
 }
 
 /* The hexagon itself: the only part that takes pointer input. */
@@ -69,11 +70,24 @@
   animation: nv-sprite-hop 1s ease-in-out;
 }
 
+/* SWEEP edge pulse: one soft swell when the sprite pauses at a screen
+   edge before crossing back. On the svg layer so it never fights the
+   hexagon's rotation transform or the container's hop. */
+@keyframes nv-sprite-pulse {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+.nv-sprite-pulse svg {
+  animation: nv-sprite-pulse 0.9s ease-out;
+}
+
 /* Reduced motion: the sprite sits still (no roaming, no hop, no spin)
    but stays draggable and clickable. */
 @media (prefers-reduced-motion: reduce) {
   .nv-sprite-hop,
-  .nv-sprite-wiggle {
+  .nv-sprite-wiggle,
+  .nv-sprite-pulse svg {
     animation: none;
   }
 }
