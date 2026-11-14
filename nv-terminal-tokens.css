@@ -15,9 +15,9 @@
 :root {
   --nv-bg: #05010f;
   --nv-panel: rgba(18, 8, 31, .88);
-  --nv-line: var(--nv-accent, #7c3aed);
+  --nv-line: var(--nv-accent, #8a8a99);
   --nv-text: #f5f0ff;
-  --nv-accent: var(--nv-accent-soft, #a78bfa);
+  --nv-accent: var(--nv-accent-soft, #c9c9d4);
   --nv-font: "VT323", "Share Tech Mono", monospace;
   --nv-font-size: 18px;
   --nv-ticker-size: 10px; /* Nov 8, 2026, Jasmine's order — really small, supersedes 14px. Note: no var(--nv-ticker-size) reference exists yet; the live size comes from nv-ticker.css. */
