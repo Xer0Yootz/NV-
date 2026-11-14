@@ -23,10 +23,12 @@
   --nv-ticker-size: 10px; /* Nov 8, 2026, Jasmine's order — really small, supersedes 14px. Note: no var(--nv-ticker-size) reference exists yet; the live size comes from nv-ticker.css. */
 }
 
-/* Page clearance for the fixed ticker (top) and fixed dock (bottom). */
+/* Page clearance for the fixed ticker (top) and fixed dock (bottom).
+   Phase 1 (Nov 13, 2026): ticker bar is now 16px and the dock 32px
+   (Lofi size table), so clearance shrinks to bar + 8px on each side. */
 body.nv-shell-page {
-  padding-top: 46px;
-  padding-bottom: 64px;
+  padding-top: 24px;
+  padding-bottom: 40px;
 }
 
 /* Master shell header wrapper — the standard header every signed-in page
@@ -39,11 +41,12 @@ body.nv-shell-page {
   z-index: 2;
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: center;
   gap: 4px 14px;
   max-width: 720px;
+  min-height: 28px; /* Phase 1 (Nov 13, 2026): global header slimmed toward the 28px Lofi target. */
   margin: 0 auto 18px;
-  padding: 10px 14px;
+  padding: 2px 14px;
   border: 1px solid var(--nv-line);
   border-radius: 16px;
   background: var(--nv-panel);
@@ -79,6 +82,7 @@ body.nv-shell-page {
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 8px;
+  height: 32px; /* Phase 1 (Nov 13, 2026): dock is 32px high (Lofi size table). */
   font-family: var(--nv-font);
   font-size: 15px;
   color: var(--nv-text);
@@ -89,14 +93,18 @@ body.nv-shell-page {
 .nv-shell-dock-cell {
   border: 1px solid var(--nv-line);
   background: var(--nv-panel);
-  padding: 6px 10px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-align: center;
 }
 .nv-shell-dock a { color: var(--nv-accent); }
 .nv-shell-dock button {
   font-family: var(--nv-font);
   font-size: 13px;
-  padding: 4px 8px;
+  height: 28px;
+  padding: 2px 8px;
   background: transparent;
   color: var(--nv-text);
   border: 1px solid var(--nv-text);
@@ -117,19 +125,20 @@ body.nv-shell-page {
   border-radius: 0;
   font-family: inherit;
   font-size: 13px;
-  padding: 4px;
+  height: 28px;
+  padding: 2px 4px;
 }
 .nv-shell-dock select option { color: var(--nv-bg); }
 .nv-shell-radio-btn {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   padding: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   vertical-align: middle;
 }
-.nv-shell-radio-btn svg { width: 16px; height: 16px; display: block; }
+.nv-shell-radio-btn svg { width: 14px; height: 14px; display: block; }
 
 /* Display-name field + buttons — the shell-styled version of the hub's
    name input. The old rule (width:1ch, border:0, transparent background)
@@ -156,9 +165,17 @@ body.nv-shell-page {
   color: var(--nv-text);
   border: 1px solid var(--nv-text);
   border-radius: 0;
-  padding: 10px 18px;
+  height: 28px; /* Phase 1 (Nov 13, 2026): 28px visible button height (Lofi size table). */
+  padding: 0 18px;
   font-family: inherit;
   font-size: inherit;
   font-weight: 700;
   cursor: pointer;
+}
+/* Touch targets stay 44px on coarse pointers even though the visible
+   button height is 28px (Phase 1, Nov 13, 2026). Dock controls are
+   excluded on purpose: the dock itself is fixed at 32px, and the whole
+   dock cell is the tap area there. */
+@media (pointer: coarse) {
+  #saveNameBtn, #editNameBtn, #deleteNameBtn, #signOutBtn { min-height: 44px; }
 }
