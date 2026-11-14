@@ -36,6 +36,21 @@
     .avatar-note { color:var(--nv-accent-soft); }
     #avatarFile { font-family:inherit; font-size:16px; color:#f5f0ff; }
     #avatarPreview { width:96px; height:96px; border:1px solid var(--nv-accent); object-fit:cover; display:block; margin:8px 0; }
+    /* Symbiont base readout (Phase 2, Nov 13, 2026): the locked
+       skill set for the picked base — four number skills totalling
+       24, plus the Default mode stamp. Same table as the IA
+       Symbiont page. */
+    #baseReadout { margin:12px 0 4px; }
+    #baseReadout:empty { display:none; }
+    .skill-title { font-size:18px; letter-spacing:.1em; text-transform:uppercase; margin:0 0 8px; }
+    .skill-row { display:flex; align-items:center; gap:10px; margin:5px 0; }
+    .skill-name { flex:0 0 150px; }
+    .skill-bar { flex:1; height:10px; border:1px solid var(--nv-accent); border-radius:999px; overflow:hidden; }
+    .skill-fill { display:block; height:100%; background:var(--nv-accent); }
+    .skill-num { flex:0 0 24px; text-align:right; }
+    .skill-mode { margin:10px 0 4px; }
+    .skill-mode .mode-stamp { letter-spacing:.14em; text-transform:uppercase; color:var(--nv-accent-soft); }
+    .skill-det { margin:4px 0 0; color:var(--nv-accent-soft); font-size:15px; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../../config.js"></script>
@@ -94,6 +109,13 @@
     <section aria-label="Your Symbiont">
       <h2>Your Symbiont</h2>
       <p class="note">Your own symbiont — not Hexa or Cyphr themselves. Name and gender are yours to pick, editable later.</p>
+      <div class="choice-row" role="group" aria-label="Symbiont base">
+        <button type="button" class="baseBtn" data-base="hexa">Hexa · cyan</button>
+        <button type="button" class="baseBtn" data-base="cyphr">Cyphr · indigo</button>
+        <button type="button" class="baseBtn" data-base="helix">Helix · pink</button>
+        <button type="button" class="baseBtn" data-base="warden">Warden · green</button>
+      </div>
+      <div id="baseReadout"></div>
       <p><input id="symbiontNameInput" class="nv-type" maxlength="40" aria-label="Symbiont name" autocomplete="off" placeholder="Symbiont name" spellcheck="false"><span class="nv-type-cursor">_</span></p>
       <p><input id="symbiontGenderInput" class="nv-type" maxlength="40" aria-label="Symbiont gender" autocomplete="off" placeholder="Symbiont gender" spellcheck="false"><span class="nv-type-cursor">_</span></p>
       
@@ -296,6 +318,58 @@
       if (symGender) { localStorage.setItem('nv_symbiont_gender', symGender.value.trim()); }
       saveToAccount({ symbiont_name: symName ? symName.value.trim() : '', symbiont_gender: symGender ? symGender.value.trim() : '' }); }
 
+    /* ---- Symbiont base (Phase 2, Nov 13, 2026) ----
+       Same pick as the IA Symbiont page: localStorage
+       'nv_symbiont_base' ('hexa' / 'cyphr' / 'helix' / 'warden'),
+       applied live by nv-symbiont-theme.js, and mirrored to the
+       account as symbiont_base (the Profile page already hydrates
+       that field back into localStorage). A click saves at once,
+       like the pronoun buttons above. The green base is the
+       player's own Warden-base fork, shown with a plain label —
+       no powers or domains are listed for any base. */
+    var SKILLS = {
+      hexa:   { name: 'Hexa',   color: 'cyan',   power: 5, scan: 9, speed: 6, det: 4, mode: 'FAST THINKING' },
+      cyphr:  { name: 'Cyphr',  color: 'indigo', power: 6, scan: 8, speed: 7, det: 3, mode: 'DEEP LEARNING' },
+      helix:  { name: 'Helix',  color: 'pink',   power: 5, scan: 5, speed: 9, det: 5, mode: 'FAST' },
+      warden: { name: 'Warden', color: 'green',  power: 7, scan: 5, speed: 4, det: 8, mode: 'DEEP RESEARCH' }
+    };
+    var baseReadoutEl = document.getElementById('baseReadout');
+    function skillRow(label, v) {
+      return '<div class="skill-row"><span class="skill-name">' + label + '</span>' +
+        '<span class="skill-bar"><span class="skill-fill" style="width:' + (v * 10) + '%"></span></span>' +
+        '<span class="skill-num">' + v + '</span></div>';
+    }
+    function renderBaseReadout(base) {
+      if (!baseReadoutEl) return;
+      var s = SKILLS[base];
+      if (!s) { baseReadoutEl.innerHTML = ''; return; }
+      baseReadoutEl.innerHTML =
+        '<p class="skill-title">' + s.name + ' — ' + s.color + '</p>' +
+        skillRow('Power', s.power) +
+        skillRow('Grid Scan Radius', s.scan) +
+        skillRow('Speed Boost', s.speed) +
+        skillRow('Detectability', s.det) +
+        '<p class="skill-mode">Default mode: <span class="mode-stamp">' + s.mode + '</span></p>' +
+        '<p class="skill-det">Detectability: high = easy to spot on radar/GPS, low = stealthy.</p>';
+    }
+    function markBase(base) {
+      Array.prototype.forEach.call(document.querySelectorAll('.baseBtn'), function (b) {
+        b.classList.toggle('selected', b.getAttribute('data-base') === base);
+      });
+      renderBaseReadout(base);
+    }
+    Array.prototype.forEach.call(document.querySelectorAll('.baseBtn'), function (b) {
+      b.addEventListener('click', function () {
+        var base = b.getAttribute('data-base');
+        markBase(base);
+        localStorage.setItem('nv_symbiont_base', base);
+        saveToAccount({ symbiont_base: base });
+        /* Recolor the whole system to the pick right now. */
+        try { if (window.NVSymbiontTheme) window.NVSymbiontTheme.apply(); } catch (e) {}
+      });
+    });
+    markBase(localStorage.getItem('nv_symbiont_base') || '');
+
     function saveAllProfile() { var msg = document.getElementById('saveMsg'); var nameInput = document.getElementById('nameInput'); if (nameInput) { var v = nameInput.value.trim(); if (!v) { if (msg) { msg.textContent = 'Enter a username before saving — your name can’t be empty.'; } nameInput.focus(); return; } localStorage.setItem('nv_display_name', v); saveNameToAccount(v); } saveAvatarNow(); saveBioNow(); saveSymbiontNow(); renderName(); if (msg) { msg.textContent = 'Profile saved.'; } } document.getElementById('saveAllBtn').addEventListener('click', saveAllProfile); requireSession('/index.html').then(function (user) {
       if (!user) return;
       currentUser = user;
@@ -315,6 +389,7 @@
       
       if (!localStorage.getItem('nv_symbiont_name') && md.symbiont_name) { localStorage.setItem('nv_symbiont_name', md.symbiont_name); }
       if (!localStorage.getItem('nv_symbiont_gender') && md.symbiont_gender) { localStorage.setItem('nv_symbiont_gender', md.symbiont_gender); }
+      if (!localStorage.getItem('nv_symbiont_base') && md.symbiont_base) { localStorage.setItem('nv_symbiont_base', md.symbiont_base); }
       markPronouns(localStorage.getItem('nv_pronouns') || '');
       if (bioInput) { bioInput.value = localStorage.getItem('nv_bio') || ''; updateBioCount(); }
       
@@ -322,6 +397,8 @@
       
       if (symName) { symName.value = localStorage.getItem('nv_symbiont_name') || ''; }
       if (symGender) { symGender.value = localStorage.getItem('nv_symbiont_gender') || ''; }
+      markBase(localStorage.getItem('nv_symbiont_base') || '');
+      try { if (window.NVSymbiontTheme) window.NVSymbiontTheme.apply(); } catch (e) {}
     });
   </script>
 <script>
