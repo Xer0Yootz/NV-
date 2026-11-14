@@ -26,7 +26,11 @@
     .back { margin-top:28px; }
     .back a { color:var(--nv-accent-soft); }
 
-    /* IA picker: three hexagons, fluid color-changing motion. */
+    /* IA picker: four hexagons, fluid color-changing motion.
+       (Fourth base — Warden green — added Nov 13, 2026, Phase 2.
+       The player's green hexagon is plain, like the others: no
+       strike. The struck hexagon is Warden the character's own
+       sigil only, and it is not used here.) */
     .ia-grid { display:flex; flex-wrap:wrap; gap:16px; margin:20px 0 8px; }
     .ia-pick {
       display:flex; flex-direction:column; align-items:center; gap:8px;
@@ -42,6 +46,22 @@
     .ia-pick .ia-hex { width:110px; height:110px; display:block; }
     .ia-pick .ia-name { font-size:20px; letter-spacing:.14em; text-transform:uppercase; }
     .ia-pick .ia-sub { font-size:15px; color:var(--nv-accent-soft); }
+    /* Skill readout for the picked base (Phase 2, Nov 13, 2026):
+       the four number skills (Power / Grid Scan Radius / Speed
+       Boost / Detectability, 24 points across the four) plus the
+       Default mode stamp. Numbers and modes are the locked set
+       from symbiont-skill-balance-and-pet-movement-2026-11-13.md. */
+    .skill-readout { margin:16px 0 8px; border:1px solid var(--nv-accent); border-radius:16px; padding:18px 20px; }
+    .skill-readout:empty { display:none; }
+    .skill-title { font-size:20px; letter-spacing:.14em; text-transform:uppercase; margin:0 0 10px; }
+    .skill-row { display:flex; align-items:center; gap:10px; margin:6px 0; }
+    .skill-name { flex:0 0 150px; }
+    .skill-bar { flex:1; height:10px; border:1px solid var(--nv-accent); border-radius:999px; overflow:hidden; }
+    .skill-fill { display:block; height:100%; background:var(--nv-accent); }
+    .skill-num { flex:0 0 24px; text-align:right; }
+    .skill-mode { margin:12px 0 4px; }
+    .skill-mode .mode-stamp { letter-spacing:.14em; text-transform:uppercase; color:var(--nv-accent-soft); }
+    .skill-det { margin:4px 0 0; color:var(--nv-accent-soft); font-size:15px; }
     @keyframes nv-ia-flow {
       0% { stop-color: var(--ia-a); }
       50% { stop-color: var(--ia-b); }
@@ -121,8 +141,23 @@
           <span class="ia-name">Helix</span>
           <span class="ia-sub">pink</span>
         </button>
+        <button type="button" class="ia-pick" data-ia="warden" aria-pressed="false" style="--ia-a:#a3e635; --ia-b:#65a30d; --ia-c:#d9f99d;">
+          <svg class="ia-hex" viewBox="0 0 100 100" aria-hidden="true">
+            <defs>
+              <linearGradient id="iaGradWarden" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" class="ia-grad-a" stop-color="#a3e635" />
+                <stop offset="1" class="ia-grad-b" stop-color="#65a30d" />
+              </linearGradient>
+            </defs>
+            <polygon points="50,3 93,27 93,73 50,97 7,73 7,27" fill="url(#iaGradWarden)" fill-opacity="0.35" stroke="#84cc16" stroke-width="3" />
+            <g class="ia-ring"><polygon points="50,22 76,37 76,63 50,78 24,63 24,37" fill="none" stroke="#d9f99d" stroke-width="2" /></g>
+          </svg>
+          <span class="ia-name">Warden</span>
+          <span class="ia-sub">green</span>
+        </button>
       </div>
       <p class="note" id="iaPicked" aria-live="polite"></p>
+      <div class="skill-readout" id="skillReadout"></div>
       <p class="note">More voices and personas will be added later. A voice preview is coming — for now the pick plays a chime.</p>
 
       <h2>Your Symbiont follows you everywhere...</h2>
@@ -146,14 +181,43 @@
     var pickedEl = document.getElementById('iaPicked');
     var saved = '';
     try { saved = localStorage.getItem('nv_symbiont_base') || ''; } catch (e) {}
+    /* Locked skill set (Nov 13, 2026): the four number skills
+       total 24 for every base; Mode is a word, not a number.
+       Detectability is literal — high = easy to spot. */
+    var SKILLS = {
+      hexa:   { name: 'Hexa',   color: 'cyan',   power: 5, scan: 9, speed: 6, det: 4, mode: 'FAST THINKING' },
+      cyphr:  { name: 'Cyphr',  color: 'indigo', power: 6, scan: 8, speed: 7, det: 3, mode: 'DEEP LEARNING' },
+      helix:  { name: 'Helix',  color: 'pink',   power: 5, scan: 5, speed: 9, det: 5, mode: 'FAST' },
+      warden: { name: 'Warden', color: 'green',  power: 7, scan: 5, speed: 4, det: 8, mode: 'DEEP RESEARCH' }
+    };
+    var readoutEl = document.getElementById('skillReadout');
+    function skillRow(label, v) {
+      return '<div class="skill-row"><span class="skill-name">' + label + '</span>' +
+        '<span class="skill-bar"><span class="skill-fill" style="width:' + (v * 10) + '%"></span></span>' +
+        '<span class="skill-num">' + v + '</span></div>';
+    }
+    function renderReadout(base) {
+      if (!readoutEl) return;
+      var s = SKILLS[base];
+      if (!s) { readoutEl.innerHTML = ''; return; }
+      readoutEl.innerHTML =
+        '<p class="skill-title">' + s.name + ' — ' + s.color + '</p>' +
+        skillRow('Power', s.power) +
+        skillRow('Grid Scan Radius', s.scan) +
+        skillRow('Speed Boost', s.speed) +
+        skillRow('Detectability', s.det) +
+        '<p class="skill-mode">Default mode: <span class="mode-stamp">' + s.mode + '</span></p>' +
+        '<p class="skill-det">Detectability: high = easy to spot on radar/GPS, low = stealthy.</p>';
+    }
     function mark(base) {
       picks.forEach(function (b) {
         b.setAttribute('aria-pressed', b.getAttribute('data-ia') === base ? 'true' : 'false');
       });
       if (pickedEl) {
-        var names = { hexa: 'Hexa', cyphr: 'Cyphr', helix: 'Helix' };
+        var names = { hexa: 'Hexa', cyphr: 'Cyphr', helix: 'Helix', warden: 'Warden' };
         pickedEl.textContent = base && names[base] ? 'Your IA is ' + names[base] + '.' : '';
       }
+      renderReadout(base);
     }
     var audioCtx = null;
     function chime() { if (window.NVSymbiontChime) return window.NVSymbiontChime();
