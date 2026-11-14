@@ -3,8 +3,9 @@
    changes the color of the IA on all fronts AND the color of the
    system — the container, radio, and other such things become pink
    if you choose Helix, cyan if you choose Hexa, indigo if you choose
-   Cyphr. The pick is stored in localStorage as nv_symbiont_base
-   ('hexa' / 'cyphr' / 'helix'); nv-symbiont-theme.js sets
+   Cyphr, green if you choose Warden (added Nov 13, 2026, Phase 2).
+   The pick is stored in localStorage as nv_symbiont_base
+   ('hexa' / 'cyphr' / 'helix' / 'warden'); nv-symbiont-theme.js sets
    data-symbiont on the root element, and this file recolors the
    system accent to match. Cyphr (indigo) is the current default
    look, so it keeps the existing purple. */
@@ -52,6 +53,21 @@
   --nv-on-accent: #ffffff;
   --nv-panel: #2a0a1e;
   --nv-panel-text: #ffe9f3;
+}
+/* Warden green (Phase 2, Nov 13, 2026): the player's own green base.
+   Dark green panel like Cyphr's and Helix's dark panels, pale green
+   text on it, a bright readable green for headings/links, and dark
+   green text on a solid green button. These are theme variables for
+   the player's base colour — Warden the character's own design (and
+   his struck-hexagon sigil) is not defined here and does not change. */
+[data-symbiont="warden"] {
+  --nv-accent: #22c55e;
+  --nv-accent-bright: #4ade80;
+  --nv-accent-soft: #86efac;
+  --nv-accent-deep: #4ade80;
+  --nv-on-accent: #052e16;
+  --nv-panel: #0c2b18;
+  --nv-panel-text: #eafff2;
 }
 
 /* Recolor the system accent wherever it appears: panel borders,
