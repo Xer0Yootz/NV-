@@ -1,15 +1,16 @@
 /* nv-symbiont-theme.js — apply the IA Symbiont's color to the system.
-   Reads localStorage 'nv_symbiont_base' ('hexa' / 'cyphr' / 'helix')
-   and sets data-symbiont on the root element, so nv-symbiont-theme.css
-   recolors the containers, radio, and other system elements to the
-   pick (Hexa cyan, Cyphr indigo, Helix pink). Listens for changes so
+   Reads localStorage 'nv_symbiont_base' ('hexa' / 'cyphr' / 'helix' /
+   'warden') and sets data-symbiont on the root element, so
+   nv-symbiont-theme.css recolors the containers, radio, and other
+   system elements to the pick (Hexa cyan, Cyphr indigo, Helix pink,
+   Warden green — added Nov 13, 2026, Phase 2). Listens for changes so
    the theme follows the pick live, across tabs. Defaults to Cyphr
    (the current indigo/purple look) when nothing is picked. */
 (function () {
   function base() {
     try {
       var b = localStorage.getItem('nv_symbiont_base') || '';
-      if (b === 'hexa' || b === 'cyphr' || b === 'helix') return b;
+      if (b === 'hexa' || b === 'cyphr' || b === 'helix' || b === 'warden') return b;
     } catch (e) {}
     return 'cyphr';
   }
