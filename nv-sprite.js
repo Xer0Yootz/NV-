@@ -4,7 +4,10 @@
    Placeholder purple (#8a8a99, lavender #c9c9d4 accent) is the single
    placeholder default. The Hexa/Cyphr per-base colour split is still
    Jasmine's call — do NOT invent per-base colours here.
-   Chime: touching the sprite plays the shared symbiont chime (window.NVSymbiontChime). No words or text on the hexagon. */
+   Chime: touching the sprite plays the shared symbiont chime (window.NVSymbiontChime). No words or text on the hexagon.
+   Movement: per-base roam patterns (Jasmine's ruling, Nov 13, 2026) —
+   Hexa SWEEP, Cyphr PROWL, Helix DART, Warden STRIDE — keyed off the
+   same data-symbiont base signal as the colour. See stepPattern. */
 
 (function () {
   'use strict';
@@ -15,7 +18,10 @@
   var TAP_MOVE = 8; /* px — under this + under 400ms counts as a tap, not a drag */
   var TAP_MS = 400;
   var HOP_MS = 1000; /* 1s hop-bob, same timing as Baby Pigek's locked hop-bob */
-  var ROAM_SPEED = 55; /* px per second while roaming */
+  var FALLBACK_SPEED = 55; /* px per second — the pre-pattern roam pace */
+  /* Per-pattern cruise pace (px per second). DART's is its burst speed;
+     PROWL's caps its descend so a settle into prowl never reads as a throw. */
+  var CRUISE = { hexa: 90, cyphr: 46, helix: 175, warden: 65 };
   var THROW_MAX = 2200; /* px per second — the fastest a fling can throw it */
   var THROW_FRICTION = 0.32; /* per-second velocity retention while thrown — decays in ~1-2s */
   var BOUNCE_KEEP = 0.7; /* a throw bounce keeps 70% of its speed (loses 30% per wall) */
@@ -32,6 +38,7 @@
   var throwVX = 0, throwVY = 0; /* latest flick velocity while dragging */
   var dragging = false, hopping = false, wiggling = false;
   var raf = null, lastT = 0;
+  var pattern = 'cyphr', P = null, thrown = false, frameNo = 0;
 
   function localName() {
     try { return localStorage.getItem('nv_display_name') || ''; } catch (e) { return ''; }
@@ -73,8 +80,8 @@
     x = Math.floor(Math.random() * (maxX + 1));
     y = Math.floor(Math.random() * (maxY + 1));
     var a = Math.random() * Math.PI * 2;
-    vx = Math.cos(a) * ROAM_SPEED;
-    vy = Math.sin(a) * ROAM_SPEED;
+    vx = Math.cos(a) * FALLBACK_SPEED;
+    vy = Math.sin(a) * FALLBACK_SPEED;
   }
 
   function render() {
@@ -84,37 +91,179 @@
     if (hex) hex.style.transform = 'rotate(' + angle + 'deg)';
   }
 
-  /* Roams / bounces all around the screen, like a screensaver. Pauses while
-     dragging; resumes from wherever it was dropped. A throw
-     (fling on release) keeps its velocity and decays with friction, bouncing
-     off the walls with a little energy lost per bounce, until it settles
-     back to roaming speed. */
+  /* Roaming is pattern-driven, per symbiont base (Jasmine's ruling,
+     Nov 13, 2026). The pattern keys off the SAME base signal the colour
+     uses: the theme's data-symbiont attribute on the root element (which
+     nv-symbiont-theme.js sets from localStorage 'nv_symbiont_base'), with
+     the stored pick itself as a fallback and 'cyphr' — the theme's own
+     default — when nothing valid is picked. No new storage, no settings.
+       hexa   SWEEP  — wide horizontal arcs; pauses at each edge and
+                       pulses once before crossing back.
+       cyphr  PROWL  — drops to the bottom edge; short steps with long
+                       still pauses, dimmed while it sits still.
+       helix  DART   — fast zigzag bursts with a brief hover between.
+       warden STRIDE — a steady, even march at full brightness; it
+                       never dims and never hides.
+     A throw (fling on release) overrides the pattern: it keeps its
+     velocity and decays with friction, bouncing off the walls with a
+     little energy lost per bounce, until it settles back to pattern
+     pace and the pattern takes over again. Pauses while dragging;
+     resumes from wherever it was dropped. */
+  function patternBase() {
+    var a = '';
+    try { a = document.documentElement.getAttribute('data-symbiont') || ''; } catch (e) {}
+    if (a === 'hexa' || a === 'cyphr' || a === 'helix' || a === 'warden') return a;
+    try {
+      var b = localStorage.getItem('nv_symbiont_base') || '';
+      if (b === 'hexa' || b === 'cyphr' || b === 'helix' || b === 'warden') return b;
+    } catch (e) {}
+    return 'cyphr'; /* the theme's default when nothing is picked */
+  }
+
+  function startPattern(name) {
+    pattern = name;
+    P = { phase: 'go', t: 0, dir: (vx < 0 ? -1 : 1), zag: 1, wall: null, bob: 0 };
+    if (container) container.style.opacity = ''; /* no pattern starts dimmed */
+    if (name === 'cyphr') P.phase = 'descend';
+    else if (name === 'helix') { P.phase = 'burst'; P.t = 0.38; }
+    else if (name === 'hexa') P.phase = 'glide';
+    else if (name === 'warden') P.phase = 'march';
+  }
+
+  function pulse() {
+    /* SWEEP's edge pulse: one soft swell of the hexagon itself (the svg
+       layer, so it never fights the hex rotation or the hop). */
+    if (!hex || reduced) return;
+    hex.classList.remove('nv-sprite-pulse');
+    void hex.offsetWidth; /* restart the animation */
+    hex.classList.add('nv-sprite-pulse');
+    setTimeout(function () { if (hex) hex.classList.remove('nv-sprite-pulse'); }, 900);
+  }
+
+  function stepSweep(dt, wall) {
+    if (P.phase === 'pause') {
+      vx = 0; vy = 0;
+      P.t -= dt;
+      if (P.t <= 0) { P.dir = -P.dir; P.phase = 'glide'; }
+      return;
+    }
+    vx = P.dir * CRUISE.hexa;
+    P.bob += dt;
+    vy = Math.sin(P.bob * 0.9) * 14; /* a gentle arc, not a straight rail */
+    if (wall === 'top') vy = Math.abs(vy);
+    if (wall === 'bottom') vy = -Math.abs(vy);
+    if ((wall === 'left' && P.dir < 0) || (wall === 'right' && P.dir > 0)) {
+      P.phase = 'pause'; P.t = 1.1; vx = 0; vy = 0; pulse();
+    }
+  }
+
+  function stepProwl(dt, wall) {
+    var fy = Math.max(0, window.innerHeight - SIZE - 6); /* the bottom edge */
+    if (P.phase === 'descend') {
+      if (container) container.style.opacity = '';
+      vx = 0;
+      var dy = fy - y;
+      if (Math.abs(dy) <= 2) { y = fy; vy = 0; P.phase = 'still'; P.t = 0.8; }
+      else vy = (dy > 0 ? 1 : -1) * 46;
+      return;
+    }
+    y = fy; vy = 0;
+    if (P.phase === 'step') {
+      if (container) container.style.opacity = '';
+      vx = P.dir * 42;
+      P.t -= dt;
+      if (wall === 'left' || wall === 'right') {
+        P.dir = -P.dir; vx = 0; P.phase = 'still'; P.t = 1.4 + Math.random() * 1.2;
+      } else if (P.t <= 0) {
+        vx = 0; P.phase = 'still'; P.t = 1.6 + Math.random() * 1.2;
+      }
+      return;
+    }
+    /* still: sit low and dim until the next step */
+    vx = 0;
+    if (container) container.style.opacity = '0.55';
+    P.t -= dt;
+    if (P.t <= 0) {
+      if (Math.random() < 0.3) P.dir = -P.dir;
+      P.phase = 'step'; P.t = 0.55;
+    }
+  }
+
+  function stepDart(dt, wall) {
+    if (wall === 'left' && P.dir < 0) P.dir = 1;
+    if (wall === 'right' && P.dir > 0) P.dir = -1;
+    if (wall === 'top' || wall === 'bottom') P.zag = -P.zag;
+    P.t -= dt;
+    if (P.phase === 'burst') {
+      var ang = 0.6; /* ~34 degrees — the zigzag angle */
+      vx = P.dir * Math.cos(ang) * CRUISE.helix;
+      vy = P.zag * Math.sin(ang) * CRUISE.helix;
+      if (P.t <= 0) { P.phase = 'hover'; P.t = 0.28; P.zag = -P.zag; }
+    } else { /* hover: a brief held breath between darts */
+      vx = P.dir * 6; vy = 0;
+      if (P.t <= 0) { P.phase = 'burst'; P.t = 0.38; }
+    }
+  }
+
+  function stepStride(dt, wall) {
+    if (wall === 'left') P.dir = 1;
+    if (wall === 'right') P.dir = -1;
+    vx = P.dir * CRUISE.warden; /* the same pace, the whole way across */
+    var H = Math.max(0, window.innerHeight - SIZE);
+    if (y < H * 0.15) vy = 22; else if (y > H * 0.75) vy = -22; else vy = 0;
+    if (container) container.style.opacity = ''; /* STRIDE never dims */
+  }
+
+  function stepPattern(dt, wall) {
+    if (!P) startPattern(pattern);
+    if (pattern === 'hexa') stepSweep(dt, wall);
+    else if (pattern === 'cyphr') stepProwl(dt, wall);
+    else if (pattern === 'helix') stepDart(dt, wall);
+    else stepStride(dt, wall);
+  }
+
+  /* Move one frame. In a throw, walls bounce the velocity back with
+     BOUNCE_KEEP of its speed; under a pattern, walls just clamp and are
+     reported to the pattern, which decides what happens next. */
+  function integrate(dt, bouncy) {
+    var speed = Math.sqrt(vx * vx + vy * vy);
+    x += vx * dt;
+    y += vy * dt;
+    var maxX = Math.max(0, window.innerWidth - SIZE), maxY = Math.max(0, window.innerHeight - SIZE);
+    var wall = null;
+    if (x <= 0) { x = 0; wall = 'left'; vx = bouncy ? Math.abs(vx) * BOUNCE_KEEP : 0; }
+    if (x >= maxX) { x = maxX; wall = 'right'; vx = bouncy ? -Math.abs(vx) * BOUNCE_KEEP : 0; }
+    if (y <= 0) { y = 0; if (!wall) wall = 'top'; vy = bouncy ? Math.abs(vy) * BOUNCE_KEEP : 0; }
+    if (y >= maxY) { y = maxY; if (!wall) wall = 'bottom'; vy = bouncy ? -Math.abs(vy) * BOUNCE_KEEP : 0; }
+    if (P) P.wall = wall;
+    return speed;
+  }
+
   function tick(t) {
     raf = null;
     if (!container || dragging) return;
     var dt = Math.min(0.05, (t - lastT) / 1000 || 0.016);
     lastT = t;
     if (!reduced) {
-      /* Throw friction: a flung symbiont sheds speed until it is back to
-         roaming pace. Below roaming speed, hold roaming speed so it never
-         stalls out mid-screen. */
-      var speed = Math.sqrt(vx * vx + vy * vy);
-      if (speed > ROAM_SPEED) {
+      frameNo++;
+      if (frameNo % 15 === 0) { /* follow a live base change (~4x a second) */
+        var b = patternBase();
+        if (b !== pattern) startPattern(b);
+      }
+      if (thrown) {
+        /* Throw friction: a flung symbiont sheds speed until it is back
+           to pattern pace, then the pattern takes over again. */
         var keep = Math.pow(THROW_FRICTION, dt);
         vx *= keep; vy *= keep;
-        speed = Math.sqrt(vx * vx + vy * vy);
-        if (speed <= ROAM_SPEED && speed > 0) {
-          vx = vx / speed * ROAM_SPEED;
-          vy = vy / speed * ROAM_SPEED;
-        }
+        var spd = Math.sqrt(vx * vx + vy * vy);
+        integrate(dt, true);
+        if (spd <= (CRUISE[pattern] || FALLBACK_SPEED)) thrown = false;
+      } else {
+        var wallHit = P ? P.wall : null;
+        if (P) P.wall = null;
+        stepPattern(dt, wallHit);
+        integrate(dt, false);
       }
-      x += vx * dt;
-      y += vy * dt;
-      var maxX = window.innerWidth - SIZE, maxY = window.innerHeight - SIZE;
-      if (x <= 0) { x = 0; vx = Math.abs(vx) * (speed > ROAM_SPEED ? BOUNCE_KEEP : 1); }
-      if (x >= maxX) { x = maxX; vx = -Math.abs(vx) * (speed > ROAM_SPEED ? BOUNCE_KEEP : 1); }
-      if (y <= 0) { y = 0; vy = Math.abs(vy) * (speed > ROAM_SPEED ? BOUNCE_KEEP : 1); }
-      if (y >= maxY) { y = maxY; vy = -Math.abs(vy) * (speed > ROAM_SPEED ? BOUNCE_KEEP : 1); }
     }
     /* Spin momentum: a flick keeps it turning after release, decaying until
        it settles. Under reduced motion there is no spin. */
@@ -188,6 +337,8 @@
       lastMoveX = e.clientX; lastMoveY = e.clientY; lastMoveT = Date.now();
       moved = 0; trail = [];
       angVel = 0;
+      thrown = false;
+      if (container) container.style.opacity = ''; /* a grab ends any PROWL dim */
       hex.classList.add('nv-sprite-grabbing');
     });
 
@@ -246,8 +397,9 @@
         } else {
           vx = throwVX; vy = throwVY;
         }
+        thrown = Math.sqrt(vx * vx + vy * vy) > (CRUISE[pattern] || FALLBACK_SPEED);
       }
-      kick(); /* roaming / throw resumes from the drop point */
+      kick(); /* pattern / throw resumes from the drop point */
     }
     hex.addEventListener('pointerup', endDrag);
     hex.addEventListener('pointercancel', endDrag);
@@ -283,6 +435,7 @@
     document.body.appendChild(container);
 
     randomStart();
+    startPattern(patternBase());
     render();
     bindDrag();
     window.addEventListener('resize', function () { clampIntoView(); render(); });
