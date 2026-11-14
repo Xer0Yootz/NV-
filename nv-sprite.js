@@ -1,7 +1,7 @@
 /* Symbiont sprite — PLACEHOLDER.
    The real Symbiont sprite comes later. This is a temporary hexagon stand-in
    so the roaming / drag / spin / tap behaviour can be tried on the hub pages.
-   Placeholder purple (#7c3aed, lavender #a78bfa accent) is the single
+   Placeholder purple (#8a8a99, lavender #c9c9d4 accent) is the single
    placeholder default. The Hexa/Cyphr per-base colour split is still
    Jasmine's call — do NOT invent per-base colours here.
    Chime: touching the sprite plays the shared symbiont chime (window.NVSymbiontChime). No words or text on the hexagon. */
@@ -278,7 +278,7 @@
     /* The hexagon follows the IA Symbiont pick (Hexa cyan, Cyphr indigo,
        Helix pink) through the theme variables, so the IA recolors with
        the rest of the system. */
-    hex.innerHTML = '<svg viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,3 93,27 93,73 50,97 7,73 7,27" fill="var(--nv-accent, #7c3aed)" fill-opacity="0.35" stroke="var(--nv-accent, #7c3aed)" stroke-width="3"/><polygon points="50,22 76,37 76,63 50,78 24,63 24,37" fill="none" stroke="var(--nv-accent-soft, #a78bfa)" stroke-width="2"/></svg>';
+    hex.innerHTML = '<svg viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,3 93,27 93,73 50,97 7,73 7,27" fill="var(--nv-accent, #8a8a99)" fill-opacity="0.35" stroke="var(--nv-accent, #8a8a99)" stroke-width="3"/><polygon points="50,22 76,37 76,63 50,78 24,63 24,37" fill="none" stroke="var(--nv-accent-soft, #c9c9d4)" stroke-width="2"/></svg>';
     container.appendChild(hex);
     document.body.appendChild(container);
 
