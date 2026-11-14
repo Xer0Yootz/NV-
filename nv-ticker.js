@@ -12,6 +12,23 @@
   if (window.__nvTickerLoaded) return;
   window.__nvTickerLoaded = true;
 
+  /* Phase 1 (Nov 13, 2026) — ticker REMOVAL routes. The game (Gigas Garden
+     frame page) and My Room get no ticker at all: this module returns
+     before any element is created, so no .ticker node ever exists on
+     those routes (removal, not hidden text, and no replacement strip).
+     A page opts out with data-nv-no-ticker on <html>; the game path is
+     also matched directly so the frame page is covered even if its
+     attribute is lost in a later edit. nv-shell.js mirrors this check
+     and refuses to load this module on opted-out pages. */
+  var NV_NO_TICKER_PATHS = ['/gigas-garden'];
+  var nvPath = (window.location && window.location.pathname) || '';
+  var nvNoTicker = document.documentElement.hasAttribute('data-nv-no-ticker');
+  for (var nvI = 0; nvI < NV_NO_TICKER_PATHS.length && !nvNoTicker; nvI++) {
+    var nvP = NV_NO_TICKER_PATHS[nvI];
+    if (nvPath === nvP || nvPath.indexOf(nvP + '/') === 0) nvNoTicker = true;
+  }
+  if (nvNoTicker) return;
+
   var tickerState = { weather: 'WEATHER STANDBY', place: '', tides: 'TIDES STANDBY', coords: null, requested: false };
   function tickerLocale() { return (navigator.languages && navigator.languages[0]) || navigator.language || 'en-US'; }
   function tickerDateTime() {
