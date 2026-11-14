@@ -1,6 +1,6 @@
 /* Symbiont sprite — PLACEHOLDER styles.
    The real Symbiont sprite comes later; this hexagon is a temporary stand-in.
-   Infinity 6 Terminal / Hex OS: VT323 18px, #05010f, var(--nv-accent, #7c3aed), var(--nv-accent-soft, #a78bfa).
+   Infinity 6 Terminal / Hex OS: VT323 18px, #05010f, var(--nv-accent, #8a8a99), var(--nv-accent-soft, #c9c9d4).
    No glow, no green. No words or text on the hexagon. */
 
 /* The invisible container: transparent, fixed, 120x120, no background, no
@@ -40,7 +40,7 @@
   cursor: grabbing;
 }
 .nv-sprite-hex:focus-visible {
-  outline: 1px solid var(--nv-accent-soft, #a78bfa);
+  outline: 1px solid var(--nv-accent-soft, #c9c9d4);
   outline-offset: 2px;
 }
 
