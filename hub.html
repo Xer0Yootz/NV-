@@ -213,7 +213,7 @@
     /* Hub terminal: a working command line for Neon Vigil content.
        help — list the commands. radio play / radio stop — start/stop the
        radio. radio station 1|2|3 (or radio 1|2|3) — switch station.
-       load <game> / open <game> — load a game: iww, nv808, gridlog.
+       load <game> / open <game> — load a game: ikg, nv808, gridlog.
        commands — open the Command K popup. clear — clear the terminal. */
     var termOut = document.getElementById('termOutput');
     var termInput = document.getElementById('termInput');
@@ -234,8 +234,9 @@
        (Avatar Editor lives at /settings/avatar-editor/; the IA Symbiont
        is its own page at /ia-symbiont/ — the symbiont is the pet). */
     var termGames = {
-      'iww': { label: 'Virtual IWW: Gigas Garden', url: '/gigas-garden/' },
-      'gigas': { label: 'Virtual IWW: Gigas Garden', url: '/gigas-garden/' },
+      'ikg': { label: 'iKG://GigasGarden.Construct', url: '/gigas-garden/' },
+      'iww': { label: 'iKG://GigasGarden.Construct', url: '/gigas-garden/' },
+      'gigas': { label: 'iKG://GigasGarden.Construct', url: '/gigas-garden/' },
       'nv808': { label: 'NV_808', url: '/nv808/' },
       'nv_808': { label: 'NV_808', url: '/nv808/' },
       '808': { label: 'NV_808', url: '/nv808/' },
@@ -252,7 +253,7 @@
       termPrint('Commands:');
       termPrint('  radio play / radio stop — start or stop the radio');
       termPrint('  radio station 1|2|3 — switch station (1 Bed 1, 2 Bed 2, 3 Bed 3)');
-      termPrint('  load iww | load nv808 | load gridlog — load a game');
+      termPrint('  load ikg | load nv808 | load gridlog — load a game');
       termPrint('  load avatar — open the Avatar Editor');
       termPrint('  load pet — open your IA Symbiont');
       termPrint('  load profile — open your profile page');
@@ -261,7 +262,7 @@
     }
     function termLoad(key) {
       var g = termGames[key];
-      if (!g) { termPrint('Unknown game. Try: load iww, load nv808, load gridlog, load avatar, load pet.'); return; }
+      if (!g) { termPrint('Unknown game. Try: load ikg, load nv808, load gridlog, load avatar, load pet.'); return; }
       termPrint('Loading ' + g.label + '…');
       /* Loading a game changes the page, so the select sound plays once;
          a short delay lets the click be heard before the page changes. */

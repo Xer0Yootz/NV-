@@ -35,7 +35,7 @@ and its centred `.hub-col` already accounts for ticker + dock.
   once NOAA answers. The loop seam now ends each copy with a `·` delimiter
   so the repeat never reads back-to-back.
 - `nv-commands.js` + `nv-commands.css` — the shared Cmd/Ctrl+K palette.
-  Labels (locked): `Virtual IWW: Gigas Garden` (Jasmine's Nov 7 rename),
+  Labels (locked): `iKG://GigasGarden.Construct` (Jasmine's Nov 15 rename — the IKG, Intergalactic Kyber Grid; was `Virtual IWW: Gigas Garden`, Nov 7),
   `NV_Gigas Garden — Remix`, `NV_808`, `NV_Gridlog`, `NV-TV`, `Settings`,
   `Sign out`, plus `Avatar Editor` and `NV_Pet Pal` (added by this audit fix).
 - `nv-shell.js` (`window.Infinity6Shell`) — injects the standard bottom dock

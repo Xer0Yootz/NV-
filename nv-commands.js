@@ -25,13 +25,13 @@
   }
 
   var paletteCommands = [
-    // Renamed Nov 7, 2026 by Jasmine: "Virtual IWW: Gigas Garden".
+    // Renamed Nov 15, 2026 by Jasmine: "iKG://GigasGarden.Construct" — the IKG (Intergalactic Kyber Grid); before that "Virtual IWW: Gigas Garden" (Nov 7 placeholder).
     // Audit fix Nov 8, 2026: game links stay inside the app shell — the
     // palette routes to the same-origin shell wrappers (/gigas-garden/,
     // instead of leaving neonvigil.app, and NV_Gridlog routes to
     // the real Grid Log page (/gridlog/) instead of the Bible test page.
     // Avatar Editor lives at /settings/avatar-editor/ (Nov 9, 2026).
-    { name: 'Virtual IWW: Gigas Garden', hint: 'Game', keys: 'virtual iww gigas garden game play', run: function () { location.href = '/gigas-garden/'; } },
+    { name: 'iKG://GigasGarden.Construct', hint: 'Game', keys: 'ikg iww gigasgarden construct gigas garden game play', run: function () { location.href = '/gigas-garden/'; } },
     { name: 'Avatar Editor', hint: 'Avatar', keys: 'avatar editor editing', run: function () { location.href = '/settings/avatar-editor/'; } },
     { name: 'Profile', hint: 'Your profile', keys: 'profile my profile', run: function () { location.href = '/profile/'; } },
     { name: 'IA Symbiont', hint: 'Companion', keys: 'ia symbiont hexa cyphr helix pet pal baby pigek companion', run: function () { location.href = '/ia-symbiont/'; } },
