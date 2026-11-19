@@ -31,7 +31,7 @@
     // instead of leaving neonvigil.app, and NV_Gridlog routes to
     // the real Grid Log page (/gridlog/) instead of the Bible test page.
     // Avatar Editor lives at /settings/avatar-editor/ (Nov 9, 2026).
-    { name: 'iKG://GigasGarden.Construct', hint: 'Game', keys: 'ikg iww gigasgarden construct gigas garden game play', run: function () { location.href = '/gigas-garden/'; } },
+    { name: 'iKG://GigasGarden.Construct', hint: 'Game', keys: 'ikg gigasgarden construct gigas garden game play', run: function () { location.href = '/gigas-garden/'; } },
     { name: 'Avatar Editor', hint: 'Avatar', keys: 'avatar editor editing', run: function () { location.href = '/settings/avatar-editor/'; } },
     { name: 'Profile', hint: 'Your profile', keys: 'profile my profile', run: function () { location.href = '/profile/'; } },
     { name: 'IA Symbiont', hint: 'Companion', keys: 'ia symbiont hexa cyphr helix pet pal baby pigek companion', run: function () { location.href = '/ia-symbiont/'; } },
