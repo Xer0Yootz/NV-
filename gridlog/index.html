@@ -45,7 +45,12 @@
     #gl-bg.on { display:block; }
     .card { animation:glflip .45s ease both; }
     @keyframes glflip { from { opacity:0; transform:perspective(900px) rotateY(5deg) translateY(8px); } to { opacity:1; transform:none; } }
-    @media (prefers-reduced-motion: reduce){ .card{ animation:none; } }
+    @media (prefers-reduced-motion: reduce){ .card, .gl-pcard{ animation:none; } }
+    .gl-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(148px,1fr)); gap:12px; margin:12px 0 4px; }
+    .gl-pcard { display:block; border:1px solid var(--nv-accent,#7c3aed); border-radius:14px; overflow:hidden; background:rgba(18,8,31,.92); text-decoration:none; animation:glflip .45s ease both; }
+    .gl-pcard img { display:block; width:100%; aspect-ratio:3/4; object-fit:cover; object-position:top center; background:#0a0616; }
+    .gl-pcard .gl-pname { display:block; padding:9px 11px; font-size:16px; color:#f5f0ff; }
+    .gl-more { margin:14px 0 6px; }
     .gl-searchwrap { position:relative; }
     .gl-searchwrap svg { position:absolute; left:12px; top:50%; transform:translateY(-50%); width:18px; height:18px; stroke:#d9ccff; fill:none; stroke-width:2; pointer-events:none; }
     .gl-searchwrap .gl-search { padding-left:40px; }
@@ -183,15 +188,69 @@
     var sections = D.sections.map(function(s,i){ return {name:s.name, ids:s.entry_ids||[], k:secKey(s.name,i)}; })
       .sort(function(a,b){ return a.k-b.k; });
     function esc(s){ return s.replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+    /* GIF-led character cards (User's ruling Nov 20, 2026, on merge Flag 2;
+       Nov 9 Grid Log rule): a character's canon GIF leads where one exists,
+       the canon portrait stands where no GIF exists. */
+    function primFor(name){
+      if(/personae/i.test(name)) return ['hexa-sigil','xero-unit-x-07','xavier-unit-x-08','indigo','the-valkyrie-val-1-to-val-18','cyphr','neon','praxia','kael-voss','himhun','indigo-s-husband','nexus-01-x-10','zed-gar'];
+      if(/crew/i.test(name)) return ['noor','alyha','star','cali-rose','jade-and-nikita-reserve-crew'];
+      return null;
+    }
+    var CARDIMG = {
+      'hexa-sigil': 'assets/hexa-animated-chatgpt.gif',
+      'xero-unit-x-07': '/portraits/NV-Xero_Portrait.png',
+      'xavier-unit-x-08': '/portraits/NV-Xavier_Portrait.png',
+      'indigo': '/portraits/NV-Indigo_Portrait.png',
+      'the-valkyrie-val-1-to-val-18': '/portraits/NV-Val17_Portrait.png',
+      'cyphr': 'assets/cyphr-animated-chatgpt.gif',
+      'neon': '/portraits/NV-Neon_Ultra_Suite_GIF_2026-11-09.gif',
+      'praxia': '/portraits/NV-Praxia_Portrait.png',
+      'himhun': '/portraits/NV-HimHun_Portrait.png',
+      'nexus-01-x-10': '/portraits/NV-Nexus_Portrait.png',
+      'noor': '/portraits/NV-Noor_Portrait.png',
+      'alyha': '/portraits/NV-Alyha_Portrait.png',
+      'star': '/portraits/NV-Star_Portrait.png',
+      'cali-rose': '/portraits/NV-Cali_Rose_Portrait.png',
+      'jade-and-nikita-reserve-crew': '/portraits/NV-Jade_Portrait.png'
+    };
+    function cardImg(e){
+      if(CARDIMG[e.id]) return CARDIMG[e.id];
+      var m = (e.html||'').match(/assets\/[A-Za-z0-9._-]+\.(?:jpg|gif|png)/);
+      return m ? m[0] : '';
+    }
     function renderIndex(filter){
       var f = (filter||'').toLowerCase(), html = '', ci = 0;
       sections.forEach(function(s){
         var items = s.ids.map(function(id){ return byId[id]; }).filter(Boolean)
           .filter(function(e){ return !f || e.title.toLowerCase().indexOf(f) > -1; });
         if(!items.length) return;
-        html += '<div class="card" style="animation-delay:' + (ci++ * 45) + 'ms"><h2 class="gl-sec">' + esc(s.name) + '</h2><ul class="gl-entries">';
-        items.forEach(function(e){ html += '<li><a href="#/e/' + e.id + '">' + esc(e.title) + '</a></li>'; });
-        html += '</ul></div>';
+        html += '<div class="card" style="animation-delay:' + (ci++ * 45) + 'ms"><h2 class="gl-sec">' + esc(s.name) + '</h2>';
+        var prim = primFor(s.name);
+        if(prim){
+          var inGrid = {};
+          html += '<div class="gl-grid">';
+          prim.forEach(function(id){
+            var e = byId[id]; if(!e) return;
+            if(f && e.title.toLowerCase().indexOf(f) === -1) return;
+            inGrid[id] = 1;
+            var img = cardImg(e);
+            html += '<a class="gl-pcard" style="animation-delay:' + (ci++ * 45) + 'ms" href="#/e/' + e.id + '">'
+              + (img ? '<img loading="lazy" src="' + img + '" alt="' + esc(e.title) + '">' : '')
+              + '<span class="gl-pname">' + esc(e.title) + '</span></a>';
+          });
+          html += '</div>';
+          var rest = items.filter(function(e){ return !inGrid[e.id]; });
+          if(rest.length){
+            html += '<p class="gl-kicker gl-more">More in this section</p><ul class="gl-entries">';
+            rest.forEach(function(e){ html += '<li><a href="#/e/' + e.id + '">' + esc(e.title) + '</a></li>'; });
+            html += '</ul>';
+          }
+        } else {
+          html += '<ul class="gl-entries">';
+          items.forEach(function(e){ html += '<li><a href="#/e/' + e.id + '">' + esc(e.title) + '</a></li>'; });
+          html += '</ul>';
+        }
+        html += '</div>';
       });
       root.innerHTML = html || '<div class="card"><p>No entries match.</p></div>';
     }
