@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>NV_Gridlog — Neon Vigil</title>
+  <title>Grid Log — Neon Vigil</title>
   <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../nv-terminal-tokens.css">
   <link rel="stylesheet" href="../nv-ticker.css">
@@ -11,353 +11,241 @@
   <link rel="stylesheet" href="../nv-sprite.css">
   <link rel="stylesheet" href="../nv-symbiont-theme.css">
   <script src="../nv-symbiont-theme.js"></script>
+  <script type="importmap">{ "imports": { "three": "https://unpkg.com/three@0.187.0/build/three.webgpu.js", "three/tsl": "https://unpkg.com/three@0.187.0/build/three.tsl.js", "three/addons/": "https://unpkg.com/three@0.187.0/examples/jsm/" } }</script>
   <style>
-    /* NV_Gridlog — the Grid Log wiki (Nov 9, 2026). One encyclopedia page:
-       Characters, the Creature Log, and the Living Line Tribes, folded into
-       one. Cleared information only; canon pictures only. The Creature Log
-       holds the Swarm, Assassin, and Parasite Wasp bug castes. No syncing
-       language. */
-    body { background:#05010f; color:#f5f0ff; font-family:"VT323", "Share Tech Mono", monospace; font-size:18px; margin:0; }
-    main { position:relative; z-index:2; max-width:720px; margin:0 auto; padding:0 16px 16px; }
-    .card { border:1px solid var(--nv-accent); border-radius:16px; background:rgba(18,8,31,.88); padding:28px; }
-    h1 { margin:8px 0; }
-    h2 { color:var(--nv-accent-soft); margin:32px 0 8px; }
-    h3 { color:#ff4fd8; margin:24px 0 4px; }
-    a { color:var(--nv-accent-soft); }
-    .gridlog-note { color:var(--nv-accent-soft); }
-    .gridlog-note a { color:var(--nv-accent-soft); }
-    .toc { border:1px solid var(--nv-accent); border-radius:12px; background:#0b0414; padding:16px 20px; margin:16px 0; }
-    .toc h2 { margin:0 0 8px; }
-    .toc ul { margin:0; padding-left:20px; }
-    .toc li { margin:4px 0; }
-    .entry p { color:var(--nv-accent-soft); margin:4px 0 0; }
-    figure { margin:20px 0; }
-    figure img { width:100%; border:1px solid var(--nv-accent); display:block; }
-    .log-entry { border:1px solid #00f0ff; padding:8px; background:#0b0414; margin:12px 0; }
-    .log-entry-head { display:flex; justify-content:space-between; color:#ff4fd8; font-weight:bold; }
-    .log-entry-desc { color:var(--nv-accent-soft); margin-top:3px; }
+    /* Grid Log — the merged wiki (Nov 20, 2026). The Web Bible (v18) folded
+       into the Grid Log: one encyclopedia surface, wiki format, Hex OS.
+       Content renders from bible-data.js, generated from the Web Bible's
+       bible.json; the Bible master in the Master Codex drive stays the
+       source of truth underneath. Fragment field sits on the outer frame
+       only — never behind entry text (unified Hex OS style, Grid Log lane). */
+    body { background:#05010f; color:#f5f0ff; font-family:"VT323","Share Tech Mono",monospace; font-size:18px; margin:0; }
+    #gl-bg { position:fixed; inset:0; z-index:0; pointer-events:none; }
+    main { position:relative; z-index:2; max-width:860px; margin:0 auto; padding:0 16px 24px; }
+    .card { border:1px solid var(--nv-accent,#7c3aed); border-radius:16px; background:rgba(18,8,31,.92); padding:20px 22px; margin-top:16px; }
+    h1 { font-size:44px; letter-spacing:2px; margin:0 0 4px; color:#f5f0ff; }
+    .gl-sub { opacity:.85; margin:0 0 14px; }
+    .gl-search { width:100%; box-sizing:border-box; background:#0a0618; border:1px solid var(--nv-accent,#7c3aed); border-radius:10px; color:#f5f0ff; font-family:inherit; font-size:20px; padding:10px 14px; }
+    .gl-search:focus { outline:2px solid var(--nv-accent,#7c3aed); }
+    h2.gl-sec { font-size:26px; margin:0 0 8px; letter-spacing:1px; }
+    ul.gl-entries { list-style:none; margin:0; padding:0; columns:2; column-gap:28px; }
+    @media (max-width:640px){ ul.gl-entries{ columns:1; } }
+    ul.gl-entries li { break-inside:avoid; padding:3px 0; }
+    ul.gl-entries a { color:#d9ccff; text-decoration:none; }
+    ul.gl-entries a:hover { text-decoration:underline; }
+    .gl-kicker { opacity:.75; font-size:16px; letter-spacing:1px; text-transform:uppercase; }
+    .gl-nav { display:flex; justify-content:space-between; gap:12px; margin-top:18px; flex-wrap:wrap; }
+    .gl-nav a, a.gl-back { color:#d9ccff; }
+    .gl-loading { font-size:24px; letter-spacing:2px; background:linear-gradient(90deg,#8b7bb8 25%,#f5f0ff 50%,#8b7bb8 75%); background-size:200% 100%; -webkit-background-clip:text; background-clip:text; color:transparent; animation:glshimmer 1.4s linear infinite; }
+    @keyframes glshimmer { to { background-position:-200% 0; } }
+    @media (prefers-reduced-motion: reduce){ .gl-loading{ animation:none; color:#d9ccff; } }
+    .gl-note { opacity:.8; font-size:16px; }
+    #gl-webgpu { position:fixed; inset:0; z-index:0; pointer-events:none; }
+    #gl-bg { display:none; }
+    #gl-bg.on { display:block; }
+    .card { animation:glflip .45s ease both; }
+    @keyframes glflip { from { opacity:0; transform:perspective(900px) rotateY(5deg) translateY(8px); } to { opacity:1; transform:none; } }
+    @media (prefers-reduced-motion: reduce){ .card{ animation:none; } }
+    .gl-searchwrap { position:relative; }
+    .gl-searchwrap svg { position:absolute; left:12px; top:50%; transform:translateY(-50%); width:18px; height:18px; stroke:#d9ccff; fill:none; stroke-width:2; pointer-events:none; }
+    .gl-searchwrap .gl-search { padding-left:40px; }
+    .gl-entry img { max-width:100%; height:auto; }
+    /* v18 entry styles, scoped: */
+    .gl-entry .page {min-height:297mm; padding:12.5mm 16mm 11.4mm 16mm; position:relative; overflow:hidden; border:1.2mm solid #000; background:radial-gradient(ellipse at 50% 38%, #fffdf4 0%, #fdf6e3 58%, #f7ead0 100%);}
+    .gl-entry .page::before {content:""; position:absolute; top:4mm; left:4mm; right:4mm; bottom:4mm; border:0.35mm solid #c2a059; pointer-events:none;}
+    .gl-entry .page::after {content:""; position:absolute; top:5.4mm; left:5.4mm; right:5.4mm; bottom:5.4mm; border:0.16mm solid #d9be82; pointer-events:none;}
+    .gl-entry .tabbar {display:flex; gap:1.4mm; margin-bottom:4.4mm; flex-wrap:wrap; align-items:flex-end; border-bottom:0.55mm solid #b9975b;}
+    .gl-entry .tab {font-family:'Noto Serif','Liberation Serif',serif; font-size:8pt; letter-spacing:.05em; padding:1.4mm 2.4mm 1.1mm 2.4mm; border:0.3mm solid #c2a059; border-bottom:none; border-radius:2.6mm 2.6mm 0 0; background:#f1e3c2; color:#6b5a75; text-transform:uppercase;}
+    .gl-entry .tab.on {background:#2b1055; color:#fdf3d8; border-color:#8a6d2f; font-weight:700; padding-top:2mm;}
+    .gl-entry .tab.on.c-cyan {background:#0b5563; border-color:#0b5563;}
+    .gl-entry .tab.on.c-pink {background:#8e1e5a; border-color:#8e1e5a;}
+    .gl-entry .tab.on.c-green {background:#1d5c38; border-color:#1d5c38;}
+    .gl-entry .tab.on.c-rust {background:#7a2d12; border-color:#7a2d12;}
+    .gl-entry .tab.on.c-steel {background:#26343f; border-color:#26343f;}
+    .gl-entry .tab.on.c-gold {background:#6d5410; border-color:#6d5410;}
+    .gl-entry .kicker {font-size:8pt; letter-spacing:.18em; text-transform:uppercase; color:#8e1e5a; font-weight:700; text-align:center;}
+    .gl-entry h1 {font-family:'Noto Serif Display','Noto Serif','Liberation Serif',serif; font-size:27pt; line-height:1.05; margin:1mm 0 3mm 0; color:#2b1055;}
+    .gl-entry h2 {font-family:'Noto Serif Display','Noto Serif','Liberation Serif',serif; font-size:19pt; line-height:1.1; margin:1mm 0 1mm 0; color:#2b1055; text-align:center; border-bottom:0.55mm double #b9975b; padding-bottom:1.1mm;}
+    .gl-entry h3 {font-family:'Noto Serif','Liberation Serif',serif; font-size:11pt; margin:3.4mm 0 1.4mm 0; text-transform:uppercase; letter-spacing:.06em; color:#5c1a4d;}
+    .gl-entry p {margin:0 0 2mm 0;}
+    .gl-entry ul {margin:0 0 2.4mm 0; padding-left:5mm;}
+    .gl-entry li {margin-bottom:1mm;}
+    .gl-entry .hero {width:100%; height:auto; max-height:66mm; object-fit:contain; background:#0d0a16; border:1.1mm solid #fffaf0; outline:0.35mm solid #b9975b; box-shadow:0 1mm 3mm rgba(43,16,85,.35);}
+    .gl-entry .hero.tall {max-height:84mm;}
+    .gl-entry .duo {display:flex; gap:3mm;}
+    .gl-entry .duo img {width:49%; max-height:60mm; object-fit:contain; background:#0d0a16; border:1mm solid #fffaf0; outline:0.35mm solid #b9975b; box-shadow:0 1mm 3mm rgba(43,16,85,.35);}
+    .gl-entry .gap {border:0.5mm dashed #8e1e5a; background:#fdf0f4; color:#8e1e5a; padding:10mm 6mm; text-align:center; font-size:10pt; font-style:italic; margin-bottom:4mm; border-radius:2mm;}
+    .gl-entry .cap {font-size:8pt; font-style:italic; color:#6d5c46; margin:1.6mm 0 2.8mm 0; text-align:center;}
+    .gl-entry table.spec {width:100%; border-collapse:collapse; margin:2mm 0 3mm 0; font-size:9.3pt;}
+    .gl-entry table.spec td {border-top:0.25mm solid #d9be82; padding:1.35mm 2mm; vertical-align:top;}
+    .gl-entry table.spec td:first-child {width:34mm; font-weight:700; color:#5c1a4d; background:rgba(185,151,91,.10); font-style:italic;}
+    .gl-entry .promptbox {background:#1d1033; color:#f5ecd2; border:0.45mm solid #b9975b; border-radius:2mm; padding:3.2mm 4mm; font-size:9.5pt; line-height:1.37; white-space:pre-wrap; margin-bottom:4mm;}
+    .gl-entry .negbox {background:#fbf0e9; border:0.3mm solid #d9a184; border-left:1.4mm solid #b3542e; border-radius:0 2mm 2mm 0; padding:2.4mm 3.6mm; margin-bottom:2.4mm;}
+    .gl-entry .alwaysbox {background:#f0f6e9; border:0.3mm solid #a9cdb6; border-left:1.4mm solid #4a7d57; border-radius:0 2mm 2mm 0; padding:2.4mm 3.6mm; margin-bottom:2.4mm;}
+    .gl-entry .foot {position:absolute; bottom:8mm; left:16mm; right:16mm; display:flex; justify-content:space-between; font-size:8pt; font-style:italic; color:#8a7a52; border-top:0.55mm double #b9975b; padding-top:1.5mm;}
+    .gl-entry .rule {height:1.6mm; background:linear-gradient(90deg,#b9975b,#8e1e5a,#0b7a8c,#b9975b); margin:3mm auto 5mm auto; width:72%; border-radius:1mm;}
+    .gl-entry .cover {background:radial-gradient(ellipse at 50% 30%, #2b1055 0%, #170b2e 62%, #0d0619 100%); color:#f7edd6; text-align:center;}
+    .gl-entry .cover h1 {font-size:40pt; color:#fff6dd; text-align:center; letter-spacing:.02em;}
+    .gl-entry .cover .kicker {color:#e58ac2; text-align:center;}
+    .gl-entry .cover .rule {margin-left:auto;margin-right:auto;}
+    .gl-entry .coverimg {width:100%; max-height:118mm; object-fit:contain; background:#000; border:1.2mm solid #f7edd6; outline:0.4mm solid #b9975b;}
+    .gl-entry .toc td {padding:2mm 2mm; border-top:0.25mm solid #d9be82; font-size:10pt;}
+    .gl-entry .toc td:first-child {font-weight:700;color:#8e1e5a;width:16mm;font-size:12pt;background:none;}
+    .gl-entry .tl {display:flex; flex-wrap:wrap; gap:4mm 5mm; margin:4mm 0;}
+    .gl-entry .tl h3 {flex:0 0 100%; margin:2mm 0 1mm 0;}
+    .gl-entry .tl .ev {position:relative; flex:1 1 42mm; border-top:0.9mm solid #b9975b; padding-top:4mm; margin-bottom:3mm;}
+    .gl-entry .tl .ev::before {content:''; position:absolute; left:0; top:-2.1mm; width:3.4mm; height:3.4mm; border-radius:50%; background:#2b1055; border:0.5mm solid #b9975b;}
+    .gl-entry .tl .yr {display:inline-block; font-weight:700; color:#fdf3d8; background:#2b1055; font-size:10pt; padding:1mm 2.5mm; border-radius:2mm; border-bottom:none; margin-bottom:1.5mm;}
+    .gl-entry svg {width:100%; height:auto; max-height:50mm; background:#fffaf0; border:0.35mm solid #b9975b;}
+    .gl-entry .small {font-size:8.5pt;color:#6d5c46;}
+    .gl-entry .cols {display:flex;gap:5mm;}
+    .gl-entry .col {flex:1;}
+    .gl-entry img.wide {display:block; width:100%; max-height:62mm; object-fit:contain; background:#0d0a16; margin-bottom:2mm; border:1.1mm solid #fffaf0; outline:0.35mm solid #b9975b; box-shadow:0 1mm 3mm rgba(43,16,85,.35);}
+    .gl-entry img.wide58 {display:block; width:100%; max-height:56mm; object-fit:contain; background:#0d0a16; margin-bottom:2mm; border:1.1mm solid #fffaf0; outline:0.35mm solid #b9975b; box-shadow:0 1mm 3mm rgba(43,16,85,.35);}
+    .gl-entry img.wide51 {display:block; width:100%; max-height:51mm; object-fit:contain; background:#0d0a16; margin-bottom:2mm; border:1.1mm solid #fffaf0; outline:0.35mm solid #b9975b; box-shadow:0 1mm 3mm rgba(43,16,85,.35);}
+    .gl-entry img.platefull {display:block; margin:0 auto; height:172mm; width:auto; max-width:100%; object-fit:contain; border:1.1mm solid #fffaf0; outline:0.35mm solid #b9975b; box-shadow:0 1mm 3mm rgba(43,16,85,.35); background:#0d0a16;}
+    .gl-entry .plates {display:flex; gap:3mm; justify-content:center; margin-bottom:2mm;}
+    .gl-entry .plates img {height:102mm; width:auto; max-width:49%; object-fit:contain; background:#0d0a16; border:1mm solid #fffaf0; outline:0.35mm solid #b9975b; box-shadow:0 1mm 3mm rgba(43,16,85,.35);}
+    .gl-entry .platescap {text-align:left;}
+    .gl-entry .tagline {font-size:12pt;color:#e9dcff;line-height:1.45;font-style:italic;}
+    .gl-entry .shell {position:sticky;top:0;z-index:50;background:#20152f;color:#f6e8d4;padding:12px 16px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+    .gl-entry .shell a {color:#f5d78b}
+    .gl-entry .shell input {padding:7px;border-radius:5px;max-width:240px}
+    .gl-entry .entry {max-width:210mm;margin:20px auto;scroll-margin-top:95px}
+    .gl-entry .page {min-height:unset}
+    .gl-entry .asset-figure {margin:1.5mm 0 3mm}
+    .gl-entry .asset-figure img {display:block;max-width:100%}
+    .gl-entry .asset-figure figcaption {font-size:8pt;text-align:center;font-style:italic;color:#715d49}
+    .gl-entry .field-entry {padding:18mm;background:#fdf6e3;border:2px solid #b9975b}
+    .gl-entry .field-entry h2 {text-align:center}
+    .gl-entry .entry-head {background:#231634;color:#fff;padding:9px 16px;display:flex;justify-content:space-between;gap:8px;font-size:12px}
+    .gl-entry .entry-head a {color:#f8d68e}
+    .gl-entry #toc {max-height:190px;overflow:auto;background:#f7ecd4;padding:12px;color:#231634;width:100%}
+    .gl-entry #toc a {color:#43165b}
+    .gl-entry #toc summary {cursor:pointer;font-weight:bold}
+    .gl-entry #toc details {margin:5px 0}
+    .gl-entry #toc ul {columns:3;list-style:none;padding:0}
+    .gl-entry #toc li {break-inside:avoid;margin:4px 0}
+    .gl-entry #toc ul {columns:1}
+    .gl-entry .entry {margin:0}
+    .gl-entry .page {padding:7mm}
+    .gl-entry .shell {position:relative}
+    .gl-entry .shell, .gl-entry .entry-head {display:none}
+    .gl-entry .entry {break-after:page;margin:0}
+    .gl-entry .page {min-height:297mm}
+    .gl-entry .nv-hover-neon {position:relative;cursor:pointer;transition:transform .35s ease, box-shadow .35s ease;}
+    .gl-entry figure:has(> img.nv-hover-neon) {position:relative;overflow:visible;}
+    .gl-entry img.nv-hover-neon:hover {transform:scale(1.03);box-shadow:0 0 0 2px #e58ac2,0 0 28px rgba(230,138,194,.9),0 0 60px rgba(139,92,246,.7);}
+    .gl-entry img.nv-hover-neon:hover::after {content:"";}
+    .gl-entry figure:has(> img.nv-hover-neon):hover::after {content:"";position:absolute;inset:-14px;border-radius:50%;pointer-events:none;
+  background:conic-gradient(from 0deg,transparent 0deg,rgba(230,138,194,.85) 40deg,transparent 90deg,rgba(139,92,246,.85) 180deg,transparent 250deg,rgba(0,229,255,.8) 310deg,transparent 360deg);
+  -webkit-mask:radial-gradient(closest-side,transparent 58%,#000 60%,#000 72%,transparent 74%);
+  mask:radial-gradient(closest-side,transparent 58%,#000 60%,#000 72%,transparent 74%);
+  animation:nv-swirl 6s linear infinite;}
+    .gl-entry to {transform:rotate(360deg);}
+    .gl-entry body.nv-astral-on::before {content:"";position:fixed;inset:-20%;z-index:40;pointer-events:none;mix-blend-mode:screen;opacity:.5;
+  background:
+    radial-gradient(circle at 30% 30%,rgba(230,138,194,.55) 0,transparent 34%),
+    radial-gradient(circle at 70% 60%,rgba(139,92,246,.55) 0,transparent 38%),
+    radial-gradient(circle at 50% 80%,rgba(0,229,255,.4) 0,transparent 30%);
+  animation:nv-astral-drift 9s ease-in-out infinite alternate;}
+    .gl-entry from {transform:rotate(-6deg) scale(1);}
+    .gl-entry to {transform:rotate(6deg) scale(1.08);}
+    .gl-entry img.nv-gif-hover {cursor:pointer;}
   </style>
-  <script src="../config.js"></script>
 </head>
-<body class="nv-shell-page">
-  <header class="nv-shell-head">
-    <a class="nv-shell-head-title" href="/hub.html">Infinity6 Terminal</a>
-    <span class="nv-shell-head-page">NV_Gridlog</span>
-    <span class="nv-shell-head-hint" data-nv-commands>Press ⌘K for commands</span>
-  </header>
+<body>
+  <canvas id="gl-webgpu" aria-hidden="true"></canvas>
+  <canvas id="gl-bg" aria-hidden="true"></canvas>
+  <script src="../config.js"></script>
   <main>
     <div class="card">
-      <h1>Grid Log</h1>
-      <p class="gridlog-note">The Neon Vigil encyclopedia — characters, creatures, and the Living Line tribes.</p>
-
-      <nav class="toc" aria-label="Contents">
-        <h2>Contents</h2>
-        <ul>
-          <li><a href="#characters">Characters</a></li>
-          <li><a href="#creature-log">Creature Log</a>
-            <ul>
-              <li><a href="#bug-castes">Bug Castes</a></li>
-              <li><a href="#garden-fauna">Garden Fauna</a></li>
-              <li><a href="#ocean-fauna">Ocean Fauna</a></li>
-              <li><a href="#plants">Plants</a></li>
-              <li><a href="#slime">Slime Sisters &amp; Mother Slime</a></li>
-            </ul>
-          </li>
-          <li><a href="#living-line">Living Line Tribes</a></li>
-        </ul>
-      </nav>
-
-      <h2 id="characters">Characters</h2>
-
-      <div class="entry">
-        <h3 id="neon-ultra">Neon Ultra</h3>
-        <p>Neon Ultra, a time displaced DJ.</p>
-        <figure><img src="../portraits/NV-Neon_Ultra_Suite_GIF_2026-11-09.gif" alt="Neon Ultra canon portrait and turnaround GIF"></figure>
-      </div>
-
-      <div class="entry">
-        <h3 id="alyha">Alyha</h3>
-        <figure><img src="../portraits/NV-Alyha_Portrait.png" alt="Alyha approved portrait"></figure>
-      </div>
-
-      <div class="entry">
-        <h3 id="anya">Anya</h3>
-        <figure><img src="../portraits/NV-Anya_Portrait.png" alt="Anya approved portrait"></figure>
-      </div>
-
-      <div class="entry">
-        <h3 id="cali-rose">Cali Rose</h3>
-        <figure><img src="../portraits/NV-Cali_Rose_Portrait.png" alt="Cali Rose approved portrait"></figure>
-      </div>
-
-      <div class="entry">
-        <h3 id="cyphr">Cyphr</h3>
-        <figure><img src="../portraits/NV-Cyphr_Portrait.png" alt="Cyphr approved portrait"></figure>
-      </div>
-
-      <div class="entry">
-        <h3 id="erica-mar">Erica Mar</h3>
-        <figure><img src="../portraits/NV-Erica_Mar_Portrait.png" alt="Erica Mar approved portrait"></figure>
-      </div>
-
-      <div class="entry">
-        <h3 id="hexa">Hexa</h3>
-        <figure><img src="../portraits/NV-Hexa_Portrait.png" alt="Hexa approved portrait"></figure>
-      </div>
-
-      <div class="entry">
-        <h3 id="himhun">HimHun</h3>
-        <figure><img src="../portraits/NV-HimHun_Portrait.png" alt="HimHun approved portrait"></figure>
-      </div>
-
-      <div class="entry">
-        <h3 id="indigo">Indigo</h3>
-        <figure><img src="../portraits/NV-Indigo_Portrait.png" alt="Indigo approved portrait"></figure>
-      </div>
-
-      <div class="entry">
-        <h3 id="jade">Jade</h3>
-        <figure><img src="../portraits/NV-Jade_Portrait.png" alt="Jade approved portrait"></figure>
-      </div>
-
-      <div class="entry">
-        <h3 id="nexus">Nexus</h3>
-        <figure><img src="../portraits/NV-Nexus_Portrait.png" alt="Nexus approved portrait"></figure>
-      </div>
-
-      <div class="entry">
-        <h3 id="noor">Noor</h3>
-        <figure><img src="../portraits/NV-Noor_Portrait.png" alt="Noor approved portrait"></figure>
-      </div>
-
-      <div class="entry">
-        <h3 id="praxia">Praxia</h3>
-        <figure><img src="../portraits/NV-Praxia_Portrait.png" alt="Praxia approved portrait"></figure>
-      </div>
-
-      <div class="entry">
-        <h3 id="star">Star</h3>
-        <figure><img src="../portraits/NV-Star_Portrait.png" alt="Star approved portrait"></figure>
-      </div>
-
-      <div class="entry">
-        <h3 id="val-17">Val 17</h3>
-        <figure><img src="../portraits/NV-Val17_Portrait.png" alt="Val 17 approved portrait"></figure>
-      </div>
-
-      <div class="entry">
-        <h3 id="val-18">Val 18</h3>
-        <figure><img src="../portraits/NV-Val18_Portrait.png" alt="Val 18 approved portrait"></figure>
-      </div>
-
-      <div class="entry">
-        <h3 id="xavier">Xavier</h3>
-        <figure><img src="../portraits/NV-Xavier_Portrait.png" alt="Xavier approved portrait"></figure>
-      </div>
-
-      <div class="entry">
-        <h3 id="xero">Xero</h3>
-        <figure><img src="../portraits/NV-Xero_Portrait.png" alt="Xero approved portrait"></figure>
-      </div>
-
-      <h2 id="creature-log">Creature Log</h2>
-      <p class="gridlog-note">The Garden's creatures — bug castes, fauna, and flora. Only Praxia commands the Garden this season. Always a Queen in law.</p>
-
-      <h3 id="bug-castes">Bug Castes</h3>
-      <p class="gridlog-note">Sentient distributed intelligences. Harmonious with Garden. Low-frequency song / scent. Bioluminescent. No sigils on the Bugs. Bugs never use plasma.</p>
-
-      <div class="log-entry">
-        <div class="log-entry-head"><span>SWARM</span><span>[BUG CASTE]</span></div>
-        <div class="log-entry-desc">Rust-red / gunmetal, ember eyes (base beetle-beast).</div>
-      </div>
-
-      <div class="log-entry">
-        <div class="log-entry-head"><span>ASSASSIN</span><span>[BUG CASTE]</span></div>
-        <div class="log-entry-desc">Reduviid browns, blacks, dull amber; ember or dark compound eyes. Especially evolved hunters: elongated head, curved rostrum, raptorial forelegs. Ambush, pierce, reel.</div>
-      </div>
-
-      <div class="log-entry">
-        <div class="log-entry-head"><span>PARASITE WASP</span><span>[BUG CASTE]</span></div>
-        <div class="log-entry-desc">Metallic blue (cuckoo / mud-dauber blue), dark wings, ember or blue-glass eyes. Smaller animalistic wasp-beast. Mind-control is biological: sting / ovipositor + song-line infection through a living host. Host walks. Wasp rides. Follows Praxia until succession.</div>
-      </div>
-
-      <p class="gridlog-note">Swarm, Assassin, and Parasite Wasp are smaller, mostly animalistic — insect-beast bodies, not human-height soldiers. All castes follow the Queen's order until succession.</p>
-
-      <h3 id="garden-fauna">Garden Fauna</h3>
-
-      <div class="log-entry">
-        <div class="log-entry-head"><span>SPIRIT FAUNA</span><span>[FAUNA]</span></div>
-        <div class="log-entry-desc">Bacteria and other microbes run slightly bigger than Old World scale. Sometimes visible, hovering and floating through the Garden. Translucent motes, slow flagella, faint biolume. Coin-to-palm at closest. Weather, not combat. First Water is their air.</div>
-      </div>
-
-      <div class="log-entry">
-        <div class="log-entry-head"><span>STINGLESS GARDEN BEES</span><span>[FAUNA]</span></div>
-        <div class="log-entry-desc">Bird-sized (robin to raven, not condor). Fuzzy bumble-body language. Stingless. Translucent to honey-glass chitin, faint Garden lumen. They move pollen, resin, and song-dust through the canopy.</div>
-      </div>
-
-      <div class="log-entry">
-        <div class="log-entry-head"><span>NIGHT MOTHS</span><span>[FAUNA]</span></div>
-        <div class="log-entry-desc">Same scale as the bees. Soft powder wings, dusk-to-black with pale eyespots. Silent. No sting. Night shift of the same air-layer.</div>
-      </div>
-
-      <div class="log-entry">
-        <div class="log-entry-head"><span>SEA SHEEP</span><span>[FAUNA]</span></div>
-        <div class="log-entry-desc">Sap-sucking sea slugs, the size of actual sheep. Kleptoplasty: they steal intact chloroplasts from algae and keep them in the cerata on their backs; when food runs out they photosynthesize like plants. Gentle, harmless grazers drifting the tide pools and shallow First Water edges.</div>
-      </div>
-
-      <div class="log-entry">
-        <div class="log-entry-head"><span>WORMS</span><span>[FAUNA]</span></div>
-        <div class="log-entry-desc">Human-scale predatory worms, sandworm / bloodworm / clamworm lineage grown large. Segmented bodies, copper-hard teeth or zinc fangs, venomous saliva. Ambush predators in Garden soil and ruin-loam.</div>
-      </div>
-
-      <div class="log-entry">
-        <div class="log-entry-head"><span>ROOSTWING SERPENT</span><span>[FAUNA]</span></div>
-        <div class="log-entry-desc">A flying snake. Giraffe-sized, just big enough to swallow a full-grown human. Roosts high; flies.</div>
-      </div>
-
-      <div class="log-entry">
-        <div class="log-entry-head"><span>URSA QUILL</span><span>[FAUNA]</span></div>
-        <div class="log-entry-desc">Iron City / Iron Fortress eternal winter. White ursine — polar bear + armadillo + wolverine. Red eyes. Glass-white quills. Non-humanoid. Not Swarm. Not a Queen.</div>
-      </div>
-
-      <h3 id="ocean-fauna">Ocean Fauna</h3>
-
-      <div class="log-entry">
-        <div class="log-entry-head"><span>PAKARI SHALLOWS</span><span>[FAUNA]</span></div>
-        <div class="log-entry-desc">Nine-tail Garden fox of the First Water edge. Two bodies, one animal. Low form: raccoon-to-hound, tide-pools, cyan inner-light, nine thin wet tails. High form: large night-fox, tails become weather.</div>
-      </div>
-
-      <div class="log-entry">
-        <div class="log-entry-head"><span>VEIN-LEVIATHAN (AMNION WHALE)</span><span>[FAUNA]</span></div>
-        <div class="log-entry-desc">Garden whale. City-block to small hull-shadow. Silk baleen combs spirit-fauna. Filter-song. Surfaces under Six.</div>
-      </div>
-
-      <div class="log-entry">
-        <div class="log-entry-head"><span>GEO-TRENCH CATHEDRAL CLAM</span><span>[FAUNA]</span></div>
-        <div class="log-entry-desc">Living Filter Clam grown huge. Chitin-nacre valves, magma-red resin hinge, First Water held in the mantle cavity. An animal.</div>
-      </div>
-
-      <div class="log-entry">
-        <div class="log-entry-head"><span>CHOIR-STRING (SIPHON LINE)</span><span>[FAUNA]</span></div>
-        <div class="log-entry-desc">Colony animal. Lamp-post thin, longer than Old World blue whale. Glass-teal zooids. Caste in the water (float / sting / feed / sing).</div>
-      </div>
-
-      <div class="log-entry">
-        <div class="log-entry-head"><span>HOOK-RAY</span><span>[FAUNA]</span></div>
-        <div class="log-entry-desc">Pilus-law skate. Skiff to barge. Ventral bio-grapples. Cannot hold chrome.</div>
-      </div>
-
-      <div class="log-entry">
-        <div class="log-entry-head"><span>ROSTRUM EEL</span><span>[FAUNA]</span></div>
-        <div class="log-entry-desc">Assassin logic in water. Old World six-foot eel is the juvenile. Adults coach-to-bus. Baths tunnels, open clam valves, trench dark.</div>
-      </div>
-
-      <h3 id="plants">Plants</h3>
-      <p class="gridlog-note">All are natural in the Gigas Garden, not synthetic, not engineered.</p>
-
-      <div class="log-entry">
-        <div class="log-entry-head"><span>LUNGWOOD</span><span>[FLORA]</span></div>
-        <div class="log-entry-desc">Canopy tree, trunk inhales / exhales, breath rhythm changes before storms / swarm moves / First Water shifts.</div>
-      </div>
-
-      <div class="log-entry">
-        <div class="log-entry-head"><span>THORN-SHOOTER THICKET</span><span>[FLORA]</span></div>
-        <div class="log-entry-desc">Thorns fire on vibration; effect: pain, numbness, then sleep, slow-acting, unless dose repeated.</div>
-      </div>
-
-      <div class="log-entry">
-        <div class="log-entry-head"><span>PULSE LANTERN VINE</span><span>[FLORA]</span></div>
-        <div class="log-entry-desc">Hanging lanterns pink / blue / purple / white, pulsing, reaching toward warmth not grabbing; a cut lantern glows one night.</div>
-      </div>
-
-      <div class="log-entry">
-        <div class="log-entry-head"><span>EMBER BUSH</span><span>[FLORA]</span></div>
-        <div class="log-entry-desc">Glowing pollinators burst out like light when disturbed, then settle; living alarm.</div>
-      </div>
-
-      <div class="log-entry">
-        <div class="log-entry-head"><span>MAW CAP</span><span>[FLORA]</span></div>
-        <div class="log-entry-desc">Closes slowly, eats what stays still inside too long.</div>
-      </div>
-
-      <div class="log-entry">
-        <div class="log-entry-head"><span>SIGNAL FLOWER</span><span>[FLORA]</span></div>
-        <div class="log-entry-desc">Orb bud twinkles long / short patterns changing with water, Bug song-lines, First Water in soil; living telegraph.</div>
-      </div>
-
-      <div class="log-entry">
-        <div class="log-entry-head"><span>VEIL MOSS / MYCELIAL MAT</span><span>[FLORA]</span></div>
-        <div class="log-entry-desc">Toned-down glow; mycelium is the bioluminescent element, not the moss; path / camp floor for all Garden tribes, no single tribe owns it.</div>
-      </div>
-
-      <div class="log-entry">
-        <div class="log-entry-head"><span>QUEEN'S BLOOM</span><span>[FLORA]</span></div>
-        <div class="log-entry-desc">Queen's Bloom 5147, with Infinity 6 as distant overhead silhouette (not landed).</div>
-      </div>
-
-      <div class="log-entry">
-        <div class="log-entry-head"><span>STRELITZIA GIGAS</span><span>[FLORA]</span></div>
-        <div class="log-entry-desc">Petals snap on 2 and 4 at 124 BPM.</div>
-      </div>
-
-      <div class="log-entry">
-        <div class="log-entry-head"><span>FIRST PLANTS / LITHOPS</span><span>[FLORA]</span></div>
-        <div class="log-entry-desc">First Plants / Lithops nodules / magma-red resin.</div>
-      </div>
-
-      <h3 id="slime">Slime Sisters &amp; Mother Slime</h3>
-
-      <div class="log-entry">
-        <div class="log-entry-head"><span>SLIME SISTERS</span><span>[CREATURE]</span></div>
-        <div class="log-entry-desc">Gigas Garden creature.</div>
-      </div>
-
-      <div class="log-entry">
-        <div class="log-entry-head"><span>MOTHER SLIME</span><span>[CREATURE]</span></div>
-        <div class="log-entry-desc">Gigas Garden creature.</div>
-      </div>
-
-      <h2 id="living-line">Living Line Tribes</h2>
-      <p class="gridlog-note">Living Line is the term for Bio Humans. What they call themselves is Mimekh, "people of the high branches."</p>
-
-      <div class="log-entry">
-        <div class="log-entry-head"><span>AMNION KEEPERS</span><span>[TRIBE]</span></div>
-        <div class="log-entry-desc">Living Line tribe.</div>
-      </div>
-
-      <div class="log-entry">
-        <div class="log-entry-head"><span>IRON ROOT</span><span>[TRIBE]</span></div>
-        <div class="log-entry-desc">Living Line tribe.</div>
-      </div>
-
-      <div class="log-entry">
-        <div class="log-entry-head"><span>SALT-BORN</span><span>[TRIBE]</span></div>
-        <div class="log-entry-desc">Living Line tribe.</div>
-      </div>
-
-      <div class="log-entry">
-        <div class="log-entry-head"><span>SKY-BONE</span><span>[TRIBE]</span></div>
-        <div class="log-entry-desc">Sky Bone is the name in the Living Line list and the name outsiders use; Mimekh is their own self-name.</div>
-      </div>
-
-      <div class="log-entry">
-        <div class="log-entry-head"><span>THE TRAVELING</span><span>[TRIBE]</span></div>
-        <div class="log-entry-desc">Garden-born. Ceremonial; bioluminescent patches; elders carry staves, kneel, and stop at the tree line — they will not set foot on the Curipira's ground. Their self-name is not "travellers" but the traveling itself, the act as identity; in their tongue, spelled phonetically: Loh biazhando. Dissent within the tribe: those who believe in magic — the old ways, the Garden's song — against those who want to wield the technology of the past to protect their future. Scout / hunter caste ranges past the tree line where the elders refuse to go. Material culture: bug shells as armor; they use many of the local animals for their own purposes; no buildings or infrastructure — they travel and set up camps, using animal skin and garden vines as rope. They paint their bioluminescent markings with ink from weird squids, carried dead as ink pouches. Language: Spanish base, Portuguese, English, Mexican slang. Migration: Brazil northward after the Fall, surviving by moving and natural births, up until 5150.</div>
-      </div>
-
-      <div class="log-entry">
-        <div class="log-entry-head"><span>DISPOSSESSED</span><span>[TRIBE]</span></div>
-        <div class="log-entry-desc">Ancient relic cyborgs who have persisted three thousand years, for whatever reason. Their implants are long dead; they wear the husks. They cannot enter First Water. Their weapons are stolen or scavenged, and many of them do not even know how to use them.</div>
-      </div>
-
-      <div class="log-entry">
-        <div class="log-entry-head"><span>SWARM</span><span>[TRIBE]</span></div>
-        <div class="log-entry-desc">Living Line tribe.</div>
-      </div>
-
-      <p class="gridlog-note"><a href="/hub.html">Back to hub</a></p>
+      <h1>GRID LOG</h1>
+      <p class="gl-sub">The Neon Vigil encyclopedia. The Web Bible lives here now — every entry, in wiki form. The Bible in the Master Codex drive stays the source of truth underneath.</p>
+      <div class="gl-searchwrap"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 L21 21"/></svg><input id="gl-search" class="gl-search" type="search" placeholder="Search the Log…" autocomplete="off"></div>
     </div>
+    <div id="gl-root"><div class="card"><p class="gl-loading">LOADING THE LOG…</p></div></div>
+    <div class="card"><p class="gl-note"><a href="/hub.html">Back to hub</a> · Grid Log — a part of Hex OS.</p></div>
   </main>
+  <script src="bible-data.js"></script>
+  <script>
+  (function(){
+    var D = window.NEON_BIBLE_DATA;
+    var root = document.getElementById('gl-root');
+    var search = document.getElementById('gl-search');
+    if(!D){ root.innerHTML = '<div class="card"><p>The Log could not load its data.</p></div>'; return; }
+    var byId = {}; D.entries.forEach(function(e){ byId[e.id]=e; });
+    function secKey(name, i){
+      if(/^cover$/i.test(name)) return -1;
+      var m = name.match(/^(\d+)\s/); if(m) return parseInt(m[1],10);
+      return 100 + i;
+    }
+    var sections = D.sections.map(function(s,i){ return {name:s.name, ids:s.entry_ids||[], k:secKey(s.name,i)}; })
+      .sort(function(a,b){ return a.k-b.k; });
+    function esc(s){ return s.replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+    function renderIndex(filter){
+      var f = (filter||'').toLowerCase(), html = '', ci = 0;
+      sections.forEach(function(s){
+        var items = s.ids.map(function(id){ return byId[id]; }).filter(Boolean)
+          .filter(function(e){ return !f || e.title.toLowerCase().indexOf(f) > -1; });
+        if(!items.length) return;
+        html += '<div class="card" style="animation-delay:' + (ci++ * 45) + 'ms"><h2 class="gl-sec">' + esc(s.name) + '</h2><ul class="gl-entries">';
+        items.forEach(function(e){ html += '<li><a href="#/e/' + e.id + '">' + esc(e.title) + '</a></li>'; });
+        html += '</ul></div>';
+      });
+      root.innerHTML = html || '<div class="card"><p>No entries match.</p></div>';
+    }
+    function neighbors(id){
+      var flat = []; sections.forEach(function(s){ s.ids.forEach(function(x){ if(byId[x]) flat.push(x); }); });
+      var i = flat.indexOf(id);
+      return { prev: i>0 ? flat[i-1] : null, next: i>=0 && i<flat.length-1 ? flat[i+1] : null };
+    }
+    function renderEntry(id){
+      var e = byId[id]; if(!e){ renderIndex(''); return; }
+      var html = e.html.replace(/<div class="tabbar">[\s\S]*?<\/div>/, '');
+      var n = neighbors(id);
+      root.innerHTML = '<div class="card">'
+        + '<p><a class="gl-back" href="#/">&larr; Grid Log index</a></p>'
+        + '<p class="gl-kicker">' + esc(e.section || '') + '</p>'
+        + '<div class="gl-entry">' + html + '</div>'
+        + '<div class="gl-nav"><span>' + (n.prev ? '<a href="#/e/' + n.prev + '">&larr; ' + esc(byId[n.prev].title) + '</a>' : '') + '</span>'
+        + '<span>' + (n.next ? '<a href="#/e/' + n.next + '">' + esc(byId[n.next].title) + ' &rarr;</a>' : '') + '</span></div>'
+        + '</div>';
+      window.scrollTo(0,0);
+    }
+    function route(){
+      var h = location.hash || '#/';
+      var m = h.match(/^#\/e\/(.+)$/);
+      if(m) renderEntry(decodeURIComponent(m[1])); else renderIndex(search.value);
+    }
+    window.addEventListener('hashchange', route);
+    search.addEventListener('input', function(){ if((location.hash||'#/') === '#/') renderIndex(search.value); });
+    route();
+    /* Light 2D tier — runs ONLY as the fallback when the WebGPU module
+       (gl-bg.js) is unavailable or fails; the module calls __glFallback. */
+    var bgStarted = false;
+    window.__glFallback = function(){ if(!bgStarted){ bgStarted = true; startBg2d(); } };
+    setTimeout(function(){ if(!bgStarted && !(window.__glStarted && window.__glStarted())) window.__glFallback(); }, 8000);
+    function startBg2d(){
+    document.getElementById('gl-bg').classList.add('on');
+    var cv = document.getElementById('gl-bg'), ctx = cv.getContext('2d'), W, H, P = [], still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function size(){ W = cv.width = innerWidth; H = cv.height = innerHeight; }
+    size(); addEventListener('resize', size);
+    var accent = getComputedStyle(document.documentElement).getPropertyValue('--nv-accent').trim() || '#7c3aed';
+    for(var i=0;i<70;i++) P.push({x:Math.random(), y:Math.random(), s:Math.random()*1.8+0.4, v:Math.random()*0.00035+0.00008});
+    function tick(){
+      ctx.clearRect(0,0,W,H); ctx.fillStyle = accent;
+      P.forEach(function(p){ p.y -= p.v; if(p.y < -0.02){ p.y = 1.02; p.x = Math.random(); }
+        ctx.globalAlpha = 0.35; ctx.fillRect(p.x*W, p.y*H, p.s, p.s); });
+      ctx.globalAlpha = 1;
+      if(!still && !document.hidden) requestAnimationFrame(tick);
+    }
+    tick();
+    document.addEventListener('visibilitychange', function(){ if(!document.hidden) tick(); });
+    }
+  })();
+  </script>
+  <script type="module" src="gl-bg.js"></script>
   <script src="../auth.js"></script>
   <script src="../nv-ticker.js"></script>
   <script src="../nv-commands.js"></script>
