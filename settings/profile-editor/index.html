@@ -133,11 +133,31 @@
   <script src="../../nv-sprite.js"></script>
   <script>
     function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+    /* Error states (Nov 22, 2026): an account save that fails —
+       updateUser resolving with an error, or the promise
+       rejecting — used to be swallowed silently here. Now it
+       surfaces on the page's inline save surface (#saveMsg) and
+       as an error toast. Throttled so one Save click (which can
+       fan out to several saveToAccount calls) raises one signal.
+       Success behavior and messages are unchanged. */
+    var lastSaveFailAt = 0;
+    function surfaceSaveFailure() {
+      var now = Date.now();
+      if (now - lastSaveFailAt < 1500) return;
+      lastSaveFailAt = now;
+      var msg = document.getElementById('saveMsg');
+      if (msg) { msg.textContent = 'Save failed — check your connection and try again.'; }
+      if (window.NVToast) NVToast.error('Save failed — try again');
+    }
     function saveToAccount(data) {
       try {
         var c = (typeof getClient === 'function') ? getClient() : null;
-        if (c) { c.auth.updateUser({ data: data }).catch(function () {}); }
-      } catch (e) {}
+        if (c) {
+          c.auth.updateUser({ data: data }).then(function (res) {
+            if (res && res.error) surfaceSaveFailure();
+          }).catch(function () { surfaceSaveFailure(); });
+        }
+      } catch (e) { surfaceSaveFailure(); }
     }
 
     var currentUser = null;
