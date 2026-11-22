@@ -48,9 +48,11 @@
     .ia-pick .ia-sub { font-size:15px; color:var(--nv-accent-soft); }
     /* Skill readout for the picked base (Phase 2, Nov 13, 2026):
        the four number skills (Power / Grid Scan Radius / Speed
-       Boost / Detectability, 24 points across the four) plus the
-       Default mode stamp. Numbers and modes are the locked set
-       from symbiont-skill-balance-and-pet-movement-2026-11-13.md. */
+       Boost / Detectability, 24 points across the four) plus
+       Defense, a standalone fifth stat outside the 24 (Nov 20,
+       2026 lock), plus the Default mode stamp. Numbers and modes
+       are the locked set from
+       symbiont-skill-balance-and-pet-movement-2026-11-13.md. */
     .skill-readout { margin:16px 0 8px; border:1px solid var(--nv-accent); border-radius:16px; padding:18px 20px; }
     .skill-readout:empty { display:none; }
     .skill-title { font-size:20px; letter-spacing:.14em; text-transform:uppercase; margin:0 0 10px; }
@@ -183,12 +185,14 @@
     try { saved = localStorage.getItem('nv_symbiont_base') || ''; } catch (e) {}
     /* Locked skill set (Nov 13, 2026): the four number skills
        total 24 for every base; Mode is a word, not a number.
-       Detectability is literal — high = easy to spot. */
+       Detectability is literal — high = easy to spot.
+       Defense is a standalone fifth stat (Nov 20, 2026 lock),
+       NOT part of the 24: Hexa 7, Cyphr 3, Helix 5, Warden 9. */
     var SKILLS = {
-      hexa:   { name: 'Hexa',   color: 'cyan',   power: 5, scan: 9, speed: 6, det: 4, mode: 'FAST THINKING' },
-      cyphr:  { name: 'Cyphr',  color: 'indigo', power: 6, scan: 8, speed: 7, det: 3, mode: 'DEEP LEARNING' },
-      helix:  { name: 'Helix',  color: 'pink',   power: 5, scan: 5, speed: 9, det: 5, mode: 'FAST' },
-      warden: { name: 'Warden', color: 'green',  power: 7, scan: 5, speed: 4, det: 8, mode: 'DEEP RESEARCH' }
+      hexa:   { name: 'Hexa',   color: 'cyan',   power: 5, scan: 9, speed: 6, det: 4, def: 7, mode: 'FAST THINKING' },
+      cyphr:  { name: 'Cyphr',  color: 'indigo', power: 6, scan: 8, speed: 7, det: 3, def: 3, mode: 'DEEP LEARNING' },
+      helix:  { name: 'Helix',  color: 'pink',   power: 5, scan: 5, speed: 9, det: 5, def: 5, mode: 'FAST' },
+      warden: { name: 'Warden', color: 'green',  power: 7, scan: 5, speed: 4, det: 8, def: 9, mode: 'DEEP RESEARCH' }
     };
     var readoutEl = document.getElementById('skillReadout');
     function skillRow(label, v) {
@@ -206,6 +210,7 @@
         skillRow('Grid Scan Radius', s.scan) +
         skillRow('Speed Boost', s.speed) +
         skillRow('Detectability', s.det) +
+        skillRow('Defense', s.def) +
         '<p class="skill-mode">Default mode: <span class="mode-stamp">' + s.mode + '</span></p>' +
         '<p class="skill-det">Detectability: high = easy to spot on radar/GPS, low = stealthy.</p>';
     }
