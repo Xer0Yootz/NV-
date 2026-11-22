@@ -77,6 +77,18 @@
     #termInput { background:transparent; border:0; outline:none; caret-color:transparent; color:#f5f0ff; font-family:inherit; font-size:16px; padding:0; margin:0; width:1ch; min-width:1ch; flex:0 1 auto; }
     @keyframes nv-blink { 50% { opacity:0; } }
     #radioToggleBtn{width:28px;height:28px;padding:0;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;background:rgba(255,255,255,.06);color:#f5f0ff;border:1px solid var(--nv-accent);border-radius:999px;cursor:pointer;box-shadow:none}#radioToggleBtn svg{width:14px;height:14px;display:block}
+    /* Terminal shader canvas (Nov 22, 2026): while shader mode is on, the
+       canvas takes the log viewport's place inside the terminal box. */
+    #termShaderCanvas { width:100%; height:140px; display:block; background:#000; }
+    #termShaderCanvas[hidden] { display:none; }
+    /* Prism state (Nov 22, 2026) — hub only this pass: the terminal box
+       and the footer slowly rotate hue. The page background (.bg) sits
+       outside both, so the ship stays put while the glass changes.
+       A sitewide version wants the accent variable itself rotated;
+       that is a follow-up, not this pass. */
+    html[data-prism="on"] .hub-col, html[data-prism="on"] .commands-footer { animation:nv-prism-spin 16s linear infinite; }
+    @keyframes nv-prism-spin { from { filter:hue-rotate(0deg); } to { filter:hue-rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { html[data-prism="on"] .hub-col, html[data-prism="on"] .commands-footer { animation:none; } }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./config.js"></script>
@@ -91,6 +103,7 @@
     <div class="nv-term um-cascade" id="nvTerm">
       <div class="nv-term-head"><h1 id="hubTitle">Greetings User</h1></div>
       <div class="nv-term-out" id="termOutput"><p>Type 'help' for commands.</p></div>
+      <canvas id="termShaderCanvas" hidden aria-hidden="true"></canvas>
       <div class="nv-term-line"><span class="nv-term-prompt">&gt;</span><input id="termInput" autocomplete="off" aria-label="Terminal command" spellcheck="false"><span class="cursor-blink">_</span></div>
       <div class="nv-term-foot">Infinity 6 Terminal</div>
     </div>
@@ -157,6 +170,48 @@
       'sounds/neon-vigil-sound-bed-3-loop.wav',
       'sounds/neon-vigil-theme-atmospheric-haze.mp3'
     ];
+    /* The station list is rebuildable (Nov 22, 2026): a hidden fifth
+       entry exists only while its local state is on. It is never in
+       help, never in any listing — the select simply has one more
+       option on this device, for this user. It plays the Haze file
+       slowed a touch (see applyStationFx). */
+    var radioBaseStations = [
+      { name: 'Sound Bed 1', src: 'sounds/neon-vigil-sound-bed-1-landing-workpage.wav' },
+      { name: 'Sound Bed 2', src: 'sounds/neon-vigil-sound-bed-2-practice-page.wav' },
+      { name: 'Sound Bed 3', src: 'sounds/neon-vigil-sound-bed-3-loop.wav' },
+      { name: 'Atmospheric Haze', src: 'sounds/neon-vigil-theme-atmospheric-haze.mp3' }
+    ];
+    var radioHiddenStation = { name: 'Ghost Frequency', src: 'sounds/neon-vigil-theme-atmospheric-haze.mp3' };
+    function ghostStationOn() {
+      try { return localStorage.getItem('nv_secret_ghost') === 'on'; } catch (e) { return false; }
+    }
+    function rebuildStations() {
+      var list = radioBaseStations.slice();
+      if (ghostStationOn()) list.push(radioHiddenStation);
+      var keep = Number(stationSelect.value || 2);
+      if (keep >= list.length) keep = 2; /* Sound Bed 3, the hub default */
+      radioStations = list.map(function (s) { return s.src; });
+      stationSelect.innerHTML = '';
+      list.forEach(function (s, i) {
+        var o = document.createElement('option');
+        o.value = String(i);
+        o.textContent = s.name;
+        stationSelect.appendChild(o);
+      });
+      stationSelect.value = String(keep);
+      var wasPlaying = !radioAudio.paused;
+      radioAudio.src = radioStations[keep];
+      applyStationFx(keep);
+      if (wasPlaying) { radioAudio.play().catch(function () {}); }
+      syncRadioBtn();
+    }
+    /* The hidden station runs the Haze file at a lower pitch; every
+       listed station runs at natural speed. Loop is the audio
+       element's own attribute and applies to all of them. */
+    function applyStationFx(idx) {
+      var isHidden = ghostStationOn() && idx === radioBaseStations.length;
+      try { radioAudio.playbackRate = isHidden ? 0.82 : 1; } catch (e) {}
+    }
     /* Radio + play button, unified: one icon-only play/stop button drives the
        radio; the station picker next to it is the control to change station
        (after sign-in, on the hub). Changing station while playing switches
@@ -188,6 +243,7 @@
     stationSelect.addEventListener('change', function () {
       var wasPlaying = !radioAudio.paused;
       radioAudio.src = radioStations[Number(this.value)];
+      applyStationFx(Number(this.value));
       if (wasPlaying) { radioAudio.play().catch(function () {}); }
       syncRadioBtn();
     });
@@ -273,6 +329,9 @@
       termPrint('  load pet — open your IA Symbiont');
       termPrint('  load profile — open your profile page');
       termPrint('  commands — open the Command K popup');
+      termPrint('  shader — manifest a shader on this glass (shader off to leave)');
+      termPrint('  key — your own AI keys, kept in this browser only (key set anthropic | key set openai)');
+      termPrint('  ask <words> — ask the symbiont (needs your own key)');
       termPrint('  clear — clear the terminal');
     }
     function termLoad(key) {
@@ -287,7 +346,27 @@
     function termRun(raw) {
       var cmd = raw.trim();
       if (!cmd) return;
+      /* Key capture comes FIRST, before the echo: a pasted key is never
+         printed to the log, never echoed anywhere. The log shows only
+         bullets, and the input itself is masked while capturing. */
+      if (nvKeyCapture) {
+        termPrint('> •••');
+        var capProvider = nvKeyCapture;
+        nvKeyCapture = null;
+        termInput.type = 'text';
+        try { localStorage.setItem('nv_byok_' + capProvider, cmd); } catch (e) {}
+        termPrint('Stored in this browser only. It never goes to our servers.');
+        return;
+      }
       termPrint('> ' + cmd);
+      var lower = cmd.toLowerCase().replace(/\s+/g, ' ');
+      /* The two whispered phrases. They are matched whole, answered
+         vaguely, and appear in no listing anywhere on this page. */
+      if (lower === 'prism protocol') { togglePrism(); return; }
+      if (lower === 'ghost frequency') { toggleGhost(); return; }
+      /* While shader mode is on, submissions are shader source (or the
+         few shader-mode words), not commands. */
+      if (shaderState.on) { shaderSubmit(cmd); return; }
       var parts = cmd.toLowerCase().split(/\s+/);
       if (parts[0] === 'help') { termHelp(); return; }
       if (parts[0] === 'clear') { termOut.innerHTML = ''; return; }
@@ -296,10 +375,11 @@
         if (parts[1] === 'play') { radioPlay(); termPrint('Radio: playing ' + stationSelect.options[stationSelect.selectedIndex].text + '.'); return; }
         if (parts[1] === 'stop' || parts[1] === 'pause') { radioPause(); termPrint('Radio: stopped.'); return; }
         var n = Number(parts[1] === 'station' ? parts[2] : parts[1]);
-        if (n >= 1 && n <= 4) {
+        if (n >= 1 && n <= radioStations.length) {
           var wasPlaying = !radioAudio.paused;
           stationSelect.value = String(n - 1);
           radioAudio.src = radioStations[n - 1];
+          applyStationFx(n - 1);
           if (wasPlaying) { radioAudio.play().catch(function () {}); }
           syncRadioBtn();
           termPrint('Radio: station ' + n + ' — ' + stationSelect.options[stationSelect.selectedIndex].text + '.');
@@ -309,11 +389,263 @@
         return;
       }
       if (parts[0] === 'load' || parts[0] === 'open') { termLoad(parts.slice(1).join(' ').replace(/[\s_-]/g, '')); return; }
+      if (parts[0] === 'shader') { termShaderCmd(parts); return; }
+      if (parts[0] === 'key') { termKey(parts); return; }
+      if (parts[0] === 'ask') { termAsk(cmd.slice(3).trim()); return; }
       termPrint('not found');
     }
     termInput.addEventListener('keydown', function (e) {
       if (e.key === 'Enter') { e.preventDefault(); var v = termInput.value; termInput.value = ''; termSize(); termRun(v); }
     });
+
+    /* ============ Terminal secrets, shaders, and keys (Nov 22, 2026) ============
+       Everything in this block is PRIVATE to this user on this device:
+       every state lives in localStorage only — nothing here talks to
+       our servers. The two whispered phrases are matched in termRun and
+       answered vaguely; they appear in no help text and no listing. */
+
+    /* --- The whispered phrases --- */
+    function togglePrism() {
+      var on = false;
+      try { on = localStorage.getItem('nv_secret_prism') === 'on'; } catch (e) {}
+      var next = !on;
+      try { localStorage.setItem('nv_secret_prism', next ? 'on' : 'off'); } catch (e) {}
+      if (next) { document.documentElement.setAttribute('data-prism', 'on'); termPrint('…okay. watch the colors.'); }
+      else { document.documentElement.removeAttribute('data-prism'); termPrint('…back to normal. mostly.'); }
+    }
+    function toggleGhost() {
+      var on = ghostStationOn();
+      try { localStorage.setItem('nv_secret_ghost', on ? 'off' : 'on'); } catch (e) {}
+      rebuildStations();
+      termPrint(on ? '…quieter now.' : '…okay. listen closer.');
+    }
+
+    /* --- Shader mode: WGSL only, never JS ---
+       The user supplies a fragment shader with this contract:
+         struct NVU { time: f32, res: vec2f };
+         @group(0) @binding(0) var<uniform> u: NVU;
+         @fragment fn main(@builtin(position) fc: vec4f) -> @location(0) vec4f
+       A built-in vertex stage draws one fullscreen triangle. No storage
+       buffers, no compute — the code can only paint this canvas. */
+    var shaderCanvas = document.getElementById('termShaderCanvas');
+    var shaderState = { on: false, buffer: '', device: null, ctx: null, format: null, pipeline: null, bindGroup: null, uniformBuf: null, raf: null, startT: 0 };
+    var NV_SHADER_VERTEX = [
+      '@vertex fn nv_vs(@builtin(vertex_index) i: u32) -> @builtin(position) vec4f {',
+      '  var p = array<vec2f, 3>(vec2f(-1.0, -1.0), vec2f(3.0, -1.0), vec2f(-1.0, 3.0));',
+      '  return vec4f(p[i], 0.0, 1.0);',
+      '}'
+    ].join('\n');
+    var NV_SHADER_STARTER = [
+      'struct NVU { time: f32, res: vec2f };',
+      '@group(0) @binding(0) var<uniform> u: NVU;',
+      '@fragment fn main(@builtin(position) fc: vec4f) -> @location(0) vec4f {',
+      '  let uv = fc.xy / u.res;',
+      '  let t = u.time * 0.35;',
+      '  var v = 0.0;',
+      '  v += sin((uv.x * 6.0 + t) + sin(uv.y * 4.0 - t) * 1.5);',
+      '  v += sin((uv.y * 8.0 - t * 1.3) + sin(uv.x * 3.0 + t) * 1.2);',
+      '  v += sin((uv.x + uv.y) * 5.0 + t);',
+      '  let a = 0.5 + 0.5 * sin(v * 1.6);',
+      '  let deep = vec3f(0.05, 0.03, 0.12);',
+      '  let glow = vec3f(0.42, 0.40, 1.00);',
+      '  let hot = vec3f(0.95, 0.45, 0.85);',
+      '  var col = mix(deep, glow, a);',
+      '  col = mix(col, hot, pow(a, 6.0) * 0.7);',
+      '  return vec4f(col, 1.0);',
+      '}'
+    ].join('\n');
+    function shaderShowCanvas() {
+      termOut.style.display = 'none';
+      shaderCanvas.hidden = false;
+      if (!shaderState.raf && shaderState.pipeline) {
+        if (!shaderState.startT) shaderState.startT = performance.now();
+        shaderState.raf = requestAnimationFrame(shaderFrame);
+      }
+    }
+    function shaderShowLog() {
+      shaderCanvas.hidden = true;
+      termOut.style.display = '';
+      if (shaderState.raf) { cancelAnimationFrame(shaderState.raf); shaderState.raf = null; }
+    }
+    function shaderOff() {
+      shaderState.on = false;
+      shaderState.buffer = '';
+      shaderShowLog();
+    }
+    function shaderFail(msg) {
+      shaderShowLog();
+      termPrint('shader error — ' + msg);
+    }
+    async function shaderCompile(src) {
+      try {
+        if (!shaderState.device) {
+          var adapter = await navigator.gpu.requestAdapter();
+          if (!adapter) { shaderState.on = false; shaderShowLog(); termPrint("this glass can't run shaders — WebGPU isn't available here."); return; }
+          shaderState.device = await adapter.requestDevice();
+          shaderState.ctx = shaderCanvas.getContext('webgpu');
+          if (!shaderState.ctx) { shaderState.on = false; shaderShowLog(); termPrint("this glass can't run shaders — WebGPU isn't available here."); return; }
+          shaderState.format = navigator.gpu.getPreferredCanvasFormat();
+          shaderState.uniformBuf = shaderState.device.createBuffer({ size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+        }
+        var device = shaderState.device;
+        var module = device.createShaderModule({ code: NV_SHADER_VERTEX + '\n' + src });
+        if (module.getCompilationInfo) {
+          var info = await module.getCompilationInfo();
+          var errs = (info.messages || []).filter(function (m) { return m.severity === 'error'; });
+          if (errs.length) {
+            var m0 = errs[0];
+            shaderFail(String(m0.message || 'compile failed').split('\n')[0] + (m0.lineNum ? ' (line ' + m0.lineNum + ')' : ''));
+            return;
+          }
+        }
+        var bgl = device.createBindGroupLayout({ entries: [{ binding: 0, visibility: (window.GPUShaderStage ? GPUShaderStage.FRAGMENT : 2), buffer: { type: 'uniform' } }] });
+        var layout = device.createPipelineLayout({ bindGroupLayouts: [bgl] });
+        var scoped = !!device.pushErrorScope;
+        if (scoped) device.pushErrorScope('validation');
+        var pipeline = device.createRenderPipeline({
+          layout: layout,
+          vertex: { module: module, entryPoint: 'nv_vs' },
+          fragment: { module: module, entryPoint: 'main', targets: [{ format: shaderState.format }] },
+          primitive: { topology: 'triangle-list' }
+        });
+        var vErr = scoped ? await device.popErrorScope() : null;
+        if (vErr) { shaderFail(String(vErr.message || 'validation failed').split('\n')[0]); return; }
+        shaderState.pipeline = pipeline;
+        shaderState.bindGroup = device.createBindGroup({ layout: bgl, entries: [{ binding: 0, resource: { buffer: shaderState.uniformBuf } }] });
+        shaderShowCanvas();
+      } catch (e) {
+        shaderFail((e && e.message) ? String(e.message).split('\n')[0] : 'something broke');
+      }
+    }
+    function shaderFrame() {
+      if (!shaderState.on || !shaderState.pipeline || shaderCanvas.hidden) { shaderState.raf = null; return; }
+      try {
+        var dpr = Math.min(2, window.devicePixelRatio || 1);
+        var w = Math.max(2, Math.floor(shaderCanvas.clientWidth * dpr));
+        var h = Math.max(2, Math.floor(shaderCanvas.clientHeight * dpr));
+        if (shaderCanvas.width !== w || shaderCanvas.height !== h) {
+          shaderCanvas.width = w; shaderCanvas.height = h;
+          shaderState.ctx.configure({ device: shaderState.device, format: shaderState.format, alphaMode: 'opaque' });
+        }
+        var data = new Float32Array([(performance.now() - shaderState.startT) / 1000, 0, w, h]);
+        shaderState.device.queue.writeBuffer(shaderState.uniformBuf, 0, data);
+        var encoder = shaderState.device.createCommandEncoder();
+        var view = shaderState.ctx.getCurrentTexture().createView();
+        var pass = encoder.beginRenderPass({ colorAttachments: [{ view: view, clearValue: { r: 0, g: 0, b: 0, a: 1 }, loadOp: 'clear', storeOp: 'store' }] });
+        pass.setPipeline(shaderState.pipeline);
+        pass.setBindGroup(0, shaderState.bindGroup);
+        pass.draw(3);
+        pass.end();
+        shaderState.device.queue.submit([encoder.finish()]);
+      } catch (e) { /* a lost device just stops the show; the log explains on the next compile */ }
+      shaderState.raf = requestAnimationFrame(shaderFrame);
+    }
+    function shaderSubmit(cmd) {
+      var lower = cmd.toLowerCase();
+      if (lower === 'shader off') { shaderOff(); termPrint('shader mode off.'); return; }
+      if (lower === 'run') {
+        if (!shaderState.buffer) { shaderShowLog(); termPrint('nothing to run yet — paste WGSL lines first.'); return; }
+        shaderCompile(shaderState.buffer);
+        return;
+      }
+      if (cmd.indexOf('@fragment') !== -1) { shaderState.buffer = cmd; shaderCompile(shaderState.buffer); return; }
+      shaderState.buffer = shaderState.buffer ? (shaderState.buffer + '\n' + cmd) : cmd;
+    }
+    function termShaderCmd(parts) {
+      if (parts[1] === 'off') {
+        if (shaderState.on) { shaderOff(); termPrint('shader mode off.'); }
+        else termPrint('shader mode is not on.');
+        return;
+      }
+      if (shaderState.on) { shaderShowLog(); termPrint("shader mode is already on — paste WGSL lines, 'run' to compile, 'shader off' to leave."); return; }
+      if (!navigator.gpu) { termPrint("this glass can't run shaders — WebGPU isn't available here."); return; }
+      shaderState.on = true;
+      shaderState.buffer = '';
+      termPrint('shader mode — the glass is listening. Paste WGSL lines, then run. shader off to leave.');
+      shaderCompile(NV_SHADER_STARTER);
+    }
+    /* Escape leaves shader mode before anything else on the page hears
+       it — capture phase, because the shared shell's Escape = back
+       listens in the bubble phase. Only while shader mode is on. */
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && shaderState.on) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        shaderOff();
+        termPrint('shader mode off.');
+      }
+    }, true);
+
+    /* --- Bring your own key: the terminal's private AI line --- */
+    var nvKeyCapture = null;
+    function byokGet(provider) {
+      try { return localStorage.getItem('nv_byok_' + provider) || ''; } catch (e) { return ''; }
+    }
+    function termKey(parts) {
+      var providers = ['anthropic', 'openai'];
+      if (parts.length === 1) {
+        providers.forEach(function (p) {
+          termPrint(p + (byokGet(p) ? ' — key stored (this browser only)' : ' — no key stored'));
+        });
+        termPrint("key set anthropic | key set openai | key clear <provider>");
+        return;
+      }
+      if (parts[1] === 'set' && providers.indexOf(parts[2]) !== -1) {
+        nvKeyCapture = parts[2];
+        termInput.type = 'password';
+        termPrint('Paste your ' + parts[2] + ' key, then Enter. It shows as bullets and stays in this browser only.');
+        return;
+      }
+      if (parts[1] === 'clear' && providers.indexOf(parts[2]) !== -1) {
+        try { localStorage.removeItem('nv_byok_' + parts[2]); } catch (e) {}
+        termPrint(parts[2] + ' key cleared from this browser.');
+        return;
+      }
+      termPrint("key: try 'key set anthropic', 'key set openai', or 'key clear anthropic'.");
+    }
+    var NV_ASK_SYSTEM = "You are the IA Symbiont aboard the Infinity 6, speaking through the hub terminal. Deadpan, funny, irreverent, a little unhinged; adult but never explicit. Answer in at most three short lines of plain text. No markdown, no lists.";
+    function askFail(msg) { termPrint('ask failed — ' + msg); }
+    async function termAsk(text) {
+      if (!text) { termPrint('ask what? — ask <words>'); return; }
+      var aKey = byokGet('anthropic');
+      var oKey = byokGet('openai');
+      if (!aKey && !oKey) {
+        termPrint("No key stored. The symbiont can only whisper with your own key — 'key set anthropic' or 'key set openai'.");
+        return;
+      }
+      try {
+        var reply = '';
+        if (aKey) {
+          var ra = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json', 'x-api-key': aKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+            body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 300, system: NV_ASK_SYSTEM, messages: [{ role: 'user', content: text }] })
+          });
+          var da = await ra.json().catch(function () { return null; });
+          if (!ra.ok) { askFail((da && da.error && da.error.message) || ('HTTP ' + ra.status)); return; }
+          reply = ((da && da.content) || []).map(function (b) { return b.text || ''; }).join('');
+        } else {
+          var ro = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json', 'authorization': 'Bearer ' + oKey },
+            body: JSON.stringify({ model: 'gpt-4o-mini', max_tokens: 300, messages: [{ role: 'system', content: NV_ASK_SYSTEM }, { role: 'user', content: text }] })
+          });
+          var dob = await ro.json().catch(function () { return null; });
+          if (!ro.ok) { askFail((dob && dob.error && dob.error.message) || ('HTTP ' + ro.status)); return; }
+          reply = (dob && dob.choices && dob.choices[0] && dob.choices[0].message && dob.choices[0].message.content) || '';
+        }
+        if (!reply) { askFail('empty answer'); return; }
+        reply.split('\n').forEach(function (line) { if (line) termPrint(line); });
+      } catch (e) {
+        askFail((e && e.message) || 'network error');
+      }
+    }
+
+    /* Init: re-apply this device's secret states from before. */
+    (function () {
+      try { if (localStorage.getItem('nv_secret_prism') === 'on') document.documentElement.setAttribute('data-prism', 'on'); } catch (e) {}
+      if (ghostStationOn()) rebuildStations();
+    })();
 
     requireSession('index.html').then(function (user) {
       if (user) { updateGreeting(user); playSelectAfterLogin(); }
