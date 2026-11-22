@@ -186,7 +186,16 @@
     }
     var clearBtn = document.getElementById('glClearSearch');
     if(clearBtn) clearBtn.addEventListener('click', function(){ search.value = ''; renderIndex(''); search.focus(); });
-    if(!D){ root.innerHTML = '<div class="card"><p>The Log could not load its data.</p></div>'; return; }
+    /* Error states (Nov 22, 2026): data missing or empty is a
+       page-level failure — the shared error panel with a Reload
+       action, not a bare line. The normal path below is untouched. */
+    if(!D || !D.entries || !D.entries.length){
+      root.innerHTML = '<div class="nv-state nv-state-error"><p class="nv-state-title">Something went wrong</p><p class="nv-state-line">The Grid Log couldn\'t load its entries.</p><p><button type="button" class="nv-btn" id="glReloadBtn">Reload</button></p></div>';
+      root.setAttribute('aria-busy', 'false');
+      var reloadBtn = document.getElementById('glReloadBtn');
+      if(reloadBtn) reloadBtn.addEventListener('click', function(){ location.reload(); });
+      return;
+    }
     var byId = {}; D.entries.forEach(function(e){ byId[e.id]=e; });
     function secKey(name, i){
       if(/^cover$/i.test(name)) return -1;
