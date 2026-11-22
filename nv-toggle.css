@@ -28,10 +28,11 @@
 }
 .nv-switch[aria-checked="true"] {
   background: var(--nv-accent); border-color: var(--nv-accent); opacity: 1;
-  box-shadow: 0 0 12px rgba(34, 211, 238, .45);
+  box-shadow: 0 0 12px rgba(99, 102, 241, .45);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--nv-accent) 45%, transparent);
 }
 .nv-switch[aria-checked="true"] .nv-switch-knob {
-  transform: translateX(20px); background: #04222b;
+  transform: translateX(20px); background: #0b0618;
 }
 .nv-switch:hover { border-color: var(--nv-accent); }
 .nv-switch:focus-visible { outline: 2px solid var(--nv-accent-soft); outline-offset: 2px; }
