@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Settings — Infinity6 Terminal</title>
-  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+  
   <link rel="stylesheet" href="./nv-commands.css">
   <link rel="stylesheet" href="./nv-terminal-tokens.css">
   <link rel="stylesheet" href="./nv-ticker.css">
@@ -12,14 +12,14 @@
   <link rel="stylesheet" href="./nv-symbiont-theme.css">
   <script src="./nv-symbiont-theme.js"></script>
   <style>
-    body { background:#05010f; color:#f5f0ff; font-family:"VT323", "Share Tech Mono", monospace; font-size:18px; margin:0; min-height:100vh; display:grid; place-items:center; }
+    body { background:#050508; color:#f5f0ff; font-family:ui-monospace, Menlo, monospace; font-size:18px; margin:0; min-height:100vh; display:grid; place-items:center; }
     .bg { position:fixed; inset:0; background-image:url("ships-bridge.jpg"); background-size:cover; background-position:center; z-index:0; pointer-events:none; }
     .static-top { position:fixed; inset:0; z-index:1; pointer-events:none; opacity:.38; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.25' numOctaves='3'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E"); }
-    main { position:relative; z-index:2; width:100%; max-width:560px; padding:32px; box-sizing:border-box; text-align:center; border:1px solid var(--nv-accent); border-radius:16px; background:rgba(18,8,31,.88); }
+    main { position:relative; z-index:2; width:100%; max-width:560px; padding:32px; box-sizing:border-box; text-align:center; border:1px solid var(--nv-accent); border-radius:16px; background-color:rgba(15,9,27,.85); background-image:var(--nv-sheen); }
     section { text-align:left; border-top:1px solid var(--nv-accent); margin-top:24px; padding-top:8px; }
     section:first-of-type { border-top:0; margin-top:8px; }
     h2 { font-size:20px; margin:12px 0; }
-    button { background:transparent; color:#f5f0ff; border:1px solid #f5f0ff; border-radius:0; padding:10px 18px; font-weight:700; cursor:pointer; font-family:inherit; font-size:18px; }
+    button { background-color:rgba(255,255,255,.06); background-image:linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.03) 55%, rgba(255,255,255,0)); color:#f5f0ff; border:1px solid var(--nv-accent); border-radius:999px; box-shadow:0 0 10px rgba(99,102,241,.35), inset 0 1px 0 rgba(255,255,255,.22); box-shadow:0 0 10px color-mix(in srgb, var(--nv-accent) 45%, transparent), inset 0 1px 0 rgba(255,255,255,.22); padding:10px 18px; font-weight:700; cursor:pointer; font-family:inherit; font-size:18px; }
     button.selected { background:var(--nv-accent); }
     a { color:var(--nv-accent-soft); }
     .cursor-blink { display:inline-block; animation:nv-blink 1.2s steps(2,start) infinite; color:#ffffff; }
@@ -39,7 +39,7 @@
     .avatar-note { color:var(--nv-accent-soft); }
     #avatarFile { font-family:inherit; font-size:16px; color:#f5f0ff; }
     #avatarPreview { width:96px; height:96px; border:1px solid var(--nv-accent); object-fit:cover; display:block; margin:8px 0; }
-    .nv-sound-btn{position:fixed;right:16px;bottom:16px;z-index:6;width:44px;height:44px;padding:0;display:flex;align-items:center;justify-content:center;background:rgba(18,8,31,.88);color:#f5f0ff;border:1px solid #f5f0ff;border-radius:0;cursor:pointer}.nv-sound-btn svg{width:20px;height:20px;display:block}.nv-sound-btn:disabled{opacity:.5;cursor:wait}
+    .nv-sound-btn{position:fixed;right:16px;bottom:16px;z-index:6;width:44px;height:44px;padding:0;display:flex;align-items:center;justify-content:center;background-color:rgba(15,9,27,.88);background-image:var(--nv-sheen);color:#f5f0ff;border:1px solid var(--nv-accent);border-radius:999px;cursor:pointer}.nv-sound-btn svg{width:20px;height:20px;display:block}.nv-sound-btn:disabled{opacity:.5;cursor:wait}
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./config.js"></script>

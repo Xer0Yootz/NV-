@@ -1,13 +1,16 @@
 /* nv-ticker.js — Shared ticker for the Neon Vigil web app.
    Infinity 6 Terminal / Hex OS. One module; the hub ticker, extracted whole
-   (time + date + location + weather + tides). Full width across the entire
+   (time + date + location + weather). Full width across the entire
    top, 30s seamless scroll once location is accepted and the content is real.
    Before location resolves it sits still — it never scrolls empty/loading
    content. Location chain: browser location → IP fallback → Oakland default.
-   Weather: Open-Meteo. Tides: NOAA (nearest Bay station). Weather/tides
-   refresh every 15 min; clock every 1s. This module creates its own DOM —
-   pages only include nv-ticker.css + this file. Safe to include once per
-   page; a second include is a no-op. */
+   Weather: Open-Meteo, refreshed every 15 min; clock every 1s.
+   Content lock (Nov 20, 2026, carried by the Nov 22, 2026 Hex OS port):
+   time + date in NUMBERS ONLY, then location, then weather; items are
+   separated by a horizontal line (an em dash); NO tide item; no labels;
+   no STANDBY or placeholder filler — an item with no data shows nothing.
+   This module creates its own DOM — pages only include nv-ticker.css +
+   this file. Safe to include once per page; a second include is a no-op. */
 (function () {
   if (window.__nvTickerLoaded) return;
   window.__nvTickerLoaded = true;
@@ -28,14 +31,15 @@
     if (nvPath === nvP || nvPath.indexOf(nvP + '/') === 0) nvNoTicker = true;
   }
   if (nvNoTicker) return;
-
-  var tickerState = { weather: 'WEATHER STANDBY', place: '', tides: 'TIDES STANDBY', coords: null, requested: false };
+  var tickerState = { weather: '', place: '', coords: null, requested: false };
   function tickerLocale() { return (navigator.languages && navigator.languages[0]) || navigator.language || 'en-US'; }
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
   function tickerDateTime() {
-    var d = new Date(), loc = tickerLocale();
-    var date = d.toLocaleDateString(loc, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase();
-    var time = d.toLocaleTimeString(loc, { hour: 'numeric', minute: '2-digit', second: '2-digit' });
-    return date + ' · ' + time;
+    /* Numbers only: MM/DD/YYYY and 24-hour HH:MM:SS. */
+    var d = new Date();
+    var date = pad2(d.getMonth() + 1) + '/' + pad2(d.getDate()) + '/' + d.getFullYear();
+    var time = pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds());
+    return date + ' — ' + time;
   }
   var WMO = [[0, 'CLEAR'], [1, 'MOSTLY CLEAR'], [2, 'PARTLY CLOUDY'], [3, 'OVERCAST'], [48, 'FOG'], [57, 'DRIZZLE'], [67, 'RAIN'], [77, 'SNOW'], [82, 'SHOWERS'], [86, 'SNOW SHOWERS'], [99, 'THUNDERSTORM']];
   function wxCondition(code) { for (var i = 0; i < WMO.length; i++) if (code <= WMO[i][0]) return WMO[i][1]; return 'SKY UNKNOWN'; }
@@ -47,17 +51,19 @@
   function renderTicker() {
     var el = document.getElementById('tickerInfo');
     if (!el) return;
-    var parts = [tickerDateTime(), tickerState.place || 'LOCATION —', tickerState.weather, tickerState.tides];
+    /* Only items with real data appear — no placeholders, no filler. */
+    var parts = [tickerDateTime(), tickerState.place, tickerState.weather].filter(function (p) { return !!p; });
     /* Trailing delimiter: the ticker loops two identical copies for the
-       seamless scroll, so each copy ends with ' · ' — otherwise the seam
-       reads "TIDES STANDBY SUN 8 NOV…" back-to-back with no delimiter
-       (audit fix, Nov 8, 2026). */
-    var text = parts.join(' · ') + ' · ';
+       seamless scroll, so each copy ends with the same separator —
+       otherwise the seam reads back-to-back with no delimiter
+       (audit fix, Nov 8, 2026). Separator is a horizontal line (em dash),
+       per the Nov 20, 2026 ticker lock. */
+    var text = parts.join(' — ') + ' — ';
     el.textContent = text;
     var el2 = document.getElementById('tickerInfo2');
     if (el2) el2.textContent = text;
   }
-  function fetchWeatherAndTides() {
+  function fetchWeather() {
     var c = tickerState.coords;
     if (!c) return;
     var f = useFahrenheit();
@@ -69,47 +75,27 @@
         if (!cur || typeof cur.temperature_2m !== 'number') throw new Error('no weather');
         tickerState.weather = Math.round(cur.temperature_2m) + '°' + (f ? 'F' : 'C') + ' ' + wxCondition(cur.weather_code);
         renderTicker();
-      }).catch(function () { tickerState.weather = 'WEATHER OFFLINE'; renderTicker(); });
+      }).catch(function () { tickerState.weather = ''; renderTicker(); });
     if (!tickerState.place) {
       fetch('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=' + lat + '&longitude=' + lon + '&localityLanguage=' + encodeURIComponent(tickerLocale().split('-')[0] || 'en'))
         .then(function (r) { return r.json(); })
         .then(function (g) { var nm = g.city || g.locality || g.principalSubdivision || ''; if (nm) { tickerState.place = String(nm).toUpperCase(); renderTicker(); } })
         .catch(function () {});
     }
-    /* Tides: NOAA station list is a 2 MB download, so use the Bay stations and pick the nearest. */
-    var BAY_STATIONS = [
-      { id: '9414290', lat: 37.8063, lon: -122.4659 },
-      { id: '9414750', lat: 37.7717, lon: -122.3017 },
-      { id: '9414863', lat: 37.9197, lon: -122.4000 },
-      { id: '9415144', lat: 38.0480, lon: -122.0380 }
-    ];
-    var best = BAY_STATIONS[0], bestD = Infinity;
-    BAY_STATIONS.forEach(function (s) {
-      var dd = (s.lat - parseFloat(lat)) * (s.lat - parseFloat(lat)) + (s.lon - parseFloat(lon)) * (s.lon - parseFloat(lon));
-      if (dd < bestD) { bestD = dd; best = s; }
-    });
-    fetch('https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=today&range=24&station=' + best.id + '&product=predictions&datum=MLLW&time_zone=lst_ldt&interval=hilo&units=english&format=json')
-      .then(function (r) { return r.json(); })
-      .then(function (d) {
-        var now = new Date(), next = null;
-        (d.predictions || []).forEach(function (pr) {
-          var tt = new Date(pr.t.replace(' ', 'T'));
-          if (tt > now && !next) next = { type: pr.type, t: tt };
-        });
-        tickerState.tides = next ? ('TIDE ' + (next.type === 'H' ? 'HIGH' : 'LOW') + ' ' + next.t.toLocaleTimeString(tickerLocale(), { hour: 'numeric', minute: '2-digit' })) : 'TIDES —';
-        renderTicker();
-      }).catch(function () { tickerState.tides = 'TIDES OFFLINE'; renderTicker(); });
+    /* No tide item: removed by the Nov 20, 2026 ticker lock (carried by
+       the Nov 22, 2026 port) — the ticker carries time, date, location,
+       and weather only. */
   }
   function useCoords(lat, lon, place) {
     tickerState.coords = { latitude: lat, longitude: lon };
     if (place) tickerState.place = String(place).toUpperCase();
     /* Location accepted (browser, IP fallback, or Oakland default) — the
-       ticker now has real time/date/location/weather/tides to show, so
+       ticker now has real time/date/location/weather to show, so
        start it scrolling across the top. Before this it sits still. */
     var ticker = document.querySelector('.ticker');
     if (ticker) ticker.classList.add('scrolling');
-    fetchWeatherAndTides();
-    setInterval(fetchWeatherAndTides, 15 * 60 * 1000);
+    fetchWeather();
+    setInterval(fetchWeather, 15 * 60 * 1000);
   }
   function requestTickerLocation() {
     if (tickerState.requested) return; tickerState.requested = true;
@@ -138,7 +124,7 @@
   function init() {
     var ticker = document.createElement('div');
     ticker.className = 'ticker';
-    ticker.innerHTML = '<div class="ticker-track"><span id="tickerInfo">LOADING TIME · DATE · LOCATION · WEATHER · TIDES</span><span id="tickerInfo2" aria-hidden="true">LOADING TIME · DATE · LOCATION · WEATHER · TIDES</span></div>';
+    ticker.innerHTML = '<div class="ticker-track"><span id="tickerInfo"></span><span id="tickerInfo2" aria-hidden="true"></span></div>';
     document.body.insertBefore(ticker, document.body.firstChild);
     renderTicker();
     setInterval(renderTicker, 1000);

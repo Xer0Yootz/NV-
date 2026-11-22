@@ -12,20 +12,26 @@
 
 /* Per-symbiont panel tints and readable text on them. Hexa's panel
    stays light cyan, so its text stays dark #05373f. Helix's panel
-   (Nov 10) is now dark plum #2a0a1e, so its text is pale pink
-   #ffe9f3, near-white and readable on the dark panel, and its
-   accent is a deeper pink #c2185b. Cyphr's panel stays dark indigo,
-   so its text stays near-white #f5f0ff. --nv-accent-deep is the
+   (Nov 10) is dark plum #2a0a1e, so its text is pale pink #ffe9f3,
+   near-white and readable on the dark panel. Cyphr's panel is dark
+   indigo, so its text stays near-white #f5f0ff. --nv-accent-deep is the
    readable heading/link shade of the accent on the panel;
-   --nv-on-accent is the text on a solid accent button. */
+   --nv-on-accent is the text on a solid accent button.
+   Hex OS port, Nov 22, 2026: the sigil tokens are the locked set —
+   Hexa cyan #22d3ee, Cyphr indigo #6366f1 (indigo leads; the old
+   standalone violet #7c3aed is retired as an accent and may only trail
+   at gradient ends), Helix pink #f471b5, Warden green #4ade80.
+   Panels are glass: the tint below is the fill color, and the shared
+   --nv-sheen gradient rides on top (see the panel rules below). */
 :root {
-  --nv-accent: #7c3aed;
-  --nv-accent-bright: #6366f1;
-  --nv-accent-soft: #a78bfa;
-  --nv-accent-deep: #a78bfa;
+  --nv-accent: #6366f1;
+  --nv-accent-bright: #818cf8;
+  --nv-accent-soft: #a5b4fc;
+  --nv-accent-deep: #a5b4fc;
   --nv-on-accent: #ffffff;
-  --nv-panel: #1e1745;
+  --nv-panel: #1a1c40;
   --nv-panel-text: #f5f0ff;
+  --nv-sheen: linear-gradient(180deg, rgba(255, 255, 255, .09), rgba(255, 255, 255, .02) 42%, rgba(255, 255, 255, 0) 68%);
 }
 [data-symbiont="hexa"] {
   --nv-accent: #22d3ee;
@@ -37,18 +43,18 @@
   --nv-panel-text: #05373f;
 }
 [data-symbiont="cyphr"] {
-  --nv-accent: #7c3aed;
-  --nv-accent-bright: #6366f1;
-  --nv-accent-soft: #a78bfa;
-  --nv-accent-deep: #a78bfa;
+  --nv-accent: #6366f1;
+  --nv-accent-bright: #818cf8;
+  --nv-accent-soft: #a5b4fc;
+  --nv-accent-deep: #a5b4fc;
   --nv-on-accent: #ffffff;
-  --nv-panel: #1e1745;
+  --nv-panel: #1a1c40;
   --nv-panel-text: #f5f0ff;
 }
 [data-symbiont="helix"] {
-  --nv-accent: #c2185b;
-  --nv-accent-bright: #e7548a;
-  --nv-accent-soft: #f0a6c6;
+  --nv-accent: #f471b5;
+  --nv-accent-bright: #f9a8d4;
+  --nv-accent-soft: #f9a8d4;
   --nv-accent-deep: #ff8fb6;
   --nv-on-accent: #ffffff;
   --nv-panel: #2a0a1e;
@@ -95,6 +101,27 @@
   background-color: var(--nv-panel) !important;
   color: var(--nv-panel-text) !important;
   border-color: var(--nv-accent) !important;
+}
+
+/* Glass sheen over the tinted panels (Hex OS port, Nov 22, 2026):
+   panels read as glass, never flat matte — the fill tint above stays,
+   the sheen gradient rides on top of it. */
+[data-symbiont] .card,
+[data-symbiont] .panel,
+[data-symbiont] .toc,
+[data-symbiont] .box,
+[data-symbiont] .tile,
+[data-symbiont] .entry,
+[data-symbiont] .nv-card,
+[data-symbiont] .nv-panel,
+[data-symbiont] .widget,
+[data-symbiont] .modal,
+[data-symbiont] dialog,
+[data-symbiont] main,
+[data-symbiont] .commands-footer, [data-symbiont] .footer-cell,
+[data-symbiont] .nv-term, [data-symbiont] .nv-term-out,
+[data-symbiont] .nv-term-head, [data-symbiont] .nv-term-foot {
+  background-image: var(--nv-sheen);
 }
 
 /* Text inside a tinted panel must use the panel text color, even

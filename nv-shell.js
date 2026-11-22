@@ -8,9 +8,17 @@
      2. injects the standard bottom dock (Radio + Hexa/Commands button) when
         the page does not already have one — the hub has its own dock inline
         and does NOT include this file.
-   The dock radio is the shared implementation: the same three Sound Beds as
-   the hub (default Sound Bed 3), the same first-tap autoplay, and the same
-   cookie-lock guard (no playback while body.cookie-locked). Safe to include
+   The dock radio is the shared implementation: the same stations as
+   the hub (Sound Beds 1–3, default Sound Bed 3, plus Atmospheric Haze —
+   its audio file ships in /sounds), the same first-tap autoplay, and the same
+   cookie-lock guard (no playback while body.cookie-locked). Hex OS port,
+   Nov 22, 2026: the radio carries NO label text — at rest it is just the
+   merged play/stop button and a small living wave (still when silent,
+   moving when playing); the station list appears on hover/focus (the
+   select stays as the fallback picker) and scrolling over the radio
+   cycles stations. This module also injects the shared wireframe band
+   (.nv-wireframe, styled in nv-terminal-tokens.css) — its own layer
+   along the bottom of the screen, behind the dock. Safe to include
    once per page; a second include is a no-op. Exposes window.Infinity6Shell. */
 (function () {
   if (window.__nvShellLoaded) return;
@@ -34,7 +42,8 @@
   var STATIONS = [
     '/sounds/neon-vigil-sound-bed-1-landing-workpage.wav',
     '/sounds/neon-vigil-sound-bed-2-practice-page.wav',
-    '/sounds/neon-vigil-sound-bed-3-loop.wav'
+    '/sounds/neon-vigil-sound-bed-3-loop.wav',
+    '/sounds/neon-vigil-theme-atmospheric-haze.mp3'
   ];
   var PLAY_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>';
   var STOP_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="6" width="12" height="12"/></svg>';
@@ -49,12 +58,14 @@
     dock.className = 'nv-shell-dock';
     dock.setAttribute('role', 'contentinfo');
     dock.innerHTML =
-      '<span class="nv-shell-dock-cell"><span>Radio: ' +
-      '<button type="button" id="nvShellRadioBtn" class="nv-shell-radio-btn" aria-label="Play Sound Bed 3" title="Play Sound Bed 3">' + PLAY_SVG + '</button> ' +
+      '<span class="nv-shell-dock-cell"><span class="nv-shell-radio" id="nvShellRadio">' +
+      '<button type="button" id="nvShellRadioBtn" class="nv-shell-radio-btn" aria-label="Play Sound Bed 3" title="Play Sound Bed 3">' + PLAY_SVG + '</button>' +
+      '<span class="nv-radio-wave" id="nvShellWave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>' +
       '<select id="nvShellStationSelect" aria-label="Radio station">' +
       '<option value="0">Sound Bed 1</option>' +
       '<option value="1">Sound Bed 2</option>' +
       '<option value="2" selected>Sound Bed 3</option>' +
+      '<option value="3">Atmospheric Haze</option>' +
       '</select></span></span>' +
       '<span class="nv-shell-dock-cell"><button type="button" id="nvShellCommandsBtn" class="nv-shell-commands-btn" aria-label="Commands" title="Commands (⌘K)">' + HEXA_SVG + '</button></span>';
     document.body.appendChild(dock);
@@ -78,12 +89,31 @@
 
     var btn = document.getElementById('nvShellRadioBtn');
     var sel = document.getElementById('nvShellStationSelect');
+    var wave = document.getElementById('nvShellWave');
+    var radioWrap = document.getElementById('nvShellRadio');
     function stationName() { return sel.options[sel.selectedIndex].text; }
     function sync() {
       var playing = !audio.paused;
       btn.innerHTML = playing ? STOP_SVG : PLAY_SVG;
       btn.setAttribute('aria-label', (playing ? 'Stop ' : 'Play ') + stationName());
       btn.setAttribute('title', (playing ? 'Stop ' : 'Play ') + stationName());
+      if (wave) wave.classList.toggle('playing', playing);
+    }
+    function setStation(idx) {
+      var wasPlaying = !audio.paused;
+      sel.value = String(idx);
+      audio.src = STATIONS[Number(sel.value)];
+      if (wasPlaying) play();
+      sync();
+    }
+    /* Scroll over the radio cycles stations (Hex OS radio lock). */
+    if (radioWrap) {
+      radioWrap.addEventListener('wheel', function (e) {
+        e.preventDefault();
+        var dir = e.deltaY > 0 ? 1 : -1;
+        var next = (Number(sel.value) + dir + STATIONS.length) % STATIONS.length;
+        setStation(next);
+      }, { passive: false });
     }
     function play() { if (locked()) return; audio.play().catch(function () {}); }
     function pause() { audio.pause(); }
@@ -109,6 +139,17 @@
     sync();
   }
 
+  function mountWireframe() {
+    /* The wireframe band: its own layer along the bottom of the screen,
+       behind the dock and the content (styled in nv-terminal-tokens.css).
+       Never baked into any panel. */
+    if (document.querySelector('.nv-wireframe')) return;
+    var wf = document.createElement('div');
+    wf.className = 'nv-wireframe';
+    wf.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(wf);
+  }
+
   function init() {
     /* Ticker + palette are shared modules; load them if the page did not
        include them directly (the shell still works if they are present).
@@ -122,10 +163,11 @@
       ensureScript(base + 'nv-ticker.js', '__nvTickerLoaded');
     }
     ensureScript(base + 'nv-commands.js', '__nvCommandsLoaded');
+    mountWireframe();
     mountDock();
   }
 
-  window.Infinity6Shell = { mountDock: mountDock };
+  window.Infinity6Shell = { mountDock: mountDock, mountWireframe: mountWireframe };
   if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); }
   else { init(); }
 })();

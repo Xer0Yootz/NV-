@@ -7,7 +7,11 @@
    Chime: touching the sprite plays the shared symbiont chime (window.NVSymbiontChime). No words or text on the hexagon.
    Movement: per-base roam patterns (Jasmine's ruling, Nov 13, 2026) —
    Hexa SWEEP, Cyphr PROWL, Helix DART, Warden STRIDE — keyed off the
-   same data-symbiont base signal as the colour. See stepPattern. */
+   same data-symbiont base signal as the colour. See stepPattern.
+   Spawn: always the same fixed spot — right of centre, upper-middle of
+   the viewport. Materialization: the sprite forms there from a tight
+   local cloud of sigil-colored particles (particles belong to the sprite
+   only); under reduced motion it simply appears. */
 
 (function () {
   'use strict';
@@ -37,6 +41,7 @@
   var x = 0, y = 0, vx = 0, vy = 0, angle = 0, angVel = 0;
   var throwVX = 0, throwVY = 0; /* latest flick velocity while dragging */
   var dragging = false, hopping = false, wiggling = false;
+  var forming = false, formTimer = null; /* materialization hold */
   var raf = null, lastT = 0;
   var pattern = 'cyphr', P = null, thrown = false, frameNo = 0;
 
@@ -74,14 +79,16 @@
     show();
   }
 
-  function randomStart() {
+  /* Fixed spawn spot (Hex OS spec): right of centre, upper-middle of the
+     viewport. The sprite always materializes here — never a random spot.
+     (The pattern engine takes over the velocity right after spawn.) */
+  function fixedSpawn() {
     var maxX = Math.max(0, window.innerWidth - SIZE);
     var maxY = Math.max(0, window.innerHeight - SIZE);
-    x = Math.floor(Math.random() * (maxX + 1));
-    y = Math.floor(Math.random() * (maxY + 1));
-    var a = Math.random() * Math.PI * 2;
-    vx = Math.cos(a) * FALLBACK_SPEED;
-    vy = Math.sin(a) * FALLBACK_SPEED;
+    x = Math.round(maxX * 0.74);
+    y = Math.round(maxY * 0.30);
+    vx = FALLBACK_SPEED;
+    vy = 0;
   }
 
   function render() {
@@ -244,6 +251,7 @@
     if (!container || dragging) return;
     var dt = Math.min(0.05, (t - lastT) / 1000 || 0.016);
     lastT = t;
+    if (forming) { render(); raf = requestAnimationFrame(tick); return; }
     if (!reduced) {
       frameNo++;
       if (frameNo % 15 === 0) { /* follow a live base change (~4x a second) */
@@ -434,18 +442,49 @@
     container.appendChild(hex);
     document.body.appendChild(container);
 
-    randomStart();
+    fixedSpawn();
     startPattern(patternBase());
     render();
     bindDrag();
     window.addEventListener('resize', function () { clampIntoView(); render(); });
-    if (!reduced) kick();
+    if (!reduced) {
+      /* Materialization: a tight local cloud of sigil-colored particles
+         converges at the spawn spot while the hexagon resolves out of
+         it. The sprite stands still (forming) until the cloud clears,
+         then the pattern takes over. */
+      forming = true;
+      hex.classList.add('nv-sprite-forming');
+      var cloud = document.createElement('div');
+      cloud.className = 'nv-sprite-particles';
+      cloud.setAttribute('aria-hidden', 'true');
+      for (var i = 0; i < 26; i++) {
+        var p = document.createElement('span');
+        p.className = 'nv-sprite-particle';
+        var ang = Math.random() * Math.PI * 2;
+        var dist = 18 + Math.random() * 38;
+        p.style.setProperty('--nv-px', Math.round(Math.cos(ang) * dist) + 'px');
+        p.style.setProperty('--nv-py', Math.round(Math.sin(ang) * dist) + 'px');
+        p.style.animationDelay = Math.round(Math.random() * 120) + 'ms';
+        cloud.appendChild(p);
+      }
+      container.appendChild(cloud);
+      kick(); /* runs the forming hold */
+      formTimer = setTimeout(function () {
+        formTimer = null;
+        if (!container || !hex) return;
+        if (cloud.parentNode) cloud.parentNode.removeChild(cloud);
+        hex.classList.remove('nv-sprite-forming');
+        forming = false;
+      }, 1150);
+    }
   }
 
   function hide() {
     if (!shown) return;
     shown = false;
     if (raf != null) { cancelAnimationFrame(raf); raf = null; }
+    forming = false;
+    if (formTimer) { clearTimeout(formTimer); formTimer = null; }
     if (container && container.parentNode) container.parentNode.removeChild(container);
     container = null; hex = null;
     startGateWatch();

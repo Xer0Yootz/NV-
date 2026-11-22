@@ -1,5 +1,7 @@
 # Infinity6Shell — shared App Shell (audit fix, Nov 8, 2026)
 
+**Hex OS port, Nov 22, 2026** (Base44 hub prototype → live code, User's go): ONE typeface everywhere — the clean system monospace stack (`ui-monospace, Menlo, monospace`); the old pixel display font is retired on every surface. Ground is the near-black #050508 family; panels/cards are glass (translucent fill + top sheen, never flat matte behind text); buttons are bubbled pills (gloss, glowing accent outline, translucent fill, opaque text). Sigil tokens: Hexa cyan #22d3ee, Cyphr indigo #6366f1 (default before a pick), Helix pink #f471b5, Warden green. A shared wireframe band (.nv-wireframe) runs along the bottom of shell pages, and the shared UI Moments loaders (snake / rings / shimmer / cascade) live in nv-terminal-tokens.css. The sprite materializes from particles at a fixed spawn spot and moves per base (SWEEP / PROWL / DART / STRIDE); it is not loaded on the Game page, NV-TV, or the Options page.
+
 The Neon Vigil web app is static HTML — no build step — so the shell is three
 shared files plus a module. Every signed-in page wires into the same shell:
 
@@ -22,27 +24,36 @@ the fixed dock (bottom) never cover page content. The hub does **not** use
 and its centred `.hub-col` already accounts for ticker + dock.
 
 **What each file does:**
-- `nv-terminal-tokens.css` — design tokens (obsidian/violet palette, VT323,
-  1px borders) + the shell header wrapper (`.nv-shell-head`), the bottom
-  Radio/Hexa dock (`.nv-shell-dock`), and the display-name field + buttons
-  (`#nameInput`, `#saveNameBtn`, …).
-- `nv-ticker.js` + `nv-ticker.css` — the shared top telemetry ticker (time,
-  date, location, Open-Meteo weather, live NOAA tide). 10px, VT323 (Nov 8,
-  2026, Jasmine's order — really small, supersedes the 14px from the Nov 8
-  hub cleanup). It sits
-  still until location resolves, then scrolls seamlessly. "TIDES STANDBY" /
-  "WEATHER STANDBY" are loading states only — the live tide replaces them
-  once NOAA answers. The loop seam now ends each copy with a `·` delimiter
-  so the repeat never reads back-to-back.
+- `nv-terminal-tokens.css` — design tokens (near-black #050508 ground,
+  glass panels + sheen, sigil accents, the system monospace stack, 1px
+  borders) + the shell header wrapper (`.nv-shell-head`), the bottom
+  Radio/Hexa dock (`.nv-shell-dock`), the display-name field + buttons
+  (`#nameInput`, `#saveNameBtn`, …), the wireframe band (`.nv-wireframe`),
+  the radio wave (`.nv-radio-wave`), and the shared loaders
+  (`.nv-loader-snake` / `-rings` / `-shimmer` / `-cascade`) and pill
+  button (`.nv-btn`) / glass panel (`.nv-glass`) classes.
+- `nv-ticker.js` + `nv-ticker.css` — the shared top telemetry ticker:
+  time + date in numbers only, location, Open-Meteo weather. 10px in the
+  system monospace stack (Nov 8, 2026, Jasmine's order — really small,
+  supersedes the 14px from the Nov 8 hub cleanup). Content per the
+  Nov 20, 2026 lock (carried by the Nov 22, 2026 port): NO tide item, no
+  labels, no STANDBY/placeholder filler — an item with no data shows
+  nothing; items are separated by a horizontal line (an em dash). It sits
+  still until location resolves, then scrolls seamlessly; the loop seam
+  ends each copy with the same delimiter so the repeat never reads
+  back-to-back.
 - `nv-commands.js` + `nv-commands.css` — the shared Cmd/Ctrl+K palette.
   Labels (locked): `iKG://GigasGarden.Construct` (Jasmine's Nov 15 rename — the IKG, Intergalactic Kyber Grid; was `Virtual IWW: Gigas Garden`, Nov 7),
   `NV_Gigas Garden — Remix`, `NV_808`, `NV_Gridlog`, `NV-TV`, `Settings`,
   `Sign out`, plus `Avatar Editor` and `NV_Pet Pal` (added by this audit fix).
 - `nv-shell.js` (`window.Infinity6Shell`) — injects the standard bottom dock
-  (Radio with the three Sound Beds, default Bed 3, + Hexa/Commands button)
-  when the page has no dock, and loads the ticker/palette modules if a page
-  forgot them. The dock radio is the shared implementation — same stations,
-  same first-tap autoplay, same cookie-lock guard as the hub.
+  (Radio: Sound Beds 1–3, default Bed 3, + Atmospheric Haze; no label
+  text — merged play/stop + living wave at rest, station list on
+  hover/focus, scroll cycles stations; + Hexa/Commands button)
+  when the page has no dock, injects the wireframe band, and loads the
+  ticker/palette modules if a page forgot them. The dock radio is the
+  shared implementation — same stations, same first-tap autoplay, same
+  cookie-lock guard as the hub.
 
 **Routes (all same-origin, shell-preserving — nothing leaves the app shell
 except through a wrapper page):**
@@ -76,7 +87,7 @@ except through a wrapper page):**
   default, "Greetings \<username\>" when a username is saved — inside the
   terminal box per the Nov 8 order, typed by the typewriter on load and
   re-typed when the saved username arrives; "Infinity 6 Terminal" small at
-  the bottom of the box, clean VT323 13px; no display-name input or Save
+  the bottom of the box, clean system monospace 13px; no display-name input or Save
   button on the hub — name editing lives in Settings only. A screenshot
   taken in the first ~0.4s can catch the greeting mid-type — that is the
   "truncation" the audit saw, not a layout clip: no width/overflow rule

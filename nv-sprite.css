@@ -1,7 +1,9 @@
-/* Symbiont sprite — PLACEHOLDER styles.
-   The real Symbiont sprite comes later; this hexagon is a temporary stand-in.
-   Infinity 6 Terminal / Hex OS: VT323 18px, #05010f, var(--nv-accent, #8a8a99), var(--nv-accent-soft, #c9c9d4).
-   No glow, no green. No words or text on the hexagon. */
+/* Symbiont sprite styles.
+   The hexagon is the sprite's current form. Infinity 6 Terminal / Hex OS:
+   colors follow the IA Symbiont pick through the theme variables
+   (var(--nv-accent, #8a8a99), var(--nv-accent-soft, #c9c9d4)).
+   No words or text on the hexagon. Particles belong to the sprite ONLY —
+   they appear only in its materialization, nowhere else in the UI. */
 
 /* The invisible container: transparent, fixed, 120x120, no background, no
    border. It is the thing that roams and is dragged; the hexagon is the
@@ -45,6 +47,41 @@
   outline-offset: 2px;
 }
 
+/* Materialization: the sprite forms from particles at its fixed spawn
+   spot — a tight local cloud of sigil-colored particles converges in
+   place while the hexagon resolves out of it. The sprite stands still
+   while forming; roaming starts only once it has fully formed. */
+.nv-sprite-particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.nv-sprite-particle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  margin: -2.5px 0 0 -2.5px;
+  border-radius: 50%;
+  background: var(--nv-accent, #6366f1);
+  opacity: 0;
+  animation: nv-sprite-converge .95s ease-in forwards;
+}
+@keyframes nv-sprite-converge {
+  0% { transform: translate(var(--dx), var(--dy)) scale(1); opacity: 0; }
+  18% { opacity: 1; }
+  100% { transform: translate(0, 0) scale(.4); opacity: 0; }
+}
+.nv-sprite-hex.nv-sprite-forming {
+  animation: nv-sprite-resolve .95s ease-out;
+}
+@keyframes nv-sprite-resolve {
+  0% { opacity: 0; transform: scale(.55); }
+  55% { opacity: .55; }
+  100% { opacity: 1; transform: scale(1); }
+}
+
 /* Wiggle: a quick side-to-side shake, like a pet. */
 @keyframes nv-sprite-wiggle {
   0% { transform: rotate(0deg); }
@@ -82,12 +119,15 @@
   animation: nv-sprite-pulse 0.9s ease-out;
 }
 
-/* Reduced motion: the sprite sits still (no roaming, no hop, no spin)
-   but stays draggable and clickable. */
+/* Reduced motion: the sprite sits still (no roaming, no hop, no spin,
+   no particle materialization — it simply appears) but stays draggable
+   and clickable. */
 @media (prefers-reduced-motion: reduce) {
   .nv-sprite-hop,
   .nv-sprite-wiggle,
-  .nv-sprite-pulse svg {
+  .nv-sprite-pulse svg,
+  .nv-sprite-particle,
+  .nv-sprite-hex.nv-sprite-forming {
     animation: none;
   }
 }
