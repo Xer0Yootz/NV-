@@ -553,3 +553,37 @@ html[data-a11y-contrast="high"]:root {
 }
 html[data-a11y-text="large"] { font-size: 112.5%; }
 html[data-a11y-bg="calm"] .nv-wireframe { display: none; }
+
+/* ============================================================
+   Hex OS: error states (Nov 22, 2026)
+   - .nv-toast-error: the error variant of the shared toast —
+     same glass pill, red border/glow, so a failure reads
+     differently from a confirmation at a glance. Driven by
+     NVToast.error (nv-shell.js). Errors go inline or by toast,
+     never in a popup.
+   - .nv-field-error: the small error line under a form field.
+     Hidden by default; pages unhide it (or fill it and remove
+     [hidden]) when a field fails.
+   - .nv-state-error: the page-level failure panel — .nv-state
+     with a red-tinted border; pairs with a Retry pill button
+     (the standard .nv-btn pill styles).
+   ============================================================ */
+
+.nv-toast-error {
+  border-color: #f87171;
+  box-shadow: 0 0 12px rgba(248, 113, 113, .45), inset 0 1px 0 rgba(255, 255, 255, .22);
+}
+
+.nv-field-error {
+  font-family: var(--nv-font);
+  font-size: 12px;
+  color: #f87171;
+  margin-top: 6px;
+  line-height: 1.45;
+}
+.nv-field-error[hidden] { display: none; }
+
+.nv-state-error {
+  border-color: rgba(248, 113, 113, .55);
+  box-shadow: 0 0 16px rgba(248, 113, 113, .18), inset 0 1px 0 rgba(255, 255, 255, .12);
+}

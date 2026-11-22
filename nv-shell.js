@@ -187,18 +187,28 @@
     document.body.appendChild(r);
   }
 
+  function spawnToast(msg, extraClass) {
+    var region = document.querySelector('.nv-toast-region');
+    if (!region) return;
+    var t = document.createElement('div');
+    t.className = 'nv-toast' + (extraClass ? ' ' + extraClass : '');
+    t.textContent = msg;
+    region.appendChild(t);
+    setTimeout(function () {
+      t.classList.add('leaving');
+      setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); }, 350);
+    }, 2600);
+  }
+
   window.NVToast = {
-    show: function (msg) {
-      var region = document.querySelector('.nv-toast-region');
-      if (!region) return;
-      var t = document.createElement('div');
-      t.className = 'nv-toast';
-      t.textContent = msg;
-      region.appendChild(t);
-      setTimeout(function () {
-        t.classList.add('leaving');
-        setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); }, 350);
-      }, 2600);
+    show: function (msg) { spawnToast(msg, ''); },
+    /* Error states (Nov 22, 2026): the failure variant — the red
+       .nv-toast-error pill, and the message is also announced to
+       screen readers via NVAnnounce (which itself respects the
+       nv_a11y_announce preference). */
+    error: function (msg) {
+      spawnToast(msg, 'nv-toast-error');
+      if (window.NVAnnounce) window.NVAnnounce(msg);
     }
   };
 
