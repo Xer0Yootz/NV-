@@ -168,7 +168,8 @@
       <p class="gl-sub">The Neon Vigil encyclopedia. The Web Bible lives here now — every entry, in wiki form. The Bible in the Master Codex drive stays the source of truth underneath.</p>
       <div class="gl-searchwrap"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 L21 21"/></svg><input id="gl-search" class="gl-search" type="search" placeholder="Search the Log…" autocomplete="off"></div>
     </div>
-    <div id="gl-root"><div class="card"><p class="gl-loading nv-loader-shimmer">LOADING THE LOG…</p></div></div>
+    <div id="gl-root" aria-busy="true"><div class="card"><p class="gl-loading nv-loader-shimmer" role="status" aria-label="Loading">LOADING THE LOG…</p></div></div>
+    <div class="nv-state" id="glEmptyState" hidden><p class="nv-state-title">Not Found</p><p class="nv-state-line">No entries match your search.</p><p><button type="button" class="nv-btn" id="glClearSearch">Clear search</button></p></div>
     <div class="card"><p class="gl-note"><a href="/hub.html">Back to hub</a> · Grid Log — a part of Hex OS.</p></div>
   </main>
   <script src="bible-data.js"></script>
@@ -177,6 +178,14 @@
     var D = window.NEON_BIBLE_DATA;
     var root = document.getElementById('gl-root');
     var search = document.getElementById('gl-search');
+    var emptyState = document.getElementById('glEmptyState');
+    var glAnnounced = false;
+    function glLoaded(){
+      root.setAttribute('aria-busy', 'false');
+      if(!glAnnounced){ glAnnounced = true; if(window.NVAnnounce) NVAnnounce('Loaded'); }
+    }
+    var clearBtn = document.getElementById('glClearSearch');
+    if(clearBtn) clearBtn.addEventListener('click', function(){ search.value = ''; renderIndex(''); search.focus(); });
     if(!D){ root.innerHTML = '<div class="card"><p>The Log could not load its data.</p></div>'; return; }
     var byId = {}; D.entries.forEach(function(e){ byId[e.id]=e; });
     function secKey(name, i){
@@ -235,23 +244,27 @@
             var img = cardImg(e);
             html += '<a class="gl-pcard" style="animation-delay:' + (ci++ * 45) + 'ms" href="#/e/' + e.id + '">'
               + (img ? '<img loading="lazy" src="' + img + '" alt="' + esc(e.title) + '">' : '')
-              + '<span class="gl-pname">' + esc(e.title) + '</span></a>';
+              + '<span class="gl-pname">' + esc(e.title) + '</span>'
+              + (e.classified ? '<span class="nv-state-stamp">CLASSIFIED</span><span class="nv-redacted">' + esc(e.kicker || e.title) + '</span>' : '')
+              + '</a>';
           });
           html += '</div>';
           var rest = items.filter(function(e){ return !inGrid[e.id]; });
           if(rest.length){
             html += '<p class="gl-kicker gl-more">More in this section</p><ul class="gl-entries">';
-            rest.forEach(function(e){ html += '<li><a href="#/e/' + e.id + '">' + esc(e.title) + '</a></li>'; });
+            rest.forEach(function(e){ html += '<li><a href="#/e/' + e.id + '">' + esc(e.title) + '</a>' + (e.classified ? ' <span class="nv-state-stamp">CLASSIFIED</span>' : '') + '</li>'; });
             html += '</ul>';
           }
         } else {
           html += '<ul class="gl-entries">';
-          items.forEach(function(e){ html += '<li><a href="#/e/' + e.id + '">' + esc(e.title) + '</a></li>'; });
+          items.forEach(function(e){ html += '<li><a href="#/e/' + e.id + '">' + esc(e.title) + '</a>' + (e.classified ? ' <span class="nv-state-stamp">CLASSIFIED</span>' : '') + '</li>'; });
           html += '</ul>';
         }
         html += '</div>';
       });
-      root.innerHTML = html || '<div class="card"><p>No entries match.</p></div>';
+      root.innerHTML = html;
+      if(emptyState) emptyState.hidden = !!html;
+      glLoaded();
     }
     function neighbors(id){
       var flat = []; sections.forEach(function(s){ s.ids.forEach(function(x){ if(byId[x]) flat.push(x); }); });
@@ -259,7 +272,28 @@
       return { prev: i>0 ? flat[i-1] : null, next: i>=0 && i<flat.length-1 ? flat[i+1] : null };
     }
     function renderEntry(id){
-      var e = byId[id]; if(!e){ renderIndex(''); return; }
+      var e = byId[id];
+      if(!e){
+        root.innerHTML = '<div class="card"><div class="nv-state"><p class="nv-state-title">Not Found</p><p class="nv-state-line">That entry isn\'t in the Grid Log.</p><p><a class="nv-btn" href="#/">Grid Log index</a></p></div></div>';
+        if(emptyState) emptyState.hidden = true;
+        glLoaded();
+        window.scrollTo(0,0);
+        return;
+      }
+      if(e.classified){
+        var cn = neighbors(id);
+        root.innerHTML = '<div class="card">'
+          + '<p><a class="gl-back" href="#/">&larr; Grid Log index</a></p>'
+          + '<p class="gl-kicker">' + esc(e.section || '') + '</p>'
+          + '<div class="nv-state"><p><span class="nv-state-stamp">CLASSIFIED</span></p><p class="nv-state-title">' + esc(e.title) + '</p><p class="nv-state-line">This entry is classified.</p></div>'
+          + '<div class="gl-nav"><span>' + (cn.prev ? '<a href="#/e/' + cn.prev + '">&larr; ' + esc(byId[cn.prev].title) + '</a>' : '') + '</span>'
+          + '<span>' + (cn.next ? '<a href="#/e/' + cn.next + '">' + esc(byId[cn.next].title) + ' &rarr;</a>' : '') + '</span></div>'
+          + '</div>';
+        if(emptyState) emptyState.hidden = true;
+        glLoaded();
+        window.scrollTo(0,0);
+        return;
+      }
       var html = e.html.replace(/<div class="tabbar">[\s\S]*?<\/div>/, '');
       var n = neighbors(id);
       root.innerHTML = '<div class="card">'
@@ -269,6 +303,7 @@
         + '<div class="gl-nav"><span>' + (n.prev ? '<a href="#/e/' + n.prev + '">&larr; ' + esc(byId[n.prev].title) + '</a>' : '') + '</span>'
         + '<span>' + (n.next ? '<a href="#/e/' + n.next + '">' + esc(byId[n.next].title) + ' &rarr;</a>' : '') + '</span></div>'
         + '</div>';
+      glLoaded();
       window.scrollTo(0,0);
     }
     function route(){
