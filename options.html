@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-nv-shell="back-only">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="./nv-terminal-tokens.css">
   <link rel="stylesheet" href="./nv-ticker.css">
   <link rel="stylesheet" href="./nv-symbiont-theme.css">
+  <link rel="stylesheet" href="./nv-toggle.css">
   <script src="./nv-symbiont-theme.js"></script>
   <style>
     body { background:#050508 url("ships-bridge.jpg") center/cover no-repeat fixed; color:#f5f0ff; font-family:ui-monospace, Menlo, monospace; font-size:18px; margin:0; min-height:100vh; display:grid; place-items:center; }
@@ -46,6 +47,14 @@
       <p><a href="/gridlog/">NV_Gridlog</a></p>
       <p><a href="/nv-tv.html">NV-TV</a></p>
     </nav>
+    <section aria-label="Accessibility">
+      <h2>Accessibility</h2>
+      <p><span class="nv-switch-row" id="a11yMotionLabel">Reduce motion</span> <button type="button" class="nv-switch" id="a11yMotion" role="switch" aria-checked="false" aria-labelledby="a11yMotionLabel"><span class="nv-switch-knob"></span></button></p>
+      <p><span class="nv-switch-row" id="a11yContrastLabel">High contrast</span> <button type="button" class="nv-switch" id="a11yContrast" role="switch" aria-checked="false" aria-labelledby="a11yContrastLabel"><span class="nv-switch-knob"></span></button></p>
+      <p><span class="nv-switch-row" id="a11yTextLabel">Large text</span> <button type="button" class="nv-switch" id="a11yText" role="switch" aria-checked="false" aria-labelledby="a11yTextLabel"><span class="nv-switch-knob"></span></button></p>
+      <p><span class="nv-switch-row" id="a11yBgLabel">Calm background</span> <button type="button" class="nv-switch" id="a11yBg" role="switch" aria-checked="false" aria-labelledby="a11yBgLabel"><span class="nv-switch-knob"></span></button></p>
+      <p><span class="nv-switch-row" id="a11yAnnounceLabel">Screen reader announcements</span> <button type="button" class="nv-switch" id="a11yAnnounce" role="switch" aria-checked="false" aria-labelledby="a11yAnnounceLabel"><span class="nv-switch-knob"></span></button></p>
+    </section>
     <p><a href="hub.html">Back to hub</a></p>
   </main>
   <script src="./auth.js"></script>
@@ -73,6 +82,7 @@
       document.getElementById('saveNameBtn').addEventListener('click', function () {
         var v = inp.value.trim();
         if (v) { localStorage.setItem('nv_display_name', v); saveNameToAccount(v); } else { localStorage.removeItem('nv_display_name'); saveNameToAccount(null); }
+        if (window.NVToast) NVToast.show('Saved');
         renderName();
       });
       document.getElementById('signOutBtn').addEventListener('click', signOut);
@@ -147,5 +157,38 @@
   })();
 </script>
 <script src="./nv-ticker.js"></script>
+<script src="./nv-shell.js"></script>
+<script>
+  /* Accessibility options (Nov 22, 2026): .nv-switch toggles, one
+     localStorage key each, applied site-wide by nv-shell.js at
+     init (html[data-a11y-*]). A change saves at once + toast. */
+  (function () {
+    var A11Y = [
+      { id: 'a11yMotion',   key: 'nv_a11y_motion',   on: 'reduce', off: 'auto', defOn: false },
+      { id: 'a11yContrast', key: 'nv_a11y_contrast', on: 'high',   off: 'auto', defOn: false },
+      { id: 'a11yText',     key: 'nv_a11y_text',     on: 'large',  off: 'auto', defOn: false },
+      { id: 'a11yBg',       key: 'nv_a11y_bg',       on: 'calm',   off: 'auto', defOn: false },
+      { id: 'a11yAnnounce', key: 'nv_a11y_announce', on: 'on',     off: 'off',  defOn: true }
+    ];
+    A11Y.forEach(function (cfg) {
+      var btn = document.getElementById(cfg.id);
+      if (!btn) return;
+      var label = document.getElementById(cfg.id + 'Label');
+      function paint(on) {
+        btn.setAttribute('aria-checked', on ? 'true' : 'false');
+        if (label) label.classList.toggle('nv-switch-row-off', !on);
+      }
+      var stored = null;
+      try { stored = localStorage.getItem(cfg.key); } catch (e) {}
+      paint(stored !== null ? stored === cfg.on : cfg.defOn);
+      btn.addEventListener('click', function () {
+        var on = btn.getAttribute('aria-checked') !== 'true';
+        paint(on);
+        try { localStorage.setItem(cfg.key, on ? cfg.on : cfg.off); } catch (e) {}
+        if (window.NVToast) NVToast.show('Saved');
+      });
+    });
+  })();
+</script>
 </body>
 </html>

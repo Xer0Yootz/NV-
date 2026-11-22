@@ -150,6 +150,123 @@
     document.body.appendChild(wf);
   }
 
+
+  /* Back control (Nov 22, 2026): one shared animated icon button —
+     an exit / go-back sign pictogram (door outline + left arrow),
+     no visible text; aria-label and title carry the name. Escape
+     triggers this same action (see the keydown listener below):
+     back and escape are one control. */
+  var BACK_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.5 3.5h7v17h-7"/><g class="nv-back-glyph-arrow"><path d="M16.5 12H4"/><path d="M9.5 5.5 3.5 12l6 6.5"/></g></svg>';
+
+  function goBack() {
+    if (history.length > 1) { history.back(); }
+    else { window.location.href = base + 'hub'; }
+  }
+
+  function mountBack() {
+    if (document.querySelector('.nv-back-btn')) return;
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'nv-back-btn';
+    b.setAttribute('aria-label', 'Back');
+    b.setAttribute('title', 'Back (Esc)');
+    b.innerHTML = BACK_SVG;
+    b.addEventListener('click', goBack);
+    document.body.appendChild(b);
+  }
+
+  /* Toasts (Nov 22, 2026): shared save/confirmation feedback.
+     window.NVToast.show(msg) — the message is set via textContent,
+     never innerHTML. */
+  function mountToastRegion() {
+    if (document.querySelector('.nv-toast-region')) return;
+    var r = document.createElement('div');
+    r.className = 'nv-toast-region';
+    r.setAttribute('role', 'status');
+    r.setAttribute('aria-live', 'polite');
+    document.body.appendChild(r);
+  }
+
+  window.NVToast = {
+    show: function (msg) {
+      var region = document.querySelector('.nv-toast-region');
+      if (!region) return;
+      var t = document.createElement('div');
+      t.className = 'nv-toast';
+      t.textContent = msg;
+      region.appendChild(t);
+      setTimeout(function () {
+        t.classList.add('leaving');
+        setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); }, 350);
+      }, 2600);
+    }
+  };
+
+
+  /* Screen-reader status (Nov 22, 2026): a visually hidden live
+     region + window.NVAnnounce(msg). The region text is cleared
+     and re-set after 30ms so repeated messages still announce.
+     Gated by the Options-page preference nv_a11y_announce
+     ('off' silences announcements; anything else is on). */
+  function mountSrStatus() {
+    if (document.getElementById('nvSrStatus')) return;
+    var r = document.createElement('div');
+    r.id = 'nvSrStatus';
+    r.className = 'nv-sr-only';
+    r.setAttribute('role', 'status');
+    r.setAttribute('aria-live', 'polite');
+    document.body.appendChild(r);
+  }
+
+  window.NVAnnounce = function (msg) {
+    try { if (localStorage.getItem('nv_a11y_announce') === 'off') return; } catch (e) {}
+    var r = document.getElementById('nvSrStatus');
+    if (!r) return;
+    r.textContent = '';
+    setTimeout(function () { r.textContent = msg; }, 30);
+  };
+
+  /* Accessibility preferences (Nov 22, 2026): read the Options
+     page's localStorage keys and stamp the non-default choices on
+     <html>, where the tokens CSS picks them up. Defaults ('auto',
+     announcements on) set no attribute. */
+  function applyA11yPrefs() {
+    var h = document.documentElement;
+    function pref(key) { try { return localStorage.getItem(key) || ''; } catch (e) { return ''; } }
+    if (pref('nv_a11y_motion') === 'reduce') h.setAttribute('data-a11y-motion', 'reduce');
+    if (pref('nv_a11y_contrast') === 'high') h.setAttribute('data-a11y-contrast', 'high');
+    if (pref('nv_a11y_text') === 'large') h.setAttribute('data-a11y-text', 'large');
+    if (pref('nv_a11y_bg') === 'calm') h.setAttribute('data-a11y-bg', 'calm');
+  }
+
+  /* Escape = back, one control (Nov 22, 2026). Bubble phase.
+     Layers that own Escape themselves win first: the Commands
+     palette (nv-commands.js closes it — its open marker is the
+     .open class on the .palette-overlay element), any visible
+     backdrop/modal layer (the page's own handler closes it), and
+     NV-808, where Escape means stop playback. With focus in a
+     text field, Escape just leaves the field. */
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    var overlay = document.querySelector('.palette-overlay');
+    if (overlay && overlay.classList.contains('open')) return;
+    var layers = document.querySelectorAll('[class*="backdrop"]');
+    for (var i = 0; i < layers.length; i++) {
+      var el = layers[i];
+      if (el.hidden) continue;
+      var cs = window.getComputedStyle ? getComputedStyle(el) : null;
+      if (cs && cs.display === 'none') continue;
+      /* offsetParent is null for position:fixed layers (e.g. the
+         Avatar Editor's .palette-backdrop), so a visible fixed
+         layer counts as open too. */
+      if (el.offsetParent !== null || (cs && cs.position === 'fixed')) return;
+    }
+    if (window.location.pathname.indexOf('nv808') !== -1) return;
+    var a = document.activeElement;
+    if (a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.tagName === 'SELECT' || a.isContentEditable)) { a.blur(); return; }
+    goBack();
+  });
+
   function init() {
     /* Ticker + palette are shared modules; load them if the page did not
        include them directly (the shell still works if they are present).
@@ -163,11 +280,28 @@
       ensureScript(base + 'nv-ticker.js', '__nvTickerLoaded');
     }
     ensureScript(base + 'nv-commands.js', '__nvCommandsLoaded');
+    applyA11yPrefs();
     mountWireframe();
     mountDock();
+    mountBack();
+    mountToastRegion();
+    mountSrStatus();
   }
 
-  window.Infinity6Shell = { mountDock: mountDock, mountWireframe: mountWireframe };
-  if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); }
-  else { init(); }
+  /* Back-only mode (Nov 22, 2026): pages that are not full shell
+     pages (Options, Privacy, Terms, Avatar Editor) set
+     data-nv-shell="back-only" on <html> and get just the back
+     control and the toast region — no ticker, palette, dock or
+     wireframe. */
+  function initBackOnly() {
+    applyA11yPrefs();
+    mountBack();
+    mountToastRegion();
+    mountSrStatus();
+  }
+
+  window.Infinity6Shell = { mountDock: mountDock, mountWireframe: mountWireframe, mountBack: mountBack, goBack: goBack, mountToastRegion: mountToastRegion, toast: window.NVToast, mountSrStatus: mountSrStatus, announce: window.NVAnnounce, applyA11yPrefs: applyA11yPrefs };
+  var startShell = document.documentElement.getAttribute('data-nv-shell') === 'back-only' ? initBackOnly : init;
+  if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', startShell); }
+  else { startShell(); }
 })();

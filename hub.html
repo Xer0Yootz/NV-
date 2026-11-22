@@ -309,7 +309,7 @@
         return;
       }
       if (parts[0] === 'load' || parts[0] === 'open') { termLoad(parts.slice(1).join(' ').replace(/[\s_-]/g, '')); return; }
-      termPrint("Unknown command. Type 'help'.");
+      termPrint('not found');
     }
     termInput.addEventListener('keydown', function (e) {
       if (e.key === 'Enter') { e.preventDefault(); var v = termInput.value; termInput.value = ''; termSize(); termRun(v); }
