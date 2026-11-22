@@ -7,7 +7,6 @@
     <link rel="icon" href="data:," />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="../../nv-terminal-tokens.css" />
     <link rel="stylesheet" href="../../nv-ticker.css" />
     <link rel="stylesheet" href="../../nv-symbiont-theme.css" />
@@ -47,7 +46,7 @@
         --ok: #34d399;
         --err: #fb7185;
         --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
-        --sans: "Avenir Next", "Segoe UI", system-ui, -apple-system, sans-serif;
+        --sans: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace; /* Hex OS port, Nov 22, 2026: ONE typeface — the sans stack is retired; this var now resolves to the same mono stack so every rule that referenced it follows the single-typeface lock. */
       }
       * { box-sizing: border-box; }
       html, body { height: 100%; }
@@ -329,7 +328,7 @@
     <style id="infinity6-shell">
       /* ===== Infinity6Shell — master layout wrapper (Infinity6 Terminal) =====
          Overrides the legacy console skin with the locked terminal shell:
-         obsidian surfaces, violet 1px grid borders, VT323 18px type. */
+         obsidian surfaces, violet 1px grid borders, system monospace 18px type. */
       html { background: var(--nv-obsidian); }
       body {
         background:
