@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Grid Log — Neon Vigil</title>
-  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+  
   <link rel="stylesheet" href="../nv-terminal-tokens.css">
   <link rel="stylesheet" href="../nv-ticker.css">
   <link rel="stylesheet" href="../nv-commands.css">
@@ -19,14 +19,14 @@
        bible.json; the Bible master in the Master Codex drive stays the
        source of truth underneath. Fragment field sits on the outer frame
        only — never behind entry text (unified Hex OS style, Grid Log lane). */
-    body { background:#05010f; color:#f5f0ff; font-family:"VT323","Share Tech Mono",monospace; font-size:18px; margin:0; }
+    body { background:#050508; color:#f5f0ff; font-family:ui-monospace, Menlo, monospace; font-size:18px; margin:0; }
     #gl-bg { position:fixed; inset:0; z-index:0; pointer-events:none; }
     main { position:relative; z-index:2; max-width:860px; margin:0 auto; padding:0 16px 24px; }
-    .card { border:1px solid var(--nv-accent,#7c3aed); border-radius:16px; background:rgba(18,8,31,.92); padding:20px 22px; margin-top:16px; }
+    .card { border:1px solid var(--nv-accent,#6366f1); border-radius:16px; background-color:rgba(15,9,27,.86); background-image:var(--nv-sheen); padding:20px 22px; margin-top:16px; }
     h1 { font-size:44px; letter-spacing:2px; margin:0 0 4px; color:#f5f0ff; }
     .gl-sub { opacity:.85; margin:0 0 14px; }
-    .gl-search { width:100%; box-sizing:border-box; background:#0a0618; border:1px solid var(--nv-accent,#7c3aed); border-radius:10px; color:#f5f0ff; font-family:inherit; font-size:20px; padding:10px 14px; }
-    .gl-search:focus { outline:2px solid var(--nv-accent,#7c3aed); }
+    .gl-search { width:100%; box-sizing:border-box; background:#0a0618; border:1px solid var(--nv-accent,#6366f1); border-radius:10px; color:#f5f0ff; font-family:inherit; font-size:20px; padding:10px 14px; }
+    .gl-search:focus { outline:2px solid var(--nv-accent,#6366f1); }
     h2.gl-sec { font-size:26px; margin:0 0 8px; letter-spacing:1px; }
     ul.gl-entries { list-style:none; margin:0; padding:0; columns:2; column-gap:28px; }
     @media (max-width:640px){ ul.gl-entries{ columns:1; } }
@@ -36,9 +36,8 @@
     .gl-kicker { opacity:.75; font-size:16px; letter-spacing:1px; text-transform:uppercase; }
     .gl-nav { display:flex; justify-content:space-between; gap:12px; margin-top:18px; flex-wrap:wrap; }
     .gl-nav a, a.gl-back { color:#d9ccff; }
-    .gl-loading { font-size:24px; letter-spacing:2px; background:linear-gradient(90deg,#8b7bb8 25%,#f5f0ff 50%,#8b7bb8 75%); background-size:200% 100%; -webkit-background-clip:text; background-clip:text; color:transparent; animation:glshimmer 1.4s linear infinite; }
-    @keyframes glshimmer { to { background-position:-200% 0; } }
-    @media (prefers-reduced-motion: reduce){ .gl-loading{ animation:none; color:#d9ccff; } }
+    /* Loading shimmer: the shared .nv-loader-shimmer class (nv-terminal-tokens.css) carries the sweep — aligned Nov 22, 2026, not duplicated here. */
+    .gl-loading { font-size:24px; letter-spacing:2px; }
     .gl-note { opacity:.8; font-size:16px; }
     #gl-webgpu { position:fixed; inset:0; z-index:0; pointer-events:none; }
     #gl-bg { display:none; }
@@ -47,7 +46,7 @@
     @keyframes glflip { from { opacity:0; transform:perspective(900px) rotateY(5deg) translateY(8px); } to { opacity:1; transform:none; } }
     @media (prefers-reduced-motion: reduce){ .card, .gl-pcard{ animation:none; } }
     .gl-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(148px,1fr)); gap:12px; margin:12px 0 4px; }
-    .gl-pcard { display:block; border:1px solid var(--nv-accent,#7c3aed); border-radius:14px; overflow:hidden; background:rgba(18,8,31,.92); text-decoration:none; animation:glflip .45s ease both; }
+    .gl-pcard { display:block; border:1px solid var(--nv-accent,#6366f1); border-radius:14px; overflow:hidden; background-color:rgba(15,9,27,.86); background-image:var(--nv-sheen); text-decoration:none; animation:glflip .45s ease both; }
     .gl-pcard img { display:block; width:100%; aspect-ratio:3/4; object-fit:cover; object-position:top center; background:#0a0616; }
     .gl-pcard .gl-pname { display:block; padding:9px 11px; font-size:16px; color:#f5f0ff; }
     .gl-more { margin:14px 0 6px; }
@@ -169,7 +168,7 @@
       <p class="gl-sub">The Neon Vigil encyclopedia. The Web Bible lives here now — every entry, in wiki form. The Bible in the Master Codex drive stays the source of truth underneath.</p>
       <div class="gl-searchwrap"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 L21 21"/></svg><input id="gl-search" class="gl-search" type="search" placeholder="Search the Log…" autocomplete="off"></div>
     </div>
-    <div id="gl-root"><div class="card"><p class="gl-loading">LOADING THE LOG…</p></div></div>
+    <div id="gl-root"><div class="card"><p class="gl-loading nv-loader-shimmer">LOADING THE LOG…</p></div></div>
     <div class="card"><p class="gl-note"><a href="/hub.html">Back to hub</a> · Grid Log — a part of Hex OS.</p></div>
   </main>
   <script src="bible-data.js"></script>
@@ -290,7 +289,7 @@
     var cv = document.getElementById('gl-bg'), ctx = cv.getContext('2d'), W, H, P = [], still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     function size(){ W = cv.width = innerWidth; H = cv.height = innerHeight; }
     size(); addEventListener('resize', size);
-    var accent = getComputedStyle(document.documentElement).getPropertyValue('--nv-accent').trim() || '#7c3aed';
+    var accent = getComputedStyle(document.documentElement).getPropertyValue('--nv-accent').trim() || '#6366f1';
     for(var i=0;i<70;i++) P.push({x:Math.random(), y:Math.random(), s:Math.random()*1.8+0.4, v:Math.random()*0.00035+0.00008});
     function tick(){
       ctx.clearRect(0,0,W,H); ctx.fillStyle = accent;
