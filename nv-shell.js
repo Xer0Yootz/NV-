@@ -158,9 +158,20 @@
      back and escape are one control. */
   var BACK_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.5 3.5h7v17h-7"/><g class="nv-back-glyph-arrow"><path d="M16.5 12H4"/><path d="M9.5 5.5 3.5 12l6 6.5"/></g></svg>';
 
-  function goBack() {
+  function doGoBack() {
+    guardBypassUnload = true;
     if (history.length > 1) { history.back(); }
     else { window.location.href = base + 'hub'; }
+  }
+
+  function goBack() {
+    /* Unsaved-changes guard (Nov 22, 2026): on a page that
+       registered a guard and has unsaved changes, Back (the
+       button and Escape-as-back both route here) opens the
+       guard popup instead of navigating. The pending back
+       action runs only after Save succeeds or Exit is chosen. */
+    if (!guardBypassUnload && guardIsActive()) { openGuard({ type: 'back' }); return; }
+    doGoBack();
   }
 
   function mountBack() {
@@ -174,6 +185,192 @@
     b.addEventListener('click', goBack);
     document.body.appendChild(b);
   }
+
+  /* Unsaved-changes guard (Nov 22, 2026): saving is a
+     requirement on the save pages (Settings, Profile Editor).
+     A page registers window.NVGuard.register({ isDirty, save,
+     clearDirty }) — isDirty() reports unsaved changes, save()
+     persists them (may return a promise; resolving false means
+     failure), clearDirty() (optional) resets the page's own
+     dirty state and is what NVGuard.markClean() calls.
+     While dirty, the guard intercepts:
+       (a) in-app anchor clicks (capture phase — palette links
+           and the shell's own nav links included),
+       (b) the shell's goBack() path (see goBack above),
+       (c) window beforeunload — the browser's native prompt;
+           its text is the browser's own and cannot be set.
+     The popup offers Save (proceed only on success) and Exit
+     (proceed without saving). Escape or a backdrop click is
+     STAY: the popup closes and nothing navigates. */
+  var GUARD_MSG = 'you have unsaved changes are you sure you want to exit page?';
+  var guardReg = null;
+  var guardOpen = false;
+  var guardPending = null;
+  var guardBypassUnload = false;
+  var guardBackdrop = null, guardSaveBtn = null, guardExitBtn = null;
+
+  function guardIsActive() {
+    if (!guardReg || typeof guardReg.isDirty !== 'function') return false;
+    try { return !!guardReg.isDirty(); } catch (e) { return false; }
+  }
+
+  function guardMarkClean() {
+    if (guardReg && typeof guardReg.clearDirty === 'function') {
+      try { guardReg.clearDirty(); } catch (e) {}
+    }
+  }
+
+  window.NVGuard = {
+    /* Registering is a fresh page saying "I have a save flow":
+       it also clears any proceed-bypass left over from a prior
+       navigation, so the new page's exits are guarded. */
+    register: function (cfg) { guardReg = cfg || null; guardBypassUnload = false; },
+    markClean: guardMarkClean,
+    isDirty: guardIsActive
+  };
+
+  function mountGuard() {
+    if (guardBackdrop || document.querySelector('.nv-guard-backdrop')) {
+      guardBackdrop = guardBackdrop || document.querySelector('.nv-guard-backdrop');
+      return;
+    }
+    var bd = document.createElement('div');
+    bd.className = 'nv-guard-backdrop';
+    bd.hidden = true;
+    var panel = document.createElement('div');
+    panel.className = 'nv-guard';
+    panel.setAttribute('role', 'alertdialog');
+    panel.setAttribute('aria-modal', 'true');
+    panel.setAttribute('aria-label', 'Unsaved changes');
+    var msg = document.createElement('p');
+    msg.className = 'nv-guard-msg';
+    msg.textContent = GUARD_MSG;
+    var actions = document.createElement('div');
+    actions.className = 'nv-guard-actions';
+    var saveBtn = document.createElement('button');
+    saveBtn.type = 'button';
+    saveBtn.className = 'nv-btn nv-guard-save';
+    saveBtn.textContent = 'Save';
+    var exitBtn = document.createElement('button');
+    exitBtn.type = 'button';
+    exitBtn.className = 'nv-btn nv-guard-exit';
+    exitBtn.textContent = 'Exit';
+    actions.appendChild(saveBtn);
+    actions.appendChild(exitBtn);
+    panel.appendChild(msg);
+    panel.appendChild(actions);
+    bd.appendChild(panel);
+    document.body.appendChild(bd);
+    guardBackdrop = bd;
+    guardSaveBtn = saveBtn;
+    guardExitBtn = exitBtn;
+    bd.addEventListener('click', function (e) {
+      /* Backdrop click = stay. Clicks inside the panel do nothing. */
+      if (e.target === bd) closeGuard();
+    });
+    saveBtn.addEventListener('click', onGuardSave);
+    exitBtn.addEventListener('click', function () { guardProceed(guardPending); });
+  }
+
+  function openGuard(action) {
+    if (guardOpen) return;
+    mountGuard();
+    if (!guardBackdrop) return;
+    guardPending = action || null;
+    guardBackdrop.hidden = false;
+    guardOpen = true;
+    if (window.NVAnnounce) NVAnnounce(GUARD_MSG);
+    if (guardSaveBtn) guardSaveBtn.focus();
+  }
+
+  function closeGuard() {
+    if (guardBackdrop) guardBackdrop.hidden = true;
+    guardOpen = false;
+    guardPending = null;
+    setGuardBusy(false);
+  }
+
+  function setGuardBusy(busy) {
+    if (guardSaveBtn) guardSaveBtn.disabled = !!busy;
+    if (guardExitBtn) guardExitBtn.disabled = !!busy;
+  }
+
+  function guardProceed(action) {
+    var pending = action;
+    /* The bypass is set BEFORE closeGuard/navigate and survives
+       into the navigation, so beforeunload does not re-prompt
+       for an exit the user already confirmed in the popup. */
+    guardBypassUnload = true;
+    closeGuard();
+    guardBypassUnload = true;
+    if (!pending) return;
+    if (pending.type === 'href' && pending.href) { window.location.href = pending.href; }
+    else if (pending.type === 'back') { doGoBack(); }
+  }
+
+  function failGuardSave() {
+    closeGuard();
+    if (window.NVToast) NVToast.error('Save failed — try again');
+  }
+
+  function onGuardSave() {
+    if (!guardReg || typeof guardReg.save !== 'function') { guardProceed(guardPending); return; }
+    setGuardBusy(true);
+    var p;
+    try { p = guardReg.save(); } catch (e) { p = Promise.reject(e); }
+    Promise.resolve(p).then(function (res) {
+      setGuardBusy(false);
+      if (res === false) { failGuardSave(); return; }
+      guardMarkClean();
+      guardProceed(guardPending);
+    }).catch(function () {
+      setGuardBusy(false);
+      failGuardSave();
+    });
+  }
+
+  /* (a) In-app anchor interception, capture phase, so palette
+     and shell nav links are caught before their own handlers.
+     Ignored: modified clicks, new-tab/download anchors, external
+     links, and same-page (hash-only) links — none of those leave
+     the page. */
+  document.addEventListener('click', function (e) {
+    if (guardOpen) return;
+    if (!guardIsActive()) return;
+    if (e.defaultPrevented) return;
+    if (typeof e.button === 'number' && e.button !== 0) return;
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    var t = e.target, a = null;
+    while (t && t !== document) {
+      if (t.tagName === 'A') { a = t; break; }
+      t = t.parentNode;
+    }
+    if (!a) return;
+    if (guardBackdrop && guardBackdrop.contains(a)) return;
+    if (!a.getAttribute('href')) return;
+    if (a.target && a.target !== '_self') return;
+    if (a.hasAttribute('download')) return;
+    var url;
+    try { url = new URL(a.href, window.location.href); } catch (err) { return; }
+    if (url.origin !== window.location.origin) return;
+    if (url.pathname === window.location.pathname && url.search === window.location.search) return;
+    e.preventDefault();
+    e.stopPropagation();
+    openGuard({ type: 'href', href: url.href });
+  }, true);
+
+  /* (c) Tab close / refresh: the native beforeunload prompt.
+     Its text is the browser's — the custom sentence can only
+     appear in the in-app popup above. Proceeding from the popup
+     (Save or Exit) sets the bypass so the user is not prompted
+     twice for the same exit. */
+  window.addEventListener('beforeunload', function (e) {
+    if (guardBypassUnload) return;
+    if (!guardIsActive()) return;
+    e.preventDefault();
+    e.returnValue = '';
+    return '';
+  });
 
   /* Toasts (Nov 22, 2026): shared save/confirmation feedback.
      window.NVToast.show(msg) — the message is set via textContent,
@@ -520,6 +717,13 @@
     if (e.key !== 'Escape') return;
     var overlay = document.querySelector('.palette-overlay');
     if (overlay && overlay.classList.contains('open')) return;
+    /* The unsaved-changes guard owns Escape while it is open:
+       Esc = STAY (close the popup, no navigation). This sits
+       after the palette check — the palette is the top layer
+       and closes first — and before the options popup and the
+       backdrop scan below (the guard's own backdrop would
+       otherwise make the scan yield without closing it). */
+    if (guardOpen) { closeGuard(); return; }
     /* The options popup owns Escape while it is open: Esc closes
        the popup ONLY and never falls through to back. This check
        sits after the palette check (the palette is the top layer,
@@ -561,6 +765,7 @@
     mountDock();
     mountBack();
     mountOptions();
+    mountGuard();
     mountToastRegion();
     mountSrStatus();
   }
@@ -574,11 +779,12 @@
     applyA11yPrefs();
     mountBack();
     mountOptions();
+    mountGuard();
     mountToastRegion();
     mountSrStatus();
   }
 
-  window.Infinity6Shell = { mountDock: mountDock, mountWireframe: mountWireframe, mountBack: mountBack, goBack: goBack, mountToastRegion: mountToastRegion, toast: window.NVToast, mountSrStatus: mountSrStatus, announce: window.NVAnnounce, applyA11yPrefs: applyA11yPrefs, mountOptions: mountOptions, options: window.NVOptions };
+  window.Infinity6Shell = { mountDock: mountDock, mountWireframe: mountWireframe, mountBack: mountBack, goBack: goBack, mountToastRegion: mountToastRegion, toast: window.NVToast, mountSrStatus: mountSrStatus, announce: window.NVAnnounce, applyA11yPrefs: applyA11yPrefs, mountOptions: mountOptions, options: window.NVOptions, mountGuard: mountGuard, guard: window.NVGuard };
   var startShell = document.documentElement.getAttribute('data-nv-shell') === 'back-only' ? initBackOnly : init;
   if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', startShell); }
   else { startShell(); }
