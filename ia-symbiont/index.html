@@ -248,6 +248,7 @@
         var base = b.getAttribute('data-ia');
         mark(base);
         try { localStorage.setItem('nv_symbiont_base', base); } catch (e) {}
+        if (window.NVToast) NVToast.show('Saved');
         /* Recolor the whole system to the pick right now. */
         try { if (window.NVSymbiontTheme) window.NVSymbiontTheme.apply(); } catch (e2) {}
         chime();
