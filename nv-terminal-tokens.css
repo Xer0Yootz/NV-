@@ -587,3 +587,173 @@ html[data-a11y-bg="calm"] .nv-wireframe { display: none; }
   border-color: rgba(248, 113, 113, .55);
   box-shadow: 0 0 16px rgba(248, 113, 113, .18), inset 0 1px 0 rgba(255, 255, 255, .12);
 }
+
+/* ============================================================
+   Hex OS: options popup (Nov 22, 2026)
+   - .nv-opt-btn: the ≡ options button — the back button's twin:
+     same 42px glass pill, fixed top-RIGHT (back is top-left),
+     glyph is three CSS lines. Injected by nv-shell.js on every
+     shell page, full and back-only alike.
+   - .nv-opt-pop: the page-relative options panel under the
+     button. This popup is a settings surface only — errors and
+     confirmations never appear in it (they go inline / by toast).
+   Z-index: the panel sits at 9, with the toast region — above
+   the back button (8) and the dock (3), below the Commands
+   palette overlay (10), which stays the top layer.
+   The .nv-switch component itself is NOT redefined here: the
+   shell loads the shared nv-toggle.css when a page has not
+   already included it, so the switch stays one component.
+   ============================================================ */
+
+.nv-opt-btn {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 8;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--nv-font);
+  color: var(--nv-accent, #6366f1);
+  background-color: rgba(255, 255, 255, .06);
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, .16), rgba(255, 255, 255, .03) 55%, rgba(255, 255, 255, 0));
+  border: 1px solid var(--nv-accent, #6366f1);
+  border-radius: 12px;
+  box-shadow: 0 0 10px color-mix(in srgb, var(--nv-accent, #6366f1) 45%, transparent), inset 0 1px 0 rgba(255, 255, 255, .22);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  cursor: pointer;
+  box-sizing: border-box;
+  overflow: hidden;
+  transition: transform .18s ease, box-shadow .25s ease, border-color .25s ease;
+}
+.nv-opt-btn .nv-opt-lines {
+  display: grid;
+  gap: 3px;
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+}
+.nv-opt-btn .nv-opt-lines i {
+  display: block;
+  width: 18px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+}
+.nv-opt-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, .22) 50%, transparent 60%);
+  transform: translateX(-120%);
+  transition: transform .6s ease;
+  pointer-events: none;
+}
+.nv-opt-btn:hover {
+  transform: translateY(-1px);
+  border-color: var(--nv-accent-soft, #a5b4fc);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--nv-accent, #6366f1) 55%, transparent), inset 0 1px 0 rgba(255, 255, 255, .25);
+}
+.nv-opt-btn:hover::after { transform: translateX(120%); }
+.nv-opt-btn:active { transform: scale(.95); }
+.nv-opt-btn[aria-expanded="true"] {
+  border-color: var(--nv-accent-soft, #a5b4fc);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--nv-accent, #6366f1) 60%, transparent), inset 0 1px 0 rgba(255, 255, 255, .25);
+}
+
+.nv-opt-pop {
+  position: fixed;
+  top: 64px;
+  right: 14px;
+  z-index: 9;
+  width: min(300px, calc(100vw - 28px));
+  min-width: 240px;
+  max-height: calc(100vh - 84px);
+  overflow-y: auto;
+  padding: 14px 16px;
+  font-family: var(--nv-font);
+  color: var(--nv-text);
+  background-color: var(--nv-panel);
+  background-image: var(--nv-sheen);
+  border: 1px solid var(--nv-accent, #6366f1);
+  border-radius: 16px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, .55), 0 0 18px color-mix(in srgb, var(--nv-accent, #6366f1) 35%, transparent), inset 0 1px 0 rgba(255, 255, 255, .18);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-sizing: border-box;
+  animation: nvOptIn .18s ease;
+}
+.nv-opt-pop[hidden] { display: none; }
+@keyframes nvOptIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.nv-opt-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+.nv-opt-title { font-size: 15px; font-weight: 700; letter-spacing: .1em; }
+.nv-opt-head {
+  font-size: 10px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--nv-accent-soft, #a5b4fc);
+  text-align: right;
+}
+.nv-opt-subhead {
+  font-size: 10px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--nv-accent-soft, #a5b4fc);
+  margin: 12px 0 2px;
+}
+
+.nv-opt-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-top: 1px solid rgba(255, 255, 255, .07);
+}
+.nv-opt-label { font-size: 13px; font-weight: 700; letter-spacing: .03em; }
+
+.nv-opt-empty {
+  font-size: 12px;
+  color: var(--nv-accent-soft, #c9c9d4);
+  padding: 8px 0 2px;
+  line-height: 1.5;
+}
+
+.nv-opt-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .03em;
+  color: var(--nv-accent-soft, #a5b4fc);
+  text-decoration: none;
+  border-top: 1px solid rgba(255, 255, 255, .07);
+  box-sizing: border-box;
+}
+.nv-opt-link::after { content: "›"; color: var(--nv-accent, #6366f1); font-size: 16px; line-height: 1; }
+.nv-opt-link:hover { color: var(--nv-text); }
+
+.nv-opt-foot { margin-top: 10px; }
+.nv-opt-foot .nv-opt-link { border-top: 1px solid rgba(255, 255, 255, .14); }
+
+@media (prefers-reduced-motion: reduce) {
+  .nv-opt-btn::after { display: none; }
+  .nv-opt-pop { animation: none; }
+}

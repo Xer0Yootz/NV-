@@ -243,11 +243,271 @@
   function applyA11yPrefs() {
     var h = document.documentElement;
     function pref(key) { try { return localStorage.getItem(key) || ''; } catch (e) { return ''; } }
+    /* Nov 22, 2026 (options popup): a pref that is off / back at its
+       default now REMOVES its attribute too, so a change made in the
+       options popup applies immediately in both directions instead
+       of only on the next page load. Stored-pref behaviour at init
+       is unchanged. */
     if (pref('nv_a11y_motion') === 'reduce') h.setAttribute('data-a11y-motion', 'reduce');
+    else h.removeAttribute('data-a11y-motion');
     if (pref('nv_a11y_contrast') === 'high') h.setAttribute('data-a11y-contrast', 'high');
+    else h.removeAttribute('data-a11y-contrast');
     if (pref('nv_a11y_text') === 'large') h.setAttribute('data-a11y-text', 'large');
+    else h.removeAttribute('data-a11y-text');
     if (pref('nv_a11y_bg') === 'calm') h.setAttribute('data-a11y-bg', 'calm');
+    else h.removeAttribute('data-a11y-bg');
   }
+
+  /* Options popup (Nov 22, 2026): the ≡ button, fixed top-right —
+     the back button's twin — opens a page-relative options panel
+     on EVERY shell page (full and back-only alike). Contents:
+       - the page's own options, when the page registers any
+         (window.NV_PAGE_OPTIONS before the shell loads, or
+         NVOptions.register(items) after it);
+       - the shared set: the five accessibility toggles, same
+         localStorage keys and semantics as the Options page,
+         applied at once through applyA11yPrefs() + the toast;
+       - a footer link to the full Options page.
+     A page with nothing page-specific shows the shared set only,
+     with a quiet "Nothing extra on this page." line. The popup is
+     a settings surface only — errors and confirmations never
+     appear in it (they go inline / by toast). */
+  var A11Y_TOGGLES = [
+    { label: 'Reduce motion', key: 'nv_a11y_motion', on: 'reduce', off: 'auto', defOn: false, pageId: 'a11yMotion' },
+    { label: 'High contrast', key: 'nv_a11y_contrast', on: 'high', off: 'auto', defOn: false, pageId: 'a11yContrast' },
+    { label: 'Large text', key: 'nv_a11y_text', on: 'large', off: 'auto', defOn: false, pageId: 'a11yText' },
+    { label: 'Calm background', key: 'nv_a11y_bg', on: 'calm', off: 'auto', defOn: false, pageId: 'a11yBg' },
+    { label: 'Screen reader announcements', key: 'nv_a11y_announce', on: 'on', off: 'off', defOn: true, pageId: 'a11yAnnounce' }
+  ];
+  var optBtn = null, optPop = null, optOpen = false;
+  var pageOptions = (window.NV_PAGE_OPTIONS && window.NV_PAGE_OPTIONS.length) ? window.NV_PAGE_OPTIONS.slice() : [];
+
+  /* The .nv-switch component styles live in nv-toggle.css; most
+     shell pages never include it, so the shell loads it (once)
+     rather than redefining the switch here. */
+  function ensureStyle(url) {
+    if (document.querySelector('link[href$="nv-toggle.css"]')) return;
+    var l = document.createElement('link');
+    l.rel = 'stylesheet';
+    l.href = url;
+    document.head.appendChild(l);
+  }
+
+  function pageName() {
+    var n = '';
+    try { n = document.documentElement.getAttribute('data-nv-page-name') || ''; } catch (e) {}
+    if (!n && document.body) { try { n = document.body.getAttribute('data-nv-page-name') || ''; } catch (e) {} }
+    if (!n && document.title) {
+      n = document.title.replace(/\s+[—-]\s+(Infinity6 Terminal|Neon Vigil).*$/, '').trim();
+    }
+    if (!n) {
+      var seg = window.location.pathname.split('/').filter(Boolean).pop() || 'hub';
+      n = seg.replace(/\.html$/, '').replace(/[-_]/g, ' ');
+    }
+    return n;
+  }
+
+  function storedIsOn(key, onValue, defOn) {
+    var stored = null;
+    try { stored = localStorage.getItem(key); } catch (e) {}
+    if (stored !== null) return stored === String(onValue);
+    return !!defOn;
+  }
+
+  function makeSwitchRow(label, isOn, onToggle) {
+    var row = document.createElement('div');
+    row.className = 'nv-opt-row';
+    var lab = document.createElement('span');
+    lab.className = 'nv-opt-label';
+    lab.textContent = label;
+    var sw = document.createElement('button');
+    sw.type = 'button';
+    sw.className = 'nv-switch';
+    sw.setAttribute('role', 'switch');
+    sw.setAttribute('aria-checked', isOn ? 'true' : 'false');
+    sw.setAttribute('aria-label', label);
+    sw.innerHTML = '<span class="nv-switch-knob"></span>';
+    sw.addEventListener('click', function () {
+      var on = sw.getAttribute('aria-checked') !== 'true';
+      sw.setAttribute('aria-checked', on ? 'true' : 'false');
+      onToggle(on);
+    });
+    row.appendChild(lab);
+    row.appendChild(sw);
+    return row;
+  }
+
+  /* If the page itself renders the same accessibility switch (the
+     Options page does, with these element ids), keep it in sync so
+     the two surfaces never disagree. */
+  function syncPageA11ySwitch(cfg, on) {
+    if (!cfg.pageId) return;
+    var b = document.getElementById(cfg.pageId);
+    if (b && b.classList.contains('nv-switch')) {
+      b.setAttribute('aria-checked', on ? 'true' : 'false');
+      var lab = document.getElementById(cfg.pageId + 'Label');
+      if (lab) lab.classList.toggle('nv-switch-row-off', !on);
+    }
+  }
+
+  function onA11yToggle(cfg, on) {
+    try { localStorage.setItem(cfg.key, on ? cfg.on : cfg.off); } catch (e) {}
+    applyA11yPrefs();
+    syncPageA11ySwitch(cfg, on);
+    if (window.NVToast) NVToast.show('Saved');
+  }
+
+  function pageToggleIsOn(item) {
+    if (typeof item.default === 'boolean') {
+      return storedIsOn(item.key, item.on, item.default);
+    }
+    if (item.default != null) {
+      return storedIsOn(item.key, item.on, String(item.default) === String(item.on));
+    }
+    return storedIsOn(item.key, item.on, false);
+  }
+
+  function firePageCallback(item, on) {
+    var cb = item.onChange, fn = null;
+    if (typeof cb === 'function') fn = cb;
+    else if (typeof cb === 'string' && typeof window[cb] === 'function') fn = window[cb];
+    if (fn) { try { fn(on, item); } catch (e) {} }
+  }
+
+  function renderPageItem(item) {
+    if (!item) return document.createElement('div');
+    if (item.type === 'link') {
+      var a = document.createElement('a');
+      a.className = 'nv-opt-link';
+      a.textContent = item.label || '';
+      var href = typeof item.href === 'string' ? item.href : '#';
+      if (/^\s*(javascript|data):/i.test(href)) href = '#';
+      a.href = href;
+      a.addEventListener('click', function () { closeOptions(); });
+      return a;
+    }
+    /* Default shape: a localStorage-backed toggle. */
+    return makeSwitchRow(item.label || '', pageToggleIsOn(item), function (on) {
+      try { localStorage.setItem(item.key, on ? item.on : item.off); } catch (e) {}
+      firePageCallback(item, on);
+    });
+  }
+
+  function renderOptions() {
+    if (!optPop) return;
+    optPop.innerHTML = '';
+    var name = pageName();
+
+    var heading = document.createElement('div');
+    heading.className = 'nv-opt-heading';
+    var title = document.createElement('span');
+    title.className = 'nv-opt-title';
+    title.textContent = 'Options';
+    var head = document.createElement('span');
+    head.className = 'nv-opt-head';
+    head.textContent = name;
+    heading.appendChild(title);
+    heading.appendChild(head);
+    optPop.appendChild(heading);
+
+    var pageHead = document.createElement('div');
+    pageHead.className = 'nv-opt-subhead';
+    pageHead.textContent = name;
+    optPop.appendChild(pageHead);
+    if (pageOptions.length) {
+      pageOptions.forEach(function (item) { optPop.appendChild(renderPageItem(item)); });
+    } else {
+      var empty = document.createElement('div');
+      empty.className = 'nv-opt-empty';
+      empty.textContent = 'Nothing extra on this page.';
+      optPop.appendChild(empty);
+    }
+
+    var sharedHead = document.createElement('div');
+    sharedHead.className = 'nv-opt-subhead';
+    sharedHead.textContent = 'Shared';
+    optPop.appendChild(sharedHead);
+    A11Y_TOGGLES.forEach(function (cfg) {
+      optPop.appendChild(makeSwitchRow(cfg.label, storedIsOn(cfg.key, cfg.on, cfg.defOn), function (on) {
+        onA11yToggle(cfg, on);
+      }));
+    });
+
+    var foot = document.createElement('div');
+    foot.className = 'nv-opt-foot';
+    var all = document.createElement('a');
+    all.className = 'nv-opt-link';
+    all.textContent = 'All options';
+    all.href = base + 'options';
+    foot.appendChild(all);
+    optPop.appendChild(foot);
+  }
+
+  function openOptions() {
+    if (!optPop) mountOptions();
+    if (!optPop) return;
+    renderOptions();
+    optPop.hidden = false;
+    optOpen = true;
+    if (optBtn) optBtn.setAttribute('aria-expanded', 'true');
+  }
+
+  function closeOptions() {
+    if (!optPop) return;
+    optPop.hidden = true;
+    optOpen = false;
+    if (optBtn) optBtn.setAttribute('aria-expanded', 'false');
+  }
+
+  function registerPageOptions(items) {
+    if (!items) return;
+    if (Object.prototype.toString.call(items) === '[object Array]') pageOptions = pageOptions.concat(items);
+    else pageOptions.push(items);
+    window.NV_PAGE_OPTIONS = pageOptions;
+    if (optOpen) renderOptions();
+  }
+
+  window.NVOptions = { open: openOptions, close: closeOptions, register: registerPageOptions };
+
+  function mountOptions() {
+    if (document.querySelector('.nv-opt-btn')) {
+      optBtn = document.querySelector('.nv-opt-btn');
+      optPop = document.querySelector('.nv-opt-pop');
+      return;
+    }
+    ensureStyle(base + 'nv-toggle.css');
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'nv-opt-btn';
+    b.setAttribute('aria-label', 'Options');
+    b.setAttribute('title', 'Options');
+    b.setAttribute('aria-haspopup', 'true');
+    b.setAttribute('aria-expanded', 'false');
+    b.setAttribute('aria-controls', 'nvOptionsPop');
+    b.innerHTML = '<span class="nv-opt-lines" aria-hidden="true"><i></i><i></i><i></i></span>';
+    b.addEventListener('click', function () {
+      if (optOpen) closeOptions(); else openOptions();
+    });
+    document.body.appendChild(b);
+    var p = document.createElement('div');
+    p.className = 'nv-opt-pop';
+    p.id = 'nvOptionsPop';
+    p.setAttribute('role', 'dialog');
+    p.setAttribute('aria-label', 'Options');
+    p.hidden = true;
+    document.body.appendChild(p);
+    optBtn = b;
+    optPop = p;
+    renderOptions();
+  }
+
+  /* Click-outside closes the popup. Clicks on the button itself
+     are left to the button's own toggle handler. */
+  document.addEventListener('pointerdown', function (e) {
+    if (!optOpen || !optPop) return;
+    if (optPop.contains(e.target) || (optBtn && optBtn.contains(e.target))) return;
+    closeOptions();
+  });
 
   /* Escape = back, one control (Nov 22, 2026). Bubble phase.
      Layers that own Escape themselves win first: the Commands
@@ -260,6 +520,12 @@
     if (e.key !== 'Escape') return;
     var overlay = document.querySelector('.palette-overlay');
     if (overlay && overlay.classList.contains('open')) return;
+    /* The options popup owns Escape while it is open: Esc closes
+       the popup ONLY and never falls through to back. This check
+       sits after the palette check (the palette is the top layer,
+       z-index 10, and closes itself) and before the backdrop scan
+       and goBack() below. */
+    if (optOpen) { closeOptions(); return; }
     var layers = document.querySelectorAll('[class*="backdrop"]');
     for (var i = 0; i < layers.length; i++) {
       var el = layers[i];
@@ -294,6 +560,7 @@
     mountWireframe();
     mountDock();
     mountBack();
+    mountOptions();
     mountToastRegion();
     mountSrStatus();
   }
@@ -301,16 +568,17 @@
   /* Back-only mode (Nov 22, 2026): pages that are not full shell
      pages (Options, Privacy, Terms, Avatar Editor) set
      data-nv-shell="back-only" on <html> and get just the back
-     control and the toast region — no ticker, palette, dock or
-     wireframe. */
+     control, the options popup and the toast region — no ticker,
+     palette, dock or wireframe. */
   function initBackOnly() {
     applyA11yPrefs();
     mountBack();
+    mountOptions();
     mountToastRegion();
     mountSrStatus();
   }
 
-  window.Infinity6Shell = { mountDock: mountDock, mountWireframe: mountWireframe, mountBack: mountBack, goBack: goBack, mountToastRegion: mountToastRegion, toast: window.NVToast, mountSrStatus: mountSrStatus, announce: window.NVAnnounce, applyA11yPrefs: applyA11yPrefs };
+  window.Infinity6Shell = { mountDock: mountDock, mountWireframe: mountWireframe, mountBack: mountBack, goBack: goBack, mountToastRegion: mountToastRegion, toast: window.NVToast, mountSrStatus: mountSrStatus, announce: window.NVAnnounce, applyA11yPrefs: applyA11yPrefs, mountOptions: mountOptions, options: window.NVOptions };
   var startShell = document.documentElement.getAttribute('data-nv-shell') === 'back-only' ? initBackOnly : init;
   if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', startShell); }
   else { startShell(); }
