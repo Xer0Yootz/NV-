@@ -73,6 +73,17 @@
     body.cookie-locked main, body.cookie-locked .ticker { pointer-events:none; }
     body.cookie-locked #cookieBlocker { display:block; }
     body:not(.cookie-locked) #cookieBlocker { display:none; }
+    /* Email sign-in / sign-up (Nov 22, 2026): sits under the GitHub/Google
+       buttons inside the same glass panel — accent border + sheen inputs,
+       the page's pill buttons, a quieter outlined button for the link. */
+    .nv-email-form { margin:20px auto 0; max-width:340px; text-align:left; }
+    .nv-email-field { margin:0 0 12px; }
+    .nv-email-field label { display:block; margin:0 0 6px; font-size:14px; letter-spacing:1px; color:var(--nv-accent-soft); }
+    .nv-email-field input { width:100%; box-sizing:border-box; padding:11px 14px; border-radius:12px; border:1px solid var(--nv-accent); background-color:rgba(5,5,8,.55); background-image:var(--nv-sheen); color:#f5f0ff; font:inherit; font-size:16px; }
+    .nv-email-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:4px; }
+    .nv-email-actions button { font-size:15px; padding:10px 16px; }
+    .nv-email-quiet { background:transparent; color:var(--nv-accent-soft); border:1px solid var(--nv-accent); box-shadow:none; }
+    .nv-email-note { margin:12px 0 0; font-size:14px; text-align:center; }
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./config.js"></script>
@@ -99,6 +110,26 @@
     <button id="googleBtn" class="icon-btn" data-um-ripple disabled style="margin-left:8px; background:#ffffff; border:1px solid #747775;" aria-label="Sign in with Google" title="Sign in with Google"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg></button>
     
     </div>
+    <!-- Email sign-in / sign-up (Nov 22, 2026, User's): any email, not just
+         GitHub or Google. Handlers: window.NVEmailAuth in auth.js; wiring is
+         in the same inline script that binds the OAuth buttons. Feedback
+         goes to the existing #status line below. -->
+    <form id="nvEmailForm" class="nv-email-form">
+      <div class="nv-email-field">
+        <label for="nvEmail">Email</label>
+        <input type="email" id="nvEmail" name="email" autocomplete="email" required>
+      </div>
+      <div class="nv-email-field">
+        <label for="nvPassword">Password</label>
+        <input type="password" id="nvPassword" name="password" autocomplete="current-password" required>
+      </div>
+      <div class="nv-email-actions">
+        <button type="submit" id="nvEmailSignInBtn">Sign in</button>
+        <button type="button" id="nvEmailSignUp">Create account</button>
+        <button type="button" id="nvEmailMagic" class="nv-email-quiet">Email me a sign-in link</button>
+      </div>
+      <p class="nv-email-note">New here? Create account makes your account with any email.</p>
+    </form>
     <p id="status"></p>
   </main>
   <script src="./auth.js"></script>
@@ -123,6 +154,25 @@
     })();
     document.getElementById('githubBtn').addEventListener('click', signInWithGitHub);
     document.getElementById('googleBtn').addEventListener('click', signInWithGoogle);
+    /* Email auth wiring (Nov 22, 2026): form submit = sign in; Create
+       account and the sign-in-link button call the matching NVEmailAuth
+       handler from auth.js. The magic link uses the email field only. */
+    (function () {
+      var form = document.getElementById('nvEmailForm');
+      if (!form || !window.NVEmailAuth) return;
+      function emailVal() { var el = document.getElementById('nvEmail'); return el ? el.value : ''; }
+      function passVal() { var el = document.getElementById('nvPassword'); return el ? el.value : ''; }
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        window.NVEmailAuth.signIn(emailVal(), passVal());
+      });
+      document.getElementById('nvEmailSignUp').addEventListener('click', function () {
+        window.NVEmailAuth.signUp(emailVal(), passVal());
+      });
+      document.getElementById('nvEmailMagic').addEventListener('click', function () {
+        window.NVEmailAuth.magicLink(emailVal());
+      });
+    })();
     /* Select sound (Mouse Click 1): plays once when a sign-in provider is
        chosen — the choice navigates to GitHub/Google. No delay: the OAuth
        redirect starts right after, and the click plays on the gesture. */
