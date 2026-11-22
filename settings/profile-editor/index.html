@@ -38,7 +38,9 @@
     #avatarPreview { width:96px; height:96px; border:1px solid var(--nv-accent); object-fit:cover; display:block; margin:8px 0; }
     /* Symbiont base readout (Phase 2, Nov 13, 2026): the locked
        skill set for the picked base — four number skills totalling
-       24, plus the Default mode stamp. Same table as the IA
+       24, plus the Default mode stamp, plus Defense, a standalone
+       fifth stat (Nov 20, 2026 lock, NOT part of the 24):
+       Hexa 7, Cyphr 3, Helix 5, Warden 9. Same table as the IA
        Symbiont page. */
     #baseReadout { margin:12px 0 4px; }
     #baseReadout:empty { display:none; }
@@ -328,10 +330,10 @@
        player's own Warden-base fork, shown with a plain label —
        no powers or domains are listed for any base. */
     var SKILLS = {
-      hexa:   { name: 'Hexa',   color: 'cyan',   power: 5, scan: 9, speed: 6, det: 4, mode: 'FAST THINKING' },
-      cyphr:  { name: 'Cyphr',  color: 'indigo', power: 6, scan: 8, speed: 7, det: 3, mode: 'DEEP LEARNING' },
-      helix:  { name: 'Helix',  color: 'pink',   power: 5, scan: 5, speed: 9, det: 5, mode: 'FAST' },
-      warden: { name: 'Warden', color: 'green',  power: 7, scan: 5, speed: 4, det: 8, mode: 'DEEP RESEARCH' }
+      hexa:   { name: 'Hexa',   color: 'cyan',   power: 5, scan: 9, speed: 6, det: 4, def: 7, mode: 'FAST THINKING' },
+      cyphr:  { name: 'Cyphr',  color: 'indigo', power: 6, scan: 8, speed: 7, det: 3, def: 3, mode: 'DEEP LEARNING' },
+      helix:  { name: 'Helix',  color: 'pink',   power: 5, scan: 5, speed: 9, det: 5, def: 5, mode: 'FAST' },
+      warden: { name: 'Warden', color: 'green',  power: 7, scan: 5, speed: 4, det: 8, def: 9, mode: 'DEEP RESEARCH' }
     };
     var baseReadoutEl = document.getElementById('baseReadout');
     function skillRow(label, v) {
@@ -349,6 +351,7 @@
         skillRow('Grid Scan Radius', s.scan) +
         skillRow('Speed Boost', s.speed) +
         skillRow('Detectability', s.det) +
+        skillRow('Defense', s.def) +
         '<p class="skill-mode">Default mode: <span class="mode-stamp">' + s.mode + '</span></p>' +
         '<p class="skill-det">Detectability: high = easy to spot on radar/GPS, low = stealthy.</p>';
     }
