@@ -156,6 +156,26 @@
     .gl-entry from {transform:rotate(-6deg) scale(1);}
     .gl-entry to {transform:rotate(6deg) scale(1.08);}
     .gl-entry img.nv-gif-hover {cursor:pointer;}
+    /* Entry popup + pixel thumbnails (Nov 22, 2026): entries open in a
+       glass overlay over the index — the index stays mounted behind it,
+       so the reader's place (scroll, search) is kept. Layer: above the
+       page content and ticker (z 4), below the shell back button and
+       sprite (z 8), toasts (z 9) and the Commands palette (z 10). */
+    ul.gl-entries a { display:inline-flex; align-items:center; gap:8px; }
+    .gl-thumb { width:36px; height:36px; flex:none; border-radius:6px; border:1px solid var(--nv-accent,#6366f1); background:#0a0616; image-rendering:pixelated; }
+    .gl-pop-backdrop { position:fixed; inset:0; z-index:7; background:rgba(3,2,10,.74); display:flex; align-items:center; justify-content:center; padding:18px; box-sizing:border-box; }
+    .gl-pop-backdrop[hidden] { display:none; }
+    .gl-pop-panel { width:min(860px,100%); max-height:calc(100vh - 36px); display:flex; flex-direction:column; border:1px solid var(--nv-accent,#6366f1); border-radius:16px; background-color:rgba(15,9,27,.97); background-image:var(--nv-sheen); box-shadow:0 24px 70px rgba(0,0,0,.65), 0 0 28px rgba(99,102,241,.22); animation:glflip .45s ease both; }
+    @media (prefers-reduced-motion: reduce){ .gl-pop-panel{ animation:none; } }
+    .gl-pop-head { display:flex; align-items:center; gap:12px; padding:12px 14px 12px 18px; border-bottom:1px solid rgba(255,255,255,.09); }
+    .gl-pop-title { margin:0; font-size:20px; letter-spacing:1px; color:#f5f0ff; flex:1; }
+    .gl-pop-title:focus { outline:2px solid var(--nv-accent,#6366f1); outline-offset:2px; }
+    .gl-pop-close { flex:none; width:38px; height:38px; border-radius:10px; border:1px solid var(--nv-accent,#6366f1); background:rgba(255,255,255,.04); color:#f5f0ff; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; }
+    .gl-pop-close svg { width:20px; height:20px; display:block; }
+    .gl-pop-close .nv-back-glyph-arrow { transition:transform .18s ease; }
+    .gl-pop-close:hover .nv-back-glyph-arrow { transform:translateX(-2px); }
+    .gl-pop-close:focus-visible { outline:2px solid var(--nv-accent,#6366f1); outline-offset:2px; }
+    .gl-pop-body { overflow-y:auto; padding:20px 22px; }
   </style>
 </head>
 <body>
@@ -172,6 +192,15 @@
     <div class="nv-state" id="glEmptyState" hidden><p class="nv-state-title">Not Found</p><p class="nv-state-line">No entries match your search.</p><p><button type="button" class="nv-btn" id="glClearSearch">Clear search</button></p></div>
     <div class="card"><p class="gl-note"><a href="/hub.html">Back to hub</a> · Grid Log — a part of Hex OS.</p></div>
   </main>
+  <div class="gl-pop-backdrop" id="glPopBackdrop" hidden>
+    <div class="gl-pop-panel" role="dialog" aria-modal="true" aria-label="" id="glPopPanel">
+      <div class="gl-pop-head">
+        <h2 class="gl-pop-title" id="glPopTitle" tabindex="-1"></h2>
+        <button type="button" class="gl-pop-close" id="glPopClose" aria-label="Back" title="Back (Esc)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.5 3.5h7v17h-7"/><g class="nv-back-glyph-arrow"><path d="M16.5 12H4"/><path d="M9.5 5.5 3.5 12l6 6.5"/></g></svg></button>
+      </div>
+      <div class="gl-pop-body" id="glPopBody"></div>
+    </div>
+  </div>
   <script src="bible-data.js"></script>
   <script>
   (function(){
@@ -235,6 +264,56 @@
       var m = (e.html||'').match(/assets\/[A-Za-z0-9._-]+\.(?:jpg|gif|png)/);
       return m ? m[0] : '';
     }
+    /* Pixel thumbnails (Nov 22, 2026): every dossier row carries a small
+       pixel image of its topic — the same source the cards resolve
+       (cardImg above), drawn cover-cropped into a 12x12 canvas displayed
+       at 36px with image-rendering:pixelated. No new assets. Entries
+       with no image anywhere get a deterministic pixel-block placeholder
+       hashed from the entry id (sigil palette, mirrored block field) —
+       a visible pattern, not fake art. Pixelation is lazy: a canvas is
+       only painted when it scrolls near the viewport. */
+    var SIGIL_PIX = ['#6366f1','#22d3ee','#f471b5','#22c55e','#facc15','#8b8dff'];
+    function thumbHTML(e){
+      var src = cardImg(e);
+      return '<canvas class="gl-thumb" width="12" height="12" data-glid="' + e.id + '"' + (src ? ' data-src="' + src + '"' : '') + ' aria-hidden="true"></canvas>';
+    }
+    function pixSeed(str){ var h = 2166136261; for(var i=0;i<str.length;i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+    function pixRand(seed){ var t = seed >>> 0; return function(){ t = (t + 0x6D2B79F5) >>> 0; var r = Math.imul(t ^ (t >>> 15), 1 | t); r ^= r + Math.imul(r ^ (r >>> 7), 61 | r); return ((r ^ (r >>> 14)) >>> 0) / 4294967296; }; }
+    function paintPlaceholder(cv, id){
+      var ctx = cv.getContext('2d'); if(!ctx) return;
+      var rnd = pixRand(pixSeed(id || ''));
+      var c1 = SIGIL_PIX[Math.floor(rnd() * SIGIL_PIX.length)];
+      var c2 = SIGIL_PIX[Math.floor(rnd() * SIGIL_PIX.length)];
+      ctx.fillStyle = '#0a0616'; ctx.fillRect(0,0,12,12);
+      for(var y=0;y<6;y++){ for(var x=0;x<6;x++){
+        var r = rnd(); if(r < 0.42) continue;
+        ctx.fillStyle = r < 0.78 ? c1 : c2;
+        ctx.fillRect(x*2, y*2, 2, 2);
+        ctx.fillRect(10 - x*2, y*2, 2, 2);
+      } }
+    }
+    function pixelate(cv){
+      if(cv.getAttribute('data-done')) return;
+      cv.setAttribute('data-done', '1');
+      var src = cv.getAttribute('data-src'), id = cv.getAttribute('data-glid');
+      if(!src){ paintPlaceholder(cv, id); return; }
+      var img = new Image();
+      img.onload = function(){
+        var ctx = cv.getContext('2d'); if(!ctx) return;
+        var s = Math.max(12 / img.width, 12 / img.height), dw = img.width * s, dh = img.height * s;
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(img, (12 - dw) / 2, (12 - dh) / 2, dw, dh);
+      };
+      img.onerror = function(){ paintPlaceholder(cv, id); };
+      img.src = src;
+    }
+    var thumbObserver = ('IntersectionObserver' in window) ? new IntersectionObserver(function(list){
+      list.forEach(function(en){ if(en.isIntersecting){ thumbObserver.unobserve(en.target); pixelate(en.target); } });
+    }, { rootMargin: '120px' }) : null;
+    function paintThumbs(){
+      var list = root.querySelectorAll('canvas.gl-thumb');
+      for(var i=0;i<list.length;i++){ if(thumbObserver) thumbObserver.observe(list[i]); else pixelate(list[i]); }
+    }
     function renderIndex(filter){
       var f = (filter||'').toLowerCase(), html = '', ci = 0;
       sections.forEach(function(s){
@@ -261,17 +340,19 @@
           var rest = items.filter(function(e){ return !inGrid[e.id]; });
           if(rest.length){
             html += '<p class="gl-kicker gl-more">More in this section</p><ul class="gl-entries">';
-            rest.forEach(function(e){ html += '<li><a href="#/e/' + e.id + '">' + esc(e.title) + '</a>' + (e.classified ? ' <span class="nv-state-stamp">CLASSIFIED</span>' : '') + '</li>'; });
+            rest.forEach(function(e){ html += '<li><a href="#/e/' + e.id + '">' + thumbHTML(e) + esc(e.title) + '</a>' + (e.classified ? ' <span class="nv-state-stamp">CLASSIFIED</span>' : '') + '</li>'; });
             html += '</ul>';
           }
         } else {
           html += '<ul class="gl-entries">';
-          items.forEach(function(e){ html += '<li><a href="#/e/' + e.id + '">' + esc(e.title) + '</a>' + (e.classified ? ' <span class="nv-state-stamp">CLASSIFIED</span>' : '') + '</li>'; });
+          items.forEach(function(e){ html += '<li><a href="#/e/' + e.id + '">' + thumbHTML(e) + esc(e.title) + '</a>' + (e.classified ? ' <span class="nv-state-stamp">CLASSIFIED</span>' : '') + '</li>'; });
           html += '</ul>';
         }
         html += '</div>';
       });
       root.innerHTML = html;
+      indexInRoot = true;
+      paintThumbs();
       if(emptyState) emptyState.hidden = !!html;
       glLoaded();
     }
@@ -280,45 +361,108 @@
       var i = flat.indexOf(id);
       return { prev: i>0 ? flat[i-1] : null, next: i>=0 && i<flat.length-1 ? flat[i+1] : null };
     }
-    function renderEntry(id){
+    /* Entry popup (Nov 22, 2026): entries render INSIDE a glass overlay
+       over the index instead of replacing it. entryParts() returns the
+       same content the old full-page entry view built — section kicker,
+       the .gl-entry body (vestigial tabbar stripped), prev/next nav,
+       and the Classified / Not Found states unchanged — only the chrome
+       differs: the panel header carries the title and the back-icon
+       close button, and the panel body scrolls instead of the window.
+       No entry content changed. */
+    function navHTML(n){
+      return '<div class="gl-nav"><span>' + (n.prev ? '<a href="#/e/' + n.prev + '">&larr; ' + esc(byId[n.prev].title) + '</a>' : '') + '</span>'
+        + '<span>' + (n.next ? '<a href="#/e/' + n.next + '">' + esc(byId[n.next].title) + ' &rarr;</a>' : '') + '</span></div>';
+    }
+    function entryParts(id){
       var e = byId[id];
       if(!e){
-        root.innerHTML = '<div class="card"><div class="nv-state"><p class="nv-state-title">Not Found</p><p class="nv-state-line">That entry isn\'t in the Grid Log.</p><p><a class="nv-btn" href="#/">Grid Log index</a></p></div></div>';
-        if(emptyState) emptyState.hidden = true;
-        glLoaded();
-        window.scrollTo(0,0);
-        return;
+        return { title: 'Not Found', body: '<div class="nv-state"><p class="nv-state-title">Not Found</p><p class="nv-state-line">That entry isn\'t in the Grid Log.</p><p><a class="nv-btn" href="#/">Grid Log index</a></p></div>' };
       }
       if(e.classified){
-        var cn = neighbors(id);
-        root.innerHTML = '<div class="card">'
-          + '<p><a class="gl-back" href="#/">&larr; Grid Log index</a></p>'
-          + '<p class="gl-kicker">' + esc(e.section || '') + '</p>'
+        return { title: e.title, body: '<p class="gl-kicker">' + esc(e.section || '') + '</p>'
           + '<div class="nv-state"><p><span class="nv-state-stamp">CLASSIFIED</span></p><p class="nv-state-title">' + esc(e.title) + '</p><p class="nv-state-line">This entry is classified.</p></div>'
-          + '<div class="gl-nav"><span>' + (cn.prev ? '<a href="#/e/' + cn.prev + '">&larr; ' + esc(byId[cn.prev].title) + '</a>' : '') + '</span>'
-          + '<span>' + (cn.next ? '<a href="#/e/' + cn.next + '">' + esc(byId[cn.next].title) + ' &rarr;</a>' : '') + '</span></div>'
-          + '</div>';
-        if(emptyState) emptyState.hidden = true;
-        glLoaded();
-        window.scrollTo(0,0);
-        return;
+          + navHTML(neighbors(id)) };
       }
       var html = e.html.replace(/<div class="tabbar">[\s\S]*?<\/div>/, '');
-      var n = neighbors(id);
-      root.innerHTML = '<div class="card">'
-        + '<p><a class="gl-back" href="#/">&larr; Grid Log index</a></p>'
-        + '<p class="gl-kicker">' + esc(e.section || '') + '</p>'
-        + '<div class="gl-entry">' + html + '</div>'
-        + '<div class="gl-nav"><span>' + (n.prev ? '<a href="#/e/' + n.prev + '">&larr; ' + esc(byId[n.prev].title) + '</a>' : '') + '</span>'
-        + '<span>' + (n.next ? '<a href="#/e/' + n.next + '">' + esc(byId[n.next].title) + ' &rarr;</a>' : '') + '</span></div>'
-        + '</div>';
-      glLoaded();
-      window.scrollTo(0,0);
+      return { title: e.title, body: '<p class="gl-kicker">' + esc(e.section || '') + '</p>'
+        + '<div class="gl-entry">' + html + '</div>' + navHTML(neighbors(id)) };
     }
+    var backdrop = document.getElementById('glPopBackdrop');
+    var panel = document.getElementById('glPopPanel');
+    var popTitle = document.getElementById('glPopTitle');
+    var popBody = document.getElementById('glPopBody');
+    var popClose = document.getElementById('glPopClose');
+    var popupOpen = false, popupId = null, indexInRoot = false, lastOpener = null, savedScroll = 0;
+    function showPopup(id){
+      var parts = entryParts(id);
+      if(!popupOpen) savedScroll = window.scrollY;
+      popupOpen = true; popupId = id;
+      popTitle.textContent = parts.title;
+      panel.setAttribute('aria-label', parts.title);
+      popBody.innerHTML = parts.body;
+      popBody.scrollTop = 0;
+      if(backdrop.hidden){
+        backdrop.hidden = false;
+        document.body.style.overflow = 'hidden';
+      }
+      if(!panel.contains(document.activeElement)) popTitle.focus();
+      if(window.NVAnnounce) NVAnnounce(parts.title);
+      if(emptyState) emptyState.hidden = true;
+      glLoaded();
+    }
+    function hidePopup(){
+      if(!popupOpen) return;
+      var id = popupId;
+      popupOpen = false; popupId = null;
+      backdrop.hidden = true;
+      document.body.style.overflow = '';
+      /* The index re-renders on the close route (same as before this
+         pass), so the opener node may have been replaced — fall back to
+         the fresh link for the same entry. Scroll returns to the exact
+         offset saved when the popup opened. */
+      var target = (lastOpener && document.contains(lastOpener)) ? lastOpener
+        : (id ? root.querySelector('a[href="#/e/' + id + '"]') : null);
+      if(target) target.focus();
+      window.scrollTo(0, savedScroll);
+    }
+    function requestClose(){
+      if(/^#\/e\//.test(location.hash || '')) location.hash = '#/';
+      else hidePopup();
+    }
+    popClose.addEventListener('click', requestClose);
+    backdrop.addEventListener('click', function(e){ if(e.target === backdrop) requestClose(); });
+    document.addEventListener('click', function(e){
+      var t = e.target;
+      var a = (t && t.closest) ? t.closest('a[href^="#/e/"]') : null;
+      if(a && root.contains(a)) lastOpener = a;
+    });
+    /* Escape closes the popup — and ONLY the popup. This listener runs
+       in the CAPTURE phase and stops the event while the popup is open,
+       so the shell's document-level Escape handler (bubble phase,
+       nv-shell.js) never receives it and cannot fire history
+       navigation. Backstop: the overlay's class contains "backdrop",
+       which the shell's own visible-layer check also yields to. While
+       the popup is closed this listener does nothing at all, so the
+       shell's Escape behavior is untouched. If the Commands palette is
+       open above the popup, the palette owns Escape first. */
+    document.addEventListener('keydown', function(e){
+      if(e.key !== 'Escape' || !popupOpen) return;
+      var ov = document.querySelector('.palette-overlay');
+      if(ov && ov.classList.contains('open')) return;
+      e.stopPropagation();
+      e.preventDefault();
+      requestClose();
+    }, true);
     function route(){
       var h = location.hash || '#/';
       var m = h.match(/^#\/e\/(.+)$/);
-      if(m) renderEntry(decodeURIComponent(m[1])); else renderIndex(search.value);
+      if(m){
+        if(!indexInRoot) renderIndex(search.value);
+        showPopup(decodeURIComponent(m[1]));
+      } else {
+        renderIndex(search.value);
+        hidePopup();
+      }
     }
     window.addEventListener('hashchange', route);
     search.addEventListener('input', function(){ if((location.hash||'#/') === '#/') renderIndex(search.value); });
