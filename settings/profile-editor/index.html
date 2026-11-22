@@ -149,15 +149,25 @@
       if (msg) { msg.textContent = 'Save failed — check your connection and try again.'; }
       if (window.NVToast) NVToast.error('Save failed — try again');
     }
+    /* Unsaved-changes guard (Nov 22, 2026): every account save
+       is tracked in accountSavePromises so the guard's Save
+       path can await the fan-out from one Save click and tell
+       success from failure. The promise resolves true/false;
+       failure still surfaces exactly as before (surfaceSaveFailure).
+       With no client, the localStorage writes in the callers
+       are the save — resolve true, as the page always has. */
+    var accountSavePromises = [];
     function saveToAccount(data) {
       try {
         var c = (typeof getClient === 'function') ? getClient() : null;
-        if (c) {
-          c.auth.updateUser({ data: data }).then(function (res) {
-            if (res && res.error) surfaceSaveFailure();
-          }).catch(function () { surfaceSaveFailure(); });
-        }
-      } catch (e) { surfaceSaveFailure(); }
+        if (!c) return Promise.resolve(true);
+        var p = c.auth.updateUser({ data: data }).then(function (res) {
+          if (res && res.error) { surfaceSaveFailure(); return false; }
+          return true;
+        }).catch(function () { surfaceSaveFailure(); return false; });
+        accountSavePromises.push(p);
+        return p;
+      } catch (e) { surfaceSaveFailure(); return Promise.resolve(false); }
     }
 
     var currentUser = null;
@@ -194,10 +204,19 @@
       document.getElementById('uploadRow').hidden = (choice !== 'upload');
       renderAvatarCurrent();
     }
-    document.getElementById('choiceProviderBtn').addEventListener('click', function () { markAvatarChoice('provider'); });
-    document.getElementById('choiceUploadBtn').addEventListener('click', function () { markAvatarChoice('upload'); });
-    document.getElementById('choiceBlankBtn').addEventListener('click', function () { markAvatarChoice('blank'); });
+    /* Unsaved-changes guard (Nov 22, 2026): avatar picks are
+       STAGED — markAvatarChoice only changes the UI; the choice
+       (and any chosen file) is persisted by saveAvatarNow() on
+       Save. So a pick or a file choice is a dirty point. The
+       pronoun and symbiont-base buttons are NOT dirty points:
+       they write localStorage + the account the moment they
+       are clicked. */
+    var avatarDirty = false;
+    document.getElementById('choiceProviderBtn').addEventListener('click', function () { avatarDirty = true; markAvatarChoice('provider'); });
+    document.getElementById('choiceUploadBtn').addEventListener('click', function () { avatarDirty = true; markAvatarChoice('upload'); });
+    document.getElementById('choiceBlankBtn').addEventListener('click', function () { avatarDirty = true; markAvatarChoice('blank'); });
     document.getElementById('avatarFile').addEventListener('change', function () {
+      avatarDirty = true;
       var f = this.files && this.files[0];
       chosenFile = f || null;
       var prev = document.getElementById('avatarPreview');
@@ -393,7 +412,58 @@
     });
     markBase(localStorage.getItem('nv_symbiont_base') || '');
 
-    function saveAllProfile() { var msg = document.getElementById('saveMsg'); var nameInput = document.getElementById('nameInput'); if (nameInput) { var v = nameInput.value.trim(); if (!v) { if (msg) { msg.textContent = 'Enter a username before saving — your name can’t be empty.'; } if (window.NVToast) NVToast.show('Username required'); nameInput.focus(); return; } localStorage.setItem('nv_display_name', v); saveNameToAccount(v); } saveAvatarNow(); saveBioNow(); saveSymbiontNow(); renderName(); if (msg) { msg.textContent = 'Profile saved.'; } if (window.NVToast) NVToast.show('Saved'); } document.getElementById('saveAllBtn').addEventListener('click', saveAllProfile); requireSession('/index.html').then(function (user) {
+    function saveAllProfile() { var msg = document.getElementById('saveMsg'); var nameInput = document.getElementById('nameInput'); if (nameInput) { var v = nameInput.value.trim(); if (!v) { if (msg) { msg.textContent = 'Enter a username before saving — your name can’t be empty.'; } if (window.NVToast) NVToast.show('Username required'); nameInput.focus(); return; } localStorage.setItem('nv_display_name', v); saveNameToAccount(v); } saveAvatarNow(); saveBioNow(); saveSymbiontNow(); renderName(); if (msg) { msg.textContent = 'Profile saved.'; } if (window.NVToast) NVToast.show('Saved'); }
+    /* Unsaved-changes guard (Nov 22, 2026): text dirtiness is
+       COMPUTED — a field is dirty while its current value
+       differs from the saved localStorage value, so reverting
+       or cancelling a field cleans it with no flag bookkeeping.
+       The name field only exists while editing; when it is not
+       on the page, the saved name stands. Avatar staging uses
+       the avatarDirty flag above. */
+    function profileTextDirty() {
+      var ni = document.getElementById('nameInput');
+      if (ni && ni.value.trim() !== savedName()) return true;
+      if (bioInput && bioInput.value !== (localStorage.getItem('nv_bio') || '')) return true;
+      if (symName && symName.value.trim() !== (localStorage.getItem('nv_symbiont_name') || '')) return true;
+      if (symGender && symGender.value.trim() !== (localStorage.getItem('nv_symbiont_gender') || '')) return true;
+      return false;
+    }
+    function profileIsDirty() { return avatarDirty || profileTextDirty(); }
+    /* The guard's Save: run the same save the button runs, then
+       settle from what the code actually signals — the tracked
+       account-save promises, plus the username-required early
+       return (its message in #saveMsg is the signal; saveAllProfile
+       itself returns nothing). Limitation: saveAvatarNow's storage
+       upload promise is not tracked here (its failure is the
+       graceful bucket message in #avatarStatus, pre-existing),
+       and saveAllProfile prints "Profile saved." synchronously
+       before the account promises settle — if one then fails,
+       surfaceSaveFailure overwrites #saveMsg and this wrapper
+       reports failure to the guard, which stays on the page. */
+    function saveAllProfileAsync() {
+      accountSavePromises = [];
+      saveAllProfile();
+      var msg = document.getElementById('saveMsg');
+      if (msg && msg.textContent.indexOf('Enter a username') === 0) return Promise.resolve(false);
+      var pending = accountSavePromises.slice();
+      if (!pending.length) { avatarDirty = false; return Promise.resolve(true); }
+      return Promise.all(pending).then(function (results) {
+        var ok = results.every(function (r) { return !!r; });
+        if (ok) avatarDirty = false;
+        return ok;
+      });
+    }
+    document.getElementById('saveAllBtn').addEventListener('click', function () {
+      saveAllProfileAsync();
+    });
+    if (window.NVGuard) {
+      NVGuard.register({
+        isDirty: profileIsDirty,
+        save: saveAllProfileAsync,
+        clearDirty: function () { avatarDirty = false; }
+      });
+    }
+    requireSession('/index.html').then(function (user) {
       if (!user) return;
       currentUser = user;
       var prov = providerPhotoUrl(user);
