@@ -1,0 +1,2127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <link rel="icon" href="data:," />
+  <title>Infinity 6 — Level 1 (Empty World Shell)</title>
+  <!--
+    ===========================================================================
+    NEON VIGIL — GAME REBUILD, STAGE 1: EMPTY WORLD SHELL
+    Level 1 is the INSIDE of the Infinity 6. Outside the ship is the sky
+    dome + moving striped pink sun — the same sky as Level 2 (one sky
+    across the whole game, Nov 10, 2026 standing rule).
+    The Gigas Garden is a SEPARATE level, not part of Level 1.
+    Player starts inside the ship: belly bay, D3 (where she wakes).
+    Built Nov 9, 2026, on branch merge/prototype-into-main. No systems yet:
+    no movement rules, no activities, no rank, no "winning", no new rooms,
+    no story beats. Those get defined with Jasmine, one at a time.
+
+    Canon grounding (Infinity 6 dossier, Nov 9, 2026):
+    - Ship name: Infinity 6. Dimensions: 110 m long x 45 m wide x 20-30 m
+      high, varying along the hull — imperfect oblong, taller through the
+      middle, lower at the edges, a little lopsided, not symmetrical.
+      Shell uses 24 m mid-height (inside the 20-30 m range), deck-to-deck
+      8 m (inside the derived 6.67-10 m range). Clear height NOT locked.
+    - 3 decks: D1 Upper (bridge fwd, Cyphr Bay aft, upper quarters, Reactor
+      Shaft through the centre), D2 Main (reactor core + engineering, ONE
+      engine room, mess, crew quarters, airlock, corridors), D3 Lower
+      (aux bay, hold, hold prep bay, belly bay).
+    - Bridge on D1: circular room at one end, ONE chair, wide oval viewport.
+    - Belly bay on D3: big open cargo space where the ramp dumps in, where
+      she hid. Belly bay door on its forward face — the way out toward the
+      bridge. Little fires get put out LATER (not part of this shell).
+    - Ramp: straight out the BACK, horizontal, aft, D3, 6 x 22 m.
+    - Reactor Shaft through the centre, reactor core 3 decks tall.
+    - Airlock on D2: SEALED (keypad code not locked; Cyphr hints only).
+      No interaction in this shell — it is a sealed door panel only.
+    - Material: dark near-black gunmetal, ribbed, thin cyan-teal emissive
+      trim. NO pink fog inside. NO hull lettering. Windows: transparent
+      glass with green outline (bridge viewport, D2 fore, D1 quarters,
+      Cyphr Bay hex) — they look out onto the sky dome + moving sun.
+    - Room partitions (mess, quarters, hold, hold prep bay, aux bay, Cyphr
+      Bay, brig) are NOT built here — deck volumes only, plus the bridge
+      and belly bay volumes. Rooms come one at a time, on her order.
+      SECOND ROOM, Nov 10, 2026 (her voice call: lounge first, then
+      everything in its place): the D1 lounge, directly after the bridge
+      — sunken modular pits, plush weather-worn upholstery, purple-heavy
+      lighting threading with cyan (amber only a kiss), hyperglass window
+      on the starboard wall, pressure bulkhead between it and the bridge
+      (no sightline from the lounge to the bridge). Modular groups, same
+      pattern as the belly bay. 110 m working scale kept.
+      FIRST ROOM, Nov 9, 2026 (her voice call: "drop in one of the GLBs of
+      the cryo or I mean the stasis chamber"): the Tripo stasis chamber
+      room GLB, in the D3 aux bay — the dossier's stasis location. EMPTY
+      room, no occupant, no figure inside. HOLD-OPEN (Bible §LI): whether
+      ANYONE is in stasis on the ship is contradicted/retracted, NOT
+      settled — do not use as canon until Jasmine rules cleanly. No text
+      anywhere says who is in stasis.
+      MOVED + LAID FLAT Nov 23, 2026 (her live call): the chamber now
+      sits on D2 UNDER THE BRIDGE (not the D3 aux bay, not in the
+      bridge), lying FLAT with DARK GLASS over the top. Shutters added
+      the same day: front window + top window close; NO back window
+      (the back connects to the interior / mess hall side). Size: 18,106,292 bytes (~17.3 MB) —
+      under the 25 MB model cap, over the under-10 MB ideal; noted, model
+      not reworked.
+    FIRST ROOM of the floor-by-floor build, Nov 9, 2026 (her voice call:
+    floor by floor, D3 first — beautiful, accurate, maximum ability to
+    change things): the D3 belly bay, built modular — bellyVolume /
+    bellyWalls / bellyFloor / bellyCargo / bellyPipes / bellyDoor, each
+    its own named group with named/shared materials, so any piece can
+    be revised or replaced without touching the rest. Cargo boxes under
+    heavy tarps, pipes overhead, steam vent, alarm beacon (static),
+    door on the forward face, ramp opening in the aft wall. Walls carry
+    a texture slot (bellyWallMat, 'belly-bay-wall') for the wall texture
+    when it lands — no generated image used. NO fires (put out LATER).
+
+    Tech: standalone single file, Three.js 0.160.0 via unpkg (same version
+    as the old world). No auth gate, no Remix SDK, no characters.
+    One GLB: stasis-chamber-room.glb in ./assets/. That wiring is Stage 6.
+    Dev camera: ?cam=spawn (default, belly bay),
+    ?cam=orbit (outside form check), ?cam=bridge, ?cam=top, ?cam=auxbay
+    (D3 aux bay — the stasis chamber), ?cam=d2fore (D2 fore viewport),
+    ?cam=d1win (D1 quarters window), ?cam=sky (dome + sun + ship exterior).
+    ?cam=topD1 / topD2 / topD3 (one top view per deck), ?cam=heads,
+    ?cam=mess, ?cam=labhydro (lab grow beds). ?time=0..1 sets the sun
+    (default 0.5 midday), same as Level 2.
+    ===========================================================================
+  -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background: #000; }
+    #app { position: fixed; inset: 0; }
+    canvas { display: block; }
+    #hud {
+      position: fixed; top: 12px; left: 12px; z-index: 10;
+      font-family: "Courier New", Courier, monospace; color: #19e3ff;
+      background: rgba(2, 8, 12, 0.72); border: 1px solid rgba(25, 227, 255, 0.45);
+      padding: 10px 12px; max-width: 340px; pointer-events: none;
+      font-size: 12px; line-height: 1.55;
+    }
+    /* Diagnostics collapse (Nov 23, 2026 — unified UI pass: same treatment
+       as Level 2 / the app — the technical HUD is collapsed by default
+       behind its one-line summary; G key or the summary toggles it). */
+    #hud-toggle {
+      pointer-events: auto; background: none; border: none; padding: 0; cursor: pointer;
+      color: #e8fbff; font: inherit; font-weight: bold; letter-spacing: 1px; text-align: left;
+    }
+    #hud-body[hidden] { display: none; }
+    #hud b { color: #e8fbff; letter-spacing: 1px; }
+    #hud .dim { color: #7fa8b5; }
+    #hud .warn { color: #ffb020; }
+    #scale {
+      position: fixed; bottom: 12px; right: 12px; z-index: 10;
+      font-family: "Courier New", Courier, monospace; color: #7fa8b5;
+      background: rgba(2, 8, 12, 0.72); border: 1px solid rgba(25, 227, 255, 0.3);
+      padding: 6px 10px; font-size: 11px; pointer-events: none;
+    }
+    #err {
+      display: none; position: fixed; top: 12px; right: 12px; z-index: 20;
+      font-family: "Courier New", Courier, monospace; color: #fff;
+      background: rgba(160, 10, 30, 0.92); border: 1px solid #ff5566;
+      padding: 10px 12px; max-width: 420px; font-size: 12px; line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <div id="hud">
+    <button id="hud-toggle" type="button" aria-expanded="false" aria-controls="hud-body" title="Diagnostics (G)">INFINITY 6 — LEVEL 1 · DIAGNOSTICS (G)</button>
+    <div id="hud-body" hidden>
+    <b>INFINITY 6 — LEVEL 1</b><br />
+    Empty world shell — Stage 1<br />
+    <span class="dim">D1 Upper — bridge (1 chair) · Cyphr Bay aft</span><br />
+    <span class="dim">D2 Main — reactor core · engine room · mess · quarters</span><br />
+    <span class="dim">D3 Lower — belly bay · hold · hold prep bay · aux bay</span><br />
+    Spawn: belly bay, D3<br />
+    <span class="warn">Airlock (D2) — SEALED</span><br />
+    <span class="dim">Stasis chamber: aux bay (D3), LAYS FLAT, dark glass over the top, purple plasma lights around it (Nov 23 FINAL ruling)</span><br />
+    <span class="dim">Belly bay (D3) — first room: cargo under tarps · pipes overhead · door forward</span><br />
+    <span class="dim">Lounge (D1) — second room: sunken pits · purple + cyan · hyperglass starboard</span><br />
+    <span class="dim">Ramp (D3) — connected to belly bay · straight aft · 6 x 22 m</span><br />
+    <span class="dim">Sky — dome + moving striped sun (all levels, one sky)</span><br />
+    <span class="dim">Viewports — bridge · D2 fore · D1 quarters · Cyphr hex (see-through glass)</span><br />
+    <span class="dim">Heads (D3) — 3 stalls · real mirrors · holding tank + manual dump</span><br />
+    <span class="dim">Mess (D2) — clean gunmetal table · purple + cyan underglow</span><br />
+    <span class="dim">Lab hydroponics (D2) — grow beds + plants · Alyha's domain</span><br />
+    <span class="dim">Top views — ?cam=topD1 / topD2 / topD3 (one per deck)</span><br />
+    <span class="dim">Floor arrows → bridge · cyan-teal trim · orange status lights</span><br />
+    <span class="dim">Walls: D3 corridor panels · bridge seams · shaft ribs</span><br />
+    <span class="dim">Drag to orbit · scroll to zoom · ?walk=1 = walk mode (joystick + drag look, Space = jump)</span>
+    </div>
+  </div>
+  <div id="scale">110 m × 45 m × 20–30 m · imperfect oblong · outside: sky dome + moving sun</div>
+  <div id="err"></div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { createSkysphere, CAMERA_FAR } from '../level-2/nv-skysphere.js';
+    import { createWeatherRig } from '../level-2/nv-weather.js';
+import { createPlayerRig } from '../level-2/nv-player.js';
+    import { Reflector } from 'three/addons/objects/Reflector.js';
+
+    const errBox = document.getElementById('err');
+    function fail(msg) {
+      errBox.style.display = 'block';
+      errBox.textContent = 'LEVEL-1 SHELL ERROR: ' + msg;
+      console.error('LEVEL-1 SHELL ERROR:', msg);
+    }
+    window.addEventListener('error', (e) => fail(e.message || String(e.error || e)));
+
+    // --- Canon dimensions (metres) -------------------------------------------
+    const SHIP_LENGTH = 110;   // along X, bow +X forward
+    const SHIP_WIDTH  = 45;    // along Z
+    const SHIP_HEIGHT = 24;    // mid-height, inside the locked 20-30 m range
+    const DECK_H      = 8;     // deck-to-deck, inside the derived 6.67-10 m range
+    // Deck floors: D3 y=2, D2 y=10, D1 y=18. Hull centre y=12.
+    const CYAN  = 0x19e3ff;    // thin cyan-teal emissive trim
+    const GREEN = 0x39ff88;    // window outline green
+    const AMBER = 0xffb020;    // sealed marker
+    const GUNMETAL = 0x2e3440; // dark near-black gunmetal
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x000000); // behind the sky dome (never visible once the dome is up)
+    // No fog: no pink fog inside, no fog at all.
+
+    const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, CAMERA_FAR); // far must clear the 10x sky dome
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.setClearColor(0x000000, 1);
+    document.getElementById('app').appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+
+    // --- Lights: lore-grounded ship lighting (Nov 9 rework) ------------------
+    // Bible/dossier language only: thin cyan-teal emissive trim is the
+    // dominant accent; small orange status lights; no pink fog inside.
+    // The old generic warm/cool wash is gone — it fought the scheme.
+    scene.add(new THREE.AmbientLight(0x27363c, 0.5));
+    // Belly bay lit by the ship's own trim colour, not warm white.
+    const bellyLight = new THREE.PointLight(CYAN, 90, 45, 2);
+    bellyLight.position.set(-30, 7, 0); scene.add(bellyLight);
+    // Faint cool fill so corridors are never pitch black.
+    const midLight = new THREE.PointLight(0x9fc4d4, 45, 60, 2);
+    midLight.position.set(0, 14, 0); scene.add(midLight);
+    // Bridge stays cyan.
+    const bridgeLight = new THREE.PointLight(CYAN, 80, 35, 2);
+    bridgeLight.position.set(27, 24, 0); scene.add(bridgeLight); // new bridge centre, raised ceiling
+    // Cyan-teal trim wash on the stasis chamber front + its glass cover.
+    const auxBayLight = new THREE.PointLight(CYAN, 60, 25, 2);
+    auxBayLight.position.set(16, 5.5, 0); scene.add(auxBayLight);
+    // Small orange status lights (points, not a wash) + visible fixtures.
+    const ORANGE = 0xff8c1a;
+    const statusMat = new THREE.MeshBasicMaterial({ color: ORANGE });
+    for (const [sx, sy, sz] of [[-36, 7, 7], [20, 7.5, 6], [10, 13, 18], [20, 21, 6]]) {
+      const s = new THREE.PointLight(ORANGE, 25, 14, 2);
+      s.position.set(sx, sy, sz); scene.add(s);
+      const fixture = new THREE.Mesh(new THREE.SphereGeometry(0.18, 12, 8), statusMat);
+      fixture.position.set(sx, sy, sz); scene.add(fixture);
+    }
+
+    // --- Materials ------------------------------------------------------------
+    const hullMat = new THREE.MeshStandardMaterial({
+      color: 0x14171d, metalness: 0.85, roughness: 0.45,
+      transparent: true, opacity: 0.28, side: THREE.DoubleSide, depthWrite: false
+    });
+    const deckMat = new THREE.MeshStandardMaterial({ color: GUNMETAL, metalness: 0.6, roughness: 0.6 });
+    const trimMat = new THREE.LineBasicMaterial({ color: CYAN, transparent: true, opacity: 0.55 });
+    const trimMatStrong = new THREE.LineBasicMaterial({ color: CYAN, transparent: true, opacity: 0.85 });
+    const darkMat = new THREE.MeshStandardMaterial({ color: 0x1c2129, metalness: 0.7, roughness: 0.5, side: THREE.DoubleSide });
+
+    let meshCount = 0;
+    function add(mesh) { scene.add(mesh); meshCount++; return mesh; }
+
+    // --- Sky dome + moving sun (EVERY level, Nov 10, 2026 standing rule) -------
+    // The ship's viewports look out onto the same dome + striped pink sun as
+    // Level 2 — one sky across the whole game. Same module, same 10x dome,
+    // same pink-to-purple gradient, same moving sun. The sun is OUTSIDE the
+    // ship; Level 1 keeps its own interior lighting (no sun/hemi light is
+    // passed in — the skysphere only adds the dome, sun, and clouds).
+    // ?time=0..1 sets the sun (default 0.5 midday), same as Level 2.
+    const _t = parseFloat(new URLSearchParams(location.search).get('time') || '0.5');
+    const timeParam = Math.min(1, Math.max(0, Number.isNaN(_t) ? 0.5 : _t));
+    const sky = createSkysphere(THREE, { timeOfDay: timeParam, timeScale: 1 });
+    scene.add(sky.group);
+    meshCount += sky.meshCount;
+    const skyStatus = { dome: '10x world', gradient: 'pink-to-purple', sun: 'striped pink, moving', timeOfDay: timeParam, meshes: sky.meshCount };
+
+    // Window glass (TRANSPARENT — the viewports look out onto the sky dome).
+    // The old opaque dark panels (bridge viewport, Cyphr hex, lounge
+    // hyperglass) are swapped to this so the sky actually shows through.
+    // Same recipe as the lab tanks + stasis glass cover (physical, clearcoat).
+    const winGlassMat = new THREE.MeshPhysicalMaterial({
+      color: 0xa8d8e8, metalness: 0, roughness: 0.05,
+      transparent: true, opacity: 0.18,
+      clearcoat: 1, clearcoatRoughness: 0.05,
+      side: THREE.DoubleSide, depthWrite: false
+    });
+
+    // --- Hull: imperfect oblong capsule --------------------------------------
+    // Capsule axis along X: 86 m cylinder + 12 m radius caps = 110 m long,
+    // 24 m high, scaled to 45 m wide. Taller through the middle, lower at
+    // the edges (capsule form); a small lopsided lift toward the bow and a
+    // slight lateral wobble, both fading at the tips — lived-in, not symmetrical.
+    const hullGeo = new THREE.CapsuleGeometry(12, 86, 8, 48);
+    hullGeo.rotateZ(Math.PI / 2); // capsule axis Y -> X
+    {
+      const p = hullGeo.attributes.position;
+      for (let i = 0; i < p.count; i++) {
+        const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
+        const fade = Math.max(0, 1 - Math.pow(x / 55, 2));
+        const lift = 0.9 * Math.sin((x / 55) * Math.PI * 0.5) * fade;
+        p.setY(i, y + lift);
+        p.setZ(i, z + 0.4 * Math.sin(x * 0.09) * fade);
+      }
+      hullGeo.computeVertexNormals();
+    }
+    const hull = add(new THREE.Mesh(hullGeo, hullMat));
+    hull.position.y = 12;
+    hull.scale.set(1, 1, 1.875); // 24 m high -> 45 m wide
+
+    // Hull rib rings: thin cyan-teal trim, 5 stations along the length.
+    for (const rx of [-44, -22, 0, 22, 44]) {
+      const curve = new THREE.EllipseCurve(0, 0, 22.5, 12, 0, Math.PI * 2, false, 0);
+      const pts = curve.getPoints(96).map((v) => new THREE.Vector3(0, v.y, v.x));
+      const ring = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts), trimMat);
+      ring.position.set(rx, 12, 0);
+      add(ring);
+    }
+
+    // --- Deck volumes: floor plates + volume outlines -------------------------
+    // D3 floor y=2 (w 24 — hull narrows low), D2 floor y=10 (w 40), D1 floor y=18 (w 38).
+    const decks = [
+      { name: 'D3', floorY: 2,  volY: 6,  volH: 8, w: 24 },
+      { name: 'D2', floorY: 10, volY: 14, volH: 8, w: 40 },
+      { name: 'D1', floorY: 18, volY: 21, volH: 6, w: 38 },
+    ];
+    // Floor slabs + volume outlines, captured by deck name — the per-deck
+    // top views (topD1/topD2/topD3) hide the slabs/outlines above the
+    // viewed deck so each deck reads as a clean plan.
+    const deckPlates = {};
+    const deckVols = {};
+    for (const d of decks) {
+      const plate = add(new THREE.Mesh(new THREE.BoxGeometry(84, 0.5, d.w), deckMat));
+      plate.position.set(0, d.floorY, 0);
+      deckPlates[d.name] = plate;
+      const volGeo = new THREE.BoxGeometry(84, d.volH, d.w);
+      const vol = new THREE.LineSegments(new THREE.EdgesGeometry(volGeo), trimMat);
+      vol.position.set(0, d.volY, 0);
+      deckVols[d.name] = vol;
+      add(vol);
+    }
+
+    // --- Bridge (D1, forward): clean rebuilt GLB, Nov 10, 2026 --------------
+    // Replaces the procedural cylinder room (r 9, h 6, one chair, flat oval
+    // viewport). The clean bridge GLB (Blender 4.2, Cycles-checked):
+    // room 30 m L x 24 m W, ceiling RAISED to 11 m — Jasmine's call Nov 10:
+    // keep the Tripo control-station console at uniform x30 (10.474 m tall)
+    // and raise the ceiling above the locked 8 m. CANON BREAK, recorded:
+    // the bridge ceiling is 11 m, not the locked 8 m; the room bbox is
+    // 24.8 x 36.8 x 12.87 m (incl. aft corridor + dome skylight).
+    // Contents: continuous curved forward pressure bulkhead, 24 x 7 m
+    // panoramic viewport with 0.2 m bevelled pressure collar + curved glass,
+    // 8 m dais (3 steps, 0.6 m), control-station console x30 (Tripo texture
+    // intact, unstretched), ONE pilot command chair (1.5 x 0.8 m) on the
+    // dais, 13 Hex OS telemetry screens (3 main front, 6 viewport band,
+    // 4 behind the chair), twin quartz containment columns with violet
+    // plasma glow, overhead dome skylight with 5 cyan ribs. Mesh_5 raised
+    // gallery kept as-is (deliberate raise). No pink fog inside, ever.
+    // Placement: group at (27, 18, 0) — centres the 30 m room on the D1
+    // deck plate (x 12..42, viewport flush at the prow x=42, aft corridor
+    // toward the lounge). Rotation -PI/2: the GLB's forward (+Y in Blender)
+    // faces +X here, the shell's forward. Model recentered like the
+    // stasis chamber (scale 1 — already in metres). No push from this VM;
+    // pushes go from her Mac.
+    const bridge = new THREE.Group();
+    bridge.position.set(27, 18, 0);
+    bridge.rotation.y = -Math.PI / 2;
+    scene.add(bridge);
+    const bridgeStatus = { loaded: false, error: null, file: 'infinity6-bridge-clean-2026-11-10.glb', md5: '9e27236d4e6fdc4462babe61d2e5e539', pos: [27, 18, 0], rotY: -Math.PI / 2, ceiling: 11, consoleScale: 'x30' };
+    new GLTFLoader().load('./assets/infinity6-bridge-clean-2026-11-10.glb', (gltf) => {
+      const model = gltf.scene;
+      const box = new THREE.Box3().setFromObject(model);
+      const size = new THREE.Vector3(); box.getSize(size);
+      const center = new THREE.Vector3(); box.getCenter(center);
+      model.position.set(-center.x, -box.min.y, -center.z);
+      bridge.add(model);
+      bridgeStatus.loaded = true;
+      bridgeStatus.rawSize = [size.x, size.y, size.z];
+      console.log('[bridge] clean bridge mounted', JSON.stringify({
+        file: 'infinity6-bridge-clean-2026-11-10.glb', md5: '9e27236d4e6fdc4462babe61d2e5e539',
+        rawSize: [size.x, size.y, size.z], pos: [27, 18, 0], rotY: -Math.PI / 2,
+        ceiling: 11, consoleScale: 'x30'
+      }));
+    }, undefined, (err) => {
+      bridgeStatus.error = String(err && err.message ? err.message : err);
+      fail('clean bridge GLB failed to load: ' + bridgeStatus.error);
+    });
+
+    // --- Placeholder avatar on the bridge (wake spot), Nov 11, 2026 ---------
+    // TEST-ONLY, NOT CANON: the BALD Neon (Neon_Ultra_Bald_AniimoMorphs_v01.glb,
+    // 18 meshes, morphs only — NO rig, NO animations) standing on the bridge
+    // dais, so the game has an avatar in it before the canon avatar lands.
+    // Jasmine's call Nov 11: use the bald one. No canon needed for this push
+    // — placeholder only, to be swapped for the canon avatar later. She stands
+    // still (no idle — this model has no animations); the rigged test Neon
+    // was swapped OUT for her. The static neon-ultra.glb was NOT used:
+    // 1 mesh, no rig, no animations.
+    // Native model height is 0.988 m, scaled x1.928 to Neon's 6'3" (1.905 m).
+    // Spot: dais top (D1 floor y=18 + dais 0.6 m), port side of the command
+    // chair, (27, 18.6, -1.8), facing +X toward the viewport (rotation.y
+    // PI/2: GLB forward +Z -> shell +X).
+    // A failed avatar load does NOT fail the shell — it logs and keeps going.
+    const avatarStatus = { loaded: false, error: null, file: 'placeholder-avatar-neon-bald-test.glb', md5: '8e52e138e62c8c138c61d60ac227876e', pos: [27, 18.6, -1.8], scale: 1.928, testOnly: true, canon: false, rigged: false };
+    new GLTFLoader().load('./assets/placeholder-avatar-neon-bald-test.glb', (gltf) => {
+      const avatar = gltf.scene;
+      avatar.scale.setScalar(1.928);
+      avatar.position.set(27, 18.6, -1.8);
+      avatar.rotation.y = Math.PI / 2;
+      scene.add(avatar);
+      avatarStatus.loaded = true;
+      console.log('[avatar] placeholder avatar mounted (BALD, TEST ONLY, not canon)', JSON.stringify(avatarStatus));
+    }, undefined, (err) => {
+      avatarStatus.error = String(err && err.message ? err.message : err);
+      console.warn('[avatar] placeholder avatar failed to load (shell continues): ' + avatarStatus.error);
+    });
+
+    // --- Belly bay (D3, aft): FIRST ROOM, floor-by-floor build, Nov 9, 2026 -
+    // Her voice call: floor by floor, D3 first — beautiful, accurate, and
+    // maximum ability to change things. So the bay is built MODULAR: every
+    // element is its own named group with named/shared materials, so any
+    // piece can be revised or replaced without touching the rest of the
+    // shell. Groups: bellyVolume, bellyWalls, bellyFloor, bellyCargo,
+    // bellyPipes, bellyDoor. The wall material (bellyWallMat) carries a
+    // TEXTURE SLOT for the belly bay wall texture when it lands (Gemini
+    // quota / Flow Studio) — no generated image is used here.
+    //
+    // Locked facts ONLY (dossier §4 / opening): big open cargo space on
+    // D3 where the ramp dumps in; metal cyberpunk cargo boxes under heavy
+    // tarps; pipes overhead; steam venting; alarms blaring. A cramped
+    // hold, NOT a whole warehouse — just enough room to hide. Post-crash
+    // things are shaken and all over the place. The belly bay door is on
+    // the forward face — the way out toward the bridge. The player wakes
+    // here (spawn, looking toward the door). NO fires — the little fires
+    // get put out LATER. No new rooms, no story beats, no characters.
+    //
+    // Layout (blueprint D3 sheet is the guide; its printed dimensions are
+    // stale — built on the retired 180x64x40 m — so the shell's locked
+    // 110 x 45 x 20-30 m, deck-to-deck 8 m govern): bay volume x -44..-16,
+    // y 2..10, z -10..+10. Ramp (6 m wide) dumps in through the aft wall
+    // opening (z -3..+3). Cargo stacks hug the side walls; the centre
+    // walkway (z 0, where the floor arrows run) stays clear.
+    const bellyBay = new THREE.Group();
+    bellyBay.position.set(-30, 2, 0); // local origin: bay centre, D3 floor
+    let bellyMeshes = 0;
+    function bAdd(parent, mesh) { parent.add(mesh); bellyMeshes++; return mesh; }
+
+    // --- Belly bay materials (55ba667 language; shared, named, replaceable)
+    const bellyWallMat = new THREE.MeshStandardMaterial({ color: 0x1a1e24, metalness: 0.75, roughness: 0.55, side: THREE.DoubleSide });
+    // TEXTURE SLOT: belly bay wall texture lands here when it exists
+    // (Gemini retry / Flow Studio). Set via window.__level1.bellyBay
+    // .setWallTexture(tex) — it assigns bellyWallMat.map with repeat
+    // wrapping; every wall panel shares this one material, so one swap
+    // re-skins the whole bay. Until then the panels are procedural.
+    bellyWallMat.userData.textureSlot = 'belly-bay-wall';
+    const bellyTrimMat = new THREE.MeshStandardMaterial({ color: CYAN, emissive: CYAN, emissiveIntensity: 0.9 });
+    const bellyFloorMat = new THREE.MeshStandardMaterial({ color: 0x232830, metalness: 0.6, roughness: 0.7 });
+    const bellyCargoA = new THREE.MeshStandardMaterial({ color: 0x2e3440, metalness: 0.7, roughness: 0.5 });
+    const bellyCargoB = new THREE.MeshStandardMaterial({ color: 0x39404c, metalness: 0.65, roughness: 0.55 });
+    const bellyCargoC = new THREE.MeshStandardMaterial({ color: 0x232830, metalness: 0.7, roughness: 0.6 });
+    const bellyTarpA = new THREE.MeshStandardMaterial({ color: 0x37424a, metalness: 0.05, roughness: 0.95 });
+    const bellyTarpB = new THREE.MeshStandardMaterial({ color: 0x3a3f35, metalness: 0.05, roughness: 0.95 });
+    const bellyStrapMat = new THREE.MeshStandardMaterial({ color: 0x1c2129, metalness: 0.5, roughness: 0.7 });
+    const bellyPipeMat = new THREE.MeshStandardMaterial({ color: 0x3a4048, metalness: 0.85, roughness: 0.35 });
+    const bellyCopperMat = new THREE.MeshStandardMaterial({ color: 0x6e4536, metalness: 0.8, roughness: 0.45 });
+    const bellySteamMat = new THREE.MeshBasicMaterial({ color: 0xdfe8ea, transparent: true, opacity: 0.14, depthWrite: false });
+    const bellyAlarmMat = new THREE.MeshBasicMaterial({ color: AMBER });
+    const bellyDarkMat = new THREE.MeshStandardMaterial({ color: 0x1c2129, metalness: 0.7, roughness: 0.5 });
+
+    // Volume marker (from Stage 1): thin cyan fill + strong edges.
+    const bellyVolume = new THREE.Group();
+    bAdd(bellyVolume, new THREE.Mesh(
+      new THREE.BoxGeometry(28, 8, 20),
+      new THREE.MeshStandardMaterial({ color: CYAN, transparent: true, opacity: 0.06, depthWrite: false })
+    )).position.y = 4;
+    bAdd(bellyVolume, new THREE.LineSegments(
+      new THREE.EdgesGeometry(new THREE.BoxGeometry(28, 8, 20)), trimMatStrong
+    )).position.y = 4;
+    bellyBay.add(bellyVolume);
+
+    // --- bellyWalls: segmented gunmetal panels, cyan-teal seams ------------
+    const bellyWalls = new THREE.Group();
+    // Aft wall (x -14 local): two segments flanking the 6 m ramp opening
+    // (z -3..+3, y 0..5) + header above the opening (y 5..8).
+    for (const wz of [-6.5, 6.5]) {
+      const p = bAdd(bellyWalls, new THREE.Mesh(new THREE.BoxGeometry(0.3, 8, 7), bellyWallMat));
+      p.position.set(-14, 4, wz);
+    }
+    const aftHeader = bAdd(bellyWalls, new THREE.Mesh(new THREE.BoxGeometry(0.3, 3, 6), bellyWallMat));
+    aftHeader.position.set(-14, 6.5, 0);
+    // Cyan edge trim around the ramp opening.
+    for (const tz of [-3.1, 3.1]) {
+      const t = bAdd(bellyWalls, new THREE.Mesh(new THREE.BoxGeometry(0.12, 5, 0.18), bellyTrimMat));
+      t.position.set(-13.85, 2.5, tz);
+    }
+    const aftTop = bAdd(bellyWalls, new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.18, 6.4), bellyTrimMat));
+    aftTop.position.set(-13.85, 5.05, 0);
+    // Side walls (z +/-10): 4 panels each side + cyan seams between.
+    for (const side of [-1, 1]) {
+      for (const px of [-10.5, -3.5, 3.5, 10.5]) {
+        const p = bAdd(bellyWalls, new THREE.Mesh(new THREE.BoxGeometry(6.8, 8, 0.3), bellyWallMat));
+        p.position.set(px, 4, side * 10);
+      }
+      for (const sx of [-7, 0, 7]) {
+        const s = bAdd(bellyWalls, new THREE.Mesh(new THREE.BoxGeometry(0.12, 8, 0.1), bellyTrimMat));
+        s.position.set(sx, 4, side * 9.8);
+      }
+    }
+    // Forward wall (x +14 local): panels flanking the door (z -2..+2,
+    // y 0..6) + header above the door (y 6..8).
+    for (const wz of [-6, 6]) {
+      const p = bAdd(bellyWalls, new THREE.Mesh(new THREE.BoxGeometry(0.3, 8, 8), bellyWallMat));
+      p.position.set(14, 4, wz);
+    }
+    const fwdHeader = bAdd(bellyWalls, new THREE.Mesh(new THREE.BoxGeometry(0.3, 2, 4), bellyWallMat));
+    fwdHeader.position.set(14, 7, 0);
+    bellyBay.add(bellyWalls);
+
+    // --- bellyFloor: seam strips on the D3 deck plate (the plate IS the floor)
+    const bellyFloor = new THREE.Group();
+    for (const fz of [-5, 5]) {
+      const s = bAdd(bellyFloor, new THREE.Mesh(new THREE.BoxGeometry(28, 0.04, 0.14), bellyFloorMat));
+      s.position.set(0, 0.27, fz);
+    }
+    for (const fx of [-7, 0, 7]) {
+      for (const fz of [-5.5, 5.5]) { // split around z=0: the floor arrows run there
+        const s = bAdd(bellyFloor, new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.04, 9), bellyFloorMat));
+        s.position.set(fx, 0.27, fz);
+      }
+    }
+    for (const fz of [-9.9, 9.9]) {
+      const s = bAdd(bellyFloor, new THREE.Mesh(new THREE.BoxGeometry(28, 0.04, 0.14), bellyFloorMat));
+      s.position.set(0, 0.27, fz);
+    }
+    for (const fx of [-13.9, 13.9]) {
+      const s = bAdd(bellyFloor, new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.04, 20), bellyFloorMat));
+      s.position.set(fx, 0.27, 0);
+    }
+    bellyBay.add(bellyFloor);
+
+    // --- bellyCargo: metal boxes under heavy tarps, shaken post-crash -------
+    // One helper builds a whole stack: boxes + draped tarp (4-sided pyramid
+    // overhanging the stack) + cinch strap. Stacks hug the side walls;
+    // the centre walkway (z 0) stays clear. Two loose boxes lie tipped /
+    // out of place — things shaken, all over the place.
+    const bellyCargo = new THREE.Group();
+    function tarpStack(cx, cz, w, d, h1, h2, tarpMat, cargoMat) {
+      const g = new THREE.Group();
+      const base = new THREE.Mesh(new THREE.BoxGeometry(w, h1, d), cargoMat);
+      base.position.y = h1 / 2; g.add(base);
+      let topY = h1;
+      if (h2 > 0) {
+        const second = new THREE.Mesh(new THREE.BoxGeometry(w * 0.8, h2, d * 0.8), cargoMat);
+        second.position.set(w * 0.05, h1 + h2 / 2, -d * 0.04); g.add(second);
+        topY = h1 + h2;
+      }
+      const strap = new THREE.Mesh(new THREE.BoxGeometry(w + 0.15, 0.14, d + 0.15), bellyStrapMat);
+      strap.position.y = h1 * 0.55; g.add(strap);
+      const tarp = new THREE.Mesh(
+        new THREE.ConeGeometry(0.78 * Math.max(w, d), 0.9, 4), tarpMat
+      );
+      tarp.rotation.y = Math.PI / 4;
+      tarp.position.y = topY + 0.45; g.add(tarp);
+      g.position.set(cx, 0, cz);
+      bellyCargo.add(g);
+      bellyMeshes += g.children.length;
+      return g;
+    }
+    tarpStack(-10, -6.5, 3.4, 3.0, 1.6, 1.0, bellyTarpA, bellyCargoA); // aft port
+    tarpStack(-4, 6, 4.2, 3.6, 1.8, 1.2, bellyTarpB, bellyCargoB);     // mid starboard
+    tarpStack(6, -6, 4.6, 4.0, 2.0, 0, bellyTarpA, bellyCargoC);       // mid port, one big box
+    tarpStack(11.5, 5.5, 2.8, 2.6, 1.4, 0.9, bellyTarpB, bellyCargoA); // fwd starboard
+    // Loose shaken boxes, out of place.
+    const loose1 = bAdd(bellyCargo, new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.2, 1.2), bellyCargoB));
+    loose1.position.set(2, 0.65, -2.8);
+    loose1.rotation.set(0, 0.6, 0.45);
+    const loose2 = bAdd(bellyCargo, new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.0, 1.0), bellyCargoC));
+    loose2.position.set(-7, 0.5, 3);
+    loose2.rotation.y = 0.3;
+    bellyBay.add(bellyCargo);
+
+    // --- bellyPipes: pipe runs overhead + steam vent -------------------------
+    const bellyPipes = new THREE.Group();
+    for (const pz of [-6, 6]) {
+      const pipe = bAdd(bellyPipes, new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 28, 12), bellyPipeMat));
+      pipe.rotation.z = Math.PI / 2;
+      pipe.position.set(0, 7.2, pz);
+      const copper = bAdd(bellyPipes, new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 28, 12), bellyCopperMat));
+      copper.rotation.z = Math.PI / 2;
+      copper.position.set(0, 6.8, pz);
+    }
+    const cross = bAdd(bellyPipes, new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 20, 12), bellyPipeMat));
+    cross.rotation.x = Math.PI / 2;
+    cross.position.set(0, 7.4, 0);
+    for (const [dx, dz, len, cy] of [[-10, -6, 2.2, 6.1], [10, 6, 1.7, 6.35]]) {
+      const drop = bAdd(bellyPipes, new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, len, 10), bellyPipeMat));
+      drop.position.set(dx, cy, dz);
+    }
+    // Steam vent: short stub off the cross pipe + a static translucent
+    // wisp (no particle system, no animation — shell-grade stand-in for
+    // the locked "steam venting").
+    const vent = bAdd(bellyPipes, new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 1.4, 10), bellyPipeMat));
+    vent.position.set(0, 6.7, -6);
+    for (const [vx, vy, vz, r] of [[0, 5.4, -6, 0.55], [0.3, 5.0, -5.8, 0.45], [-0.3, 4.6, -6.1, 0.35]]) {
+      const puff = bAdd(bellyPipes, new THREE.Mesh(new THREE.SphereGeometry(r, 12, 8), bellySteamMat));
+      puff.scale.y = 0.6;
+      puff.position.set(vx, vy, vz);
+    }
+    bellyBay.add(bellyPipes);
+
+    // --- bellyDoor: the door on the forward face + frame + alarm beacon -----
+    const bellyDoor = new THREE.Group();
+    const door = bAdd(bellyDoor, new THREE.Mesh(
+      new THREE.BoxGeometry(0.3, 6, 4),
+      new THREE.MeshStandardMaterial({ color: 0x3a4150, metalness: 0.7, roughness: 0.4 })
+    ));
+    door.position.set(14, 3, 0);
+    const doorEdge = bAdd(bellyDoor, new THREE.LineSegments(
+      new THREE.EdgesGeometry(door.geometry), trimMatStrong
+    ));
+    doorEdge.position.copy(door.position);
+    // Cyan frame trim around the door + panel seams on the door face.
+    for (const tz of [-2.15, 2.15]) {
+      const t = bAdd(bellyDoor, new THREE.Mesh(new THREE.BoxGeometry(0.12, 6, 0.18), bellyTrimMat));
+      t.position.set(13.9, 3, tz);
+    }
+    const doorTop = bAdd(bellyDoor, new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.18, 4.5), bellyTrimMat));
+    doorTop.position.set(13.9, 6.1, 0);
+    for (const sy of [2, 4]) {
+      const seam = bAdd(bellyDoor, new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.08, 3.9), bellyDarkMat));
+      seam.position.set(13.82, sy, 0);
+    }
+    // Alarm beacon beside the door — static amber stand-in for the locked
+    // "alarms blaring". No sound, no blinking; the shell has no audio.
+    const beaconBase = bAdd(bellyDoor, new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.3, 0.3), bellyDarkMat));
+    beaconBase.position.set(13.85, 5.5, 3.5);
+    const beacon = bAdd(bellyDoor, new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 8), bellyAlarmMat));
+    beacon.position.set(13.7, 5.5, 3.5);
+    bellyBay.add(bellyDoor);
+
+    scene.add(bellyBay);
+    meshCount += bellyMeshes;
+    // Texture slot hook: call with a THREE.Texture when the belly bay wall
+    // texture lands (Gemini retry / Flow Studio). One swap re-skins every
+    // wall panel, because they all share bellyWallMat.
+    function setBellyWallTexture(tex) {
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(1, 1); // one tile per panel face; tune when it lands
+      bellyWallMat.map = tex;
+      bellyWallMat.needsUpdate = true;
+    }
+    const bellyBayStatus = {
+      groups: ['bellyVolume', 'bellyWalls', 'bellyFloor', 'bellyCargo', 'bellyPipes', 'bellyDoor'],
+      meshes: bellyMeshes,
+      wallTextureSlot: bellyWallMat.userData.textureSlot,
+      door: 'forward face, x=-16',
+      rampOpening: 'aft wall, 6 m wide, z -3..+3',
+    };
+
+    // --- Lounge (D1, aft of the bridge): SECOND ROOM, Nov 10, 2026 --------
+    // Her voice call: lounge first, then everything in its place inside.
+    // Layout plan Revision 4 (Nov 10) lounge lock ONLY:
+    //  - Directly after the bridge, pressure bulkheads between it and the
+    //    bridge; you CANNOT see the bridge from the lounge.
+    //  - Sunken modular pits, plush weather-worn upholstery.
+    //  - Purple-heavy lighting threading through with cyan (amber only a
+    //    kiss); the lighting can change with the reactor pulse.
+    //  - Hyperglass window spans the STARBOARD wall (z=+12).
+    //  - Foundation: gritty/industrial now — NO luxury finishes.
+    // Placement in THIS shell: the plan's Option C strip (x 4..12) is
+    // GLB-preview coordinates tied to the preview's rectangular bridge
+    // (x 12..42). The web shell's bridge is a cylinder at (30,18,0) r=9,
+    // spanning x 21..39 — so the lounge sits x 13..21, z -12..+12, its
+    // east wall the pressure bulkhead at x=21, directly after the bridge.
+    // Option C vs A (quarters west of the lounge vs north side) is still
+    // OPEN — her ruling settles the final strip; this group moves as one.
+    // The pit floors sit ON the D1 deck plate (no plate cut): the rims
+    // stand 0.7 m proud and the seat bases sit below the rim tops, so the
+    // pits read sunken. NOT built: the D1 quarters, the lift (not in this
+    // shell yet — when it lands, its D1 door opens into the lounge per
+    // the plan), the 13-screen array, the skylight dome. 110 m working
+    // scale kept. Modular, same pattern as the belly bay: loungeVolume /
+    // loungeWalls / loungeFloor / loungeSeats / loungeWindow / loungeLights.
+    const lounge = new THREE.Group();
+    lounge.position.set(17, 18, 0); // local origin: room centre, D1 floor
+    let loungeMeshes = 0;
+    function lAdd(parent, mesh) { parent.add(mesh); loungeMeshes++; return mesh; }
+
+    // --- Lounge materials (shared, named, replaceable)
+    const loungeWallMat = new THREE.MeshStandardMaterial({ color: 0x1a1e24, metalness: 0.75, roughness: 0.55, side: THREE.DoubleSide });
+    const loungeBulkMat = new THREE.MeshStandardMaterial({ color: 0x232830, metalness: 0.75, roughness: 0.5, side: THREE.DoubleSide });
+    const loungeTrimMat = new THREE.MeshStandardMaterial({ color: CYAN, emissive: CYAN, emissiveIntensity: 0.9 });
+    const loungeVioletMat = new THREE.MeshStandardMaterial({ color: 0x8b5cf6, emissive: 0x8b5cf6, emissiveIntensity: 1.0 });
+    const loungeFloorMat = new THREE.MeshStandardMaterial({ color: 0x232830, metalness: 0.6, roughness: 0.7 });
+    const loungeDoorMat = new THREE.MeshStandardMaterial({ color: 0x3a4150, metalness: 0.7, roughness: 0.4 });
+    const loungeDarkMat = new THREE.MeshStandardMaterial({ color: 0x1c2129, metalness: 0.7, roughness: 0.5 });
+    const loungeGlassMat = winGlassMat; // see-through now — the sky shows through (Nov 10 sky rule)
+    const loungeAmberMat = new THREE.MeshBasicMaterial({ color: AMBER });
+    // Plush weather-worn upholstery: muted worn plum / grey-mauve, no shine.
+    const loungeFabricA = new THREE.MeshStandardMaterial({ color: 0x54465c, metalness: 0.0, roughness: 1.0 });
+    const loungeFabricB = new THREE.MeshStandardMaterial({ color: 0x5f4f68, metalness: 0.0, roughness: 1.0 });
+    const loungeFabricC = new THREE.MeshStandardMaterial({ color: 0x6b5570, metalness: 0.0, roughness: 1.0 });
+    const loungeFabricD = new THREE.MeshStandardMaterial({ color: 0x4a4552, metalness: 0.0, roughness: 1.0 });
+
+    // Volume marker: faint purple fill + strong cyan edges.
+    const loungeVolume = new THREE.Group();
+    lAdd(loungeVolume, new THREE.Mesh(
+      new THREE.BoxGeometry(8, 4, 24),
+      new THREE.MeshStandardMaterial({ color: 0x8b5cf6, transparent: true, opacity: 0.04, depthWrite: false })
+    )).position.y = 2;
+    lAdd(loungeVolume, new THREE.LineSegments(
+      new THREE.EdgesGeometry(new THREE.BoxGeometry(8, 4, 24)), trimMatStrong
+    )).position.y = 2;
+    lounge.add(loungeVolume);
+
+    // --- loungeWalls: pressure bulkhead (east) + west + north + starboard ---
+    const loungeWalls = new THREE.Group();
+    // Pressure bulkhead (east wall, local x=+4, world x=21): 0.5 m thick,
+    // reinforced. Door panel CLOSED — no sightline to the bridge.
+    for (const wz of [-6.5, 6.5]) {
+      const seg = lAdd(loungeWalls, new THREE.Mesh(new THREE.BoxGeometry(0.5, 4, 11), loungeBulkMat));
+      seg.position.set(4, 2, wz);
+    }
+    const bulkHeader = lAdd(loungeWalls, new THREE.Mesh(new THREE.BoxGeometry(0.5, 1, 2), loungeBulkMat));
+    bulkHeader.position.set(4, 3.5, 0);
+    // Cyan trim strip across the bulkhead face (lounge side), mid-height.
+    const bulkTrim = lAdd(loungeWalls, new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.12, 24), loungeTrimMat));
+    bulkTrim.position.set(3.72, 2.5, 0);
+    // Bulkhead door (closed): panel + edge + cyan frame trim.
+    const bulkDoor = lAdd(loungeWalls, new THREE.Mesh(new THREE.BoxGeometry(0.18, 3, 2), loungeDoorMat));
+    bulkDoor.position.set(4, 1.5, 0);
+    const bulkDoorEdge = lAdd(loungeWalls, new THREE.LineSegments(
+      new THREE.EdgesGeometry(bulkDoor.geometry), trimMatStrong
+    ));
+    bulkDoorEdge.position.copy(bulkDoor.position);
+    for (const tz of [-1.1, 1.1]) {
+      const t = lAdd(loungeWalls, new THREE.Mesh(new THREE.BoxGeometry(0.1, 3, 0.18), loungeTrimMat));
+      t.position.set(3.72, 1.5, tz);
+    }
+    const bulkDoorTop = lAdd(loungeWalls, new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.18, 2.4), loungeTrimMat));
+    bulkDoorTop.position.set(3.72, 3.05, 0);
+    // The ONE amber kiss in the room: a single amber dot beside the door.
+    const amberKiss = lAdd(loungeWalls, new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 8), loungeAmberMat));
+    amberKiss.position.set(3.70, 2.6, 1.6);
+    // West wall (local x=-4, world x=13): future corridor entry, closed door.
+    for (const wz of [-6.5, 6.5]) {
+      const seg = lAdd(loungeWalls, new THREE.Mesh(new THREE.BoxGeometry(0.3, 4, 11), loungeWallMat));
+      seg.position.set(-4, 2, wz);
+    }
+    const westHeader = lAdd(loungeWalls, new THREE.Mesh(new THREE.BoxGeometry(0.3, 1, 2), loungeWallMat));
+    westHeader.position.set(-4, 3.5, 0);
+    const westDoor = lAdd(loungeWalls, new THREE.Mesh(new THREE.BoxGeometry(0.18, 3, 2), loungeDoorMat));
+    westDoor.position.set(-4, 1.5, 0);
+    const westDoorEdge = lAdd(loungeWalls, new THREE.LineSegments(
+      new THREE.EdgesGeometry(westDoor.geometry), trimMatStrong
+    ));
+    westDoorEdge.position.copy(westDoor.position);
+    for (const tz of [-1.1, 1.1]) {
+      const t = lAdd(loungeWalls, new THREE.Mesh(new THREE.BoxGeometry(0.1, 3, 0.18), loungeTrimMat));
+      t.position.set(-3.72, 1.5, tz);
+    }
+    const westDoorTop = lAdd(loungeWalls, new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.18, 2.4), loungeTrimMat));
+    westDoorTop.position.set(-3.72, 3.05, 0);
+    // North wall (z=-12): two panels + one cyan seam.
+    for (const px of [-2, 2]) {
+      const p = lAdd(loungeWalls, new THREE.Mesh(new THREE.BoxGeometry(3.9, 4, 0.3), loungeWallMat));
+      p.position.set(px, 2, -12);
+    }
+    const northSeam = lAdd(loungeWalls, new THREE.Mesh(new THREE.BoxGeometry(0.12, 4, 0.1), loungeTrimMat));
+    northSeam.position.set(0, 2, -11.82);
+    // Starboard wall (z=+12) with the hyperglass window opening
+    // (local x -3.5..+3.5, y 0.8..3.3): bottom + top strips, side segments.
+    const starBottom = lAdd(loungeWalls, new THREE.Mesh(new THREE.BoxGeometry(8, 0.8, 0.3), loungeWallMat));
+    starBottom.position.set(0, 0.4, 12);
+    const starTop = lAdd(loungeWalls, new THREE.Mesh(new THREE.BoxGeometry(8, 0.7, 0.3), loungeWallMat));
+    starTop.position.set(0, 3.65, 12);
+    for (const px of [-3.75, 3.75]) {
+      const s = lAdd(loungeWalls, new THREE.Mesh(new THREE.BoxGeometry(0.5, 2.5, 0.3), loungeWallMat));
+      s.position.set(px, 2.05, 12);
+    }
+    // Flat ceiling at y=22 (same as the bridge's flat ceiling, GLB preview).
+    const loungeCeiling = lAdd(loungeWalls, new THREE.Mesh(new THREE.BoxGeometry(8, 0.2, 24), loungeDarkMat));
+    loungeCeiling.position.set(0, 3.95, 0);
+    // Violet ring under the ceiling edge — the purple threading.
+    for (const vz of [-11.8, 11.8]) {
+      const v = lAdd(loungeWalls, new THREE.Mesh(new THREE.BoxGeometry(8, 0.08, 0.12), loungeVioletMat));
+      v.position.set(0, 3.82, vz);
+    }
+    for (const vx of [-3.82, 3.82]) {
+      const v = lAdd(loungeWalls, new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.08, 23.6), loungeVioletMat));
+      v.position.set(vx, 3.82, 0);
+    }
+    lounge.add(loungeWalls);
+
+    // --- loungeFloor: seam strips on the plate + sunken pit rims/floors -----
+    const loungeFloor = new THREE.Group();
+    // Walkway seam strips (central walkway z -3..+3 stays clear).
+    for (const fz of [-2.9, 2.9]) {
+      const s = lAdd(loungeFloor, new THREE.Mesh(new THREE.BoxGeometry(8, 0.04, 0.14), loungeFloorMat));
+      s.position.set(0, 0.27, fz);
+    }
+    for (const fx of [-3.9, 3.9]) {
+      const s = lAdd(loungeFloor, new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.04, 5.8), loungeFloorMat));
+      s.position.set(fx, 0.27, 0);
+    }
+    // Two sunken pits: Pit A port (z -11..-3), Pit B starboard (z +3..+11).
+    // Each pit: x local -3..+3, rim 0.7 m proud of the plate, seat bases
+    // below the rim tops. The walkway-side rim leaves a 1.5 m entry gap.
+    for (const zc of [-7, 7]) {
+      const sideSign = zc < 0 ? -1 : 1; // far side is outward from walkway
+      const farZ = zc + 4 * sideSign;
+      const walkZ = zc - 4 * sideSign;
+      const pitFloor = lAdd(loungeFloor, new THREE.Mesh(new THREE.BoxGeometry(6, 0.08, 8), loungeDarkMat));
+      pitFloor.position.set(0, 0.29, zc);
+      // Far rim (full length) + x-side rims.
+      const farRim = lAdd(loungeFloor, new THREE.Mesh(new THREE.BoxGeometry(6.5, 0.7, 0.25), loungeWallMat));
+      farRim.position.set(0, 0.60, farZ);
+      for (const rx of [-3.125, 3.125]) {
+        const r = lAdd(loungeFloor, new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.7, 8), loungeWallMat));
+        r.position.set(rx, 0.60, zc);
+      }
+      // Walkway-side rim: two segments with a 1.5 m entry gap at x=0.
+      for (const gx of [-1.875, 1.875]) {
+        const r = lAdd(loungeFloor, new THREE.Mesh(new THREE.BoxGeometry(2.25, 0.7, 0.25), loungeWallMat));
+        r.position.set(gx, 0.60, walkZ);
+      }
+      // Cyan top edge on the far rim + x-side rims.
+      const farTop = lAdd(loungeFloor, new THREE.Mesh(new THREE.BoxGeometry(6.5, 0.06, 0.1), loungeTrimMat));
+      farTop.position.set(0, 0.98, farZ);
+      for (const rx of [-3.125, 3.125]) {
+        const t = lAdd(loungeFloor, new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.06, 8), loungeTrimMat));
+        t.position.set(rx, 0.98, zc);
+      }
+    }
+    lounge.add(loungeFloor);
+
+    // --- loungeSeats: modular benches + backs + throw cushions, per pit -----
+    const loungeSeats = new THREE.Group();
+    for (const zc of [-7, 7]) {
+      for (const side of [-1, 1]) {
+        const bench = lAdd(loungeSeats, new THREE.Mesh(
+          new THREE.BoxGeometry(0.9, 0.35, 6.5), side < 0 ? loungeFabricA : loungeFabricB
+        ));
+        bench.position.set(side * 2.2, 0.505, zc);
+        // Back cushion leaning outward against the rim.
+        const back = lAdd(loungeSeats, new THREE.Mesh(
+          new THREE.BoxGeometry(0.3, 0.55, 6.0), loungeFabricC
+        ));
+        back.position.set(side * 2.62, 0.85, zc);
+        back.rotation.z = side < 0 ? 0.18 : -0.18;
+      }
+      // Three throw cushions per pit, slightly askew — weather-worn.
+      const cushionSpots = [
+        [-2.2, zc - 2, 0.4, loungeFabricC],
+        [2.2, zc + 0.3, -0.3, loungeFabricD],
+        [-2.2, zc + 2.2, 0.65, loungeFabricD],
+      ];
+      for (const [cx, cz, rot, mat] of cushionSpots) {
+        const c = lAdd(loungeSeats, new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.18, 0.5), mat));
+        c.position.set(cx, 0.77, cz);
+        c.rotation.y = rot;
+      }
+    }
+    lounge.add(loungeSeats);
+
+    // --- loungeWindow: hyperglass on the starboard wall ----------------------
+    // Transparent glass (same language as the bridge viewport) + black
+    // surround + violet emissive filaments. The sky dome + moving sun
+    // show through it now (Nov 10 sky rule).
+    const loungeWindow = new THREE.Group();
+    const hgGlass = lAdd(loungeWindow, new THREE.Mesh(new THREE.BoxGeometry(7, 2.5, 0.06), loungeGlassMat));
+    hgGlass.position.set(0, 2.05, 12);
+    for (const [fy, fw, fh] of [[3.42, 7.4, 0.25], [0.80, 7.4, 0.25]]) {
+      const bar = lAdd(loungeWindow, new THREE.Mesh(new THREE.BoxGeometry(fw, fh, 0.14), loungeDarkMat));
+      bar.position.set(0, fy, 12);
+    }
+    for (const px of [-3.62, 3.62]) {
+      const bar = lAdd(loungeWindow, new THREE.Mesh(new THREE.BoxGeometry(0.25, 2.9, 0.14), loungeDarkMat));
+      bar.position.set(px, 2.05, 12);
+    }
+    // Violet filaments: two mullions dividing the glass into three panes
+    // + a strip under the top frame + a sill strip.
+    for (const mx of [-1.17, 1.17]) {
+      const m = lAdd(loungeWindow, new THREE.Mesh(new THREE.BoxGeometry(0.08, 2.5, 0.1), loungeVioletMat));
+      m.position.set(mx, 2.05, 12.02);
+    }
+    const hgTop = lAdd(loungeWindow, new THREE.Mesh(new THREE.BoxGeometry(7, 0.08, 0.1), loungeVioletMat));
+    hgTop.position.set(0, 3.28, 12.02);
+    const hgSill = lAdd(loungeWindow, new THREE.Mesh(new THREE.BoxGeometry(7, 0.08, 0.1), loungeVioletMat));
+    hgSill.position.set(0, 0.85, 12.02);
+    lounge.add(loungeWindow);
+
+    // --- loungeLights: purple wash + one violet ceiling fixture --------------
+    const loungeLights = new THREE.Group();
+    const loungeLight = new THREE.PointLight(0x8b5cf6, 60, 28, 2);
+    loungeLight.position.set(0, 2.6, 0);
+    lounge.add(loungeLight);
+    const loungeFixture = lAdd(loungeLights, new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.06, 0.3), loungeVioletMat));
+    loungeFixture.position.set(0, 3.8, 0);
+    lounge.add(loungeLights);
+
+    scene.add(lounge);
+    meshCount += loungeMeshes;
+    const loungeStatus = {
+      groups: ['loungeVolume', 'loungeWalls', 'loungeFloor', 'loungeSeats', 'loungeWindow', 'loungeLights'],
+      meshes: loungeMeshes,
+      room: 'D1, x 13..21, z -12..+12, y 18..22',
+      window: 'hyperglass 7 x 2.5 m, starboard wall z=+12, violet filaments',
+      bulkhead: 'x=21, solid, door closed — no sightline to bridge',
+      placementNote: 'plan Option C strip x 4..12 is GLB-preview coords; web-shell bridge is a cylinder x 21..39, so the lounge sits x 13..21 directly after it; Option C vs A ruling still open',
+    };
+
+    // --- Whole-interior build, Nov 10, 2026 (her voice call: everything in
+    // its place inside, lounge included) -------------------------------------
+    // Layout plan Revision 4 governs. One modular group per room; rooms use
+    // WORLD coordinates inside groups at the origin (the plan's coords are
+    // all world — converting them would invite errors). Each room group is
+    // still one removable/hideable unit. 110 m working scale kept.
+    // Wall helper: a straight wall run with open door gaps (2 m wide, full
+    // wall height, no door panels — the plan's convention for interior
+    // room doors). axis 'x': run along X at fixed z; axis 'z': along Z at
+    // fixed x. doors: [{c, w}] centred at c along the run. Every solid
+    // segment gets one vertical cyan seam strip at its centre (the shell's
+    // wall language: dark gunmetal panels, cyan-teal seams).
+    const roomWallMat = new THREE.MeshStandardMaterial({ color: 0x1a1e24, metalness: 0.75, roughness: 0.55, side: THREE.DoubleSide });
+    const roomTrimMat = new THREE.MeshStandardMaterial({ color: CYAN, emissive: CYAN, emissiveIntensity: 0.9 });
+    let roomMeshes = 0;
+    function rAdd(parent, mesh) { parent.add(mesh); roomMeshes++; return mesh; }
+    function wallRunX(x0, x1, z, y0, h, t, mat, doors) {
+      const g = new THREE.Group();
+      const gaps = (doors || []).map(d => [d.c - (d.w || 2) / 2, d.c + (d.w || 2) / 2]).sort((a, b) => a[0] - b[0]);
+      let cur = x0;
+      const segs = [];
+      for (const [g0, g1] of gaps) {
+        if (g0 > cur + 0.01) segs.push([cur, g0]);
+        cur = Math.max(cur, g1);
+      }
+      if (x1 > cur + 0.01) segs.push([cur, x1]);
+      for (const [s0, s1] of segs) {
+        rAdd(g, new THREE.Mesh(new THREE.BoxGeometry(s1 - s0, h, t), mat)).position.set((s0 + s1) / 2, y0 + h / 2, z);
+        rAdd(g, new THREE.Mesh(new THREE.BoxGeometry(0.12, h - 0.02, t + 0.06), roomTrimMat)).position.set((s0 + s1) / 2, y0 + h / 2, z);
+      }
+      return g;
+    }
+    function wallRunZ(z0, z1, x, y0, h, t, mat, doors) {
+      const g = new THREE.Group();
+      const gaps = (doors || []).map(d => [d.c - (d.w || 2) / 2, d.c + (d.w || 2) / 2]).sort((a, b) => a[0] - b[0]);
+      let cur = z0;
+      const segs = [];
+      for (const [g0, g1] of gaps) {
+        if (g0 > cur + 0.01) segs.push([cur, g0]);
+        cur = Math.max(cur, g1);
+      }
+      if (z1 > cur + 0.01) segs.push([cur, z1]);
+      for (const [s0, s1] of segs) {
+        rAdd(g, new THREE.Mesh(new THREE.BoxGeometry(t, h, s1 - s0), mat)).position.set(x, y0 + h / 2, (s0 + s1) / 2);
+        rAdd(g, new THREE.Mesh(new THREE.BoxGeometry(t + 0.06, h - 0.02, 0.12), roomTrimMat)).position.set(x, y0 + h / 2, (s0 + s1) / 2);
+      }
+      return g;
+    }
+
+    // --- D3 rooms (floor y=2, walls y 2..10) ---------------------------------
+    // The existing D3 walkway walls (z=±11.5) are the outer enclosure —
+    // no doubled outer walls (plan). North/south room boundaries use them.
+    // --- D3: hold / prep bay (x -16..+2, z -12..0) ---------------------------
+    // North boundary = existing walkway wall (z=-11.5). West = belly bay's
+    // forward wall (x=-16) + a 2 m corner segment at z -12..-10. NO brig —
+    // audit flag: do not build the brig until she rules.
+    const d3HoldPrep = new THREE.Group();
+    const mHoldPrep = roomMeshes;
+    d3HoldPrep.add(wallRunX(-16, 2, 0, 2, 8, 0.3, roomWallMat, [{ c: -8 }])); // south wall, door at x=-8
+    d3HoldPrep.add(wallRunZ(-12, 0, 2, 2, 8, 0.3, roomWallMat, [{ c: -6 }])); // east wall, door at z=-6
+    d3HoldPrep.add(wallRunZ(-12, -10, -16, 2, 8, 0.3, roomWallMat, []));      // west corner segment
+    scene.add(d3HoldPrep);
+    const d3HoldPrepStatus = { meshes: roomMeshes - mHoldPrep, room: 'D3 hold/prep bay, x -16..+2, z -12..0', brig: 'NOT built — audit flag, needs her ruling' };
+    // --- D3: aux bay (x 16..32, z -8..+8) — stasis chamber lives here --------
+    const d3AuxBay = new THREE.Group();
+    const mAuxBay = roomMeshes;
+    d3AuxBay.add(wallRunZ(-8, 8, 16, 2, 8, 0.3, roomWallMat, [{ c: 0 }])); // west wall, door at z=0
+    d3AuxBay.add(wallRunZ(-8, 8, 32, 2, 8, 0.3, roomWallMat, [{ c: 0 }])); // east wall, door at z=0 (shared with hold)
+    d3AuxBay.add(wallRunX(16, 32, -8, 2, 8, 0.3, roomWallMat, []));        // north wall
+    d3AuxBay.add(wallRunX(16, 32, 8, 2, 8, 0.3, roomWallMat, []));         // south wall
+    // Medical pod detailing (plan-specified, beside the pod): white wall
+    // monitor panel + instrument tray/table + wall supply cabinet.
+    // White + teal, no text, no occupant. Chamber stays EMPTY.
+    const medWhite = new THREE.MeshStandardMaterial({ color: 0xe8ecef, metalness: 0.2, roughness: 0.4 });
+    const medTeal = new THREE.MeshStandardMaterial({ color: 0x2a9d8f, metalness: 0.3, roughness: 0.4 });
+    rAdd(d3AuxBay, new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.5, 0.1), medWhite)).position.set(26, 4.5, -7.9);
+    rAdd(d3AuxBay, new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.1, 0.12), medTeal)).position.set(26, 5.3, -7.9);
+    rAdd(d3AuxBay, new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.08, 0.6), medWhite)).position.set(27, 2.85, -6);
+    rAdd(d3AuxBay, new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.56, 0.5), medWhite)).position.set(27, 2.53, -6);
+    rAdd(d3AuxBay, new THREE.Mesh(new THREE.BoxGeometry(1.0, 2.0, 0.4), medWhite)).position.set(22, 3.5, -7.75);
+    rAdd(d3AuxBay, new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.5, 0.06), medTeal)).position.set(22.4, 3.5, -7.52);
+    scene.add(d3AuxBay);
+    const d3AuxBayStatus = { meshes: roomMeshes - mAuxBay, room: 'D3 aux bay, x 16..32, z -8..+8', chamber: 'stasis GLB at (24,2,0), empty, LAYS FLAT with DARK GLASS + purple plasma lights around it (FINAL ruling Nov 23, 2026, ~10:11 PST — aux bay, matching the D3 sheet\'s VAL-18 stasis label)', medical: 'monitor + tray + cabinet, white + teal, no text' };
+    // --- D3: hold (x 32..41.5, z -12..+12) — INFERRED, empty -----------------
+    // West boundary = aux bay east wall (x=32, built above). North/south =
+    // existing walkway walls (no doubling). NO vault — needs her word; the
+    // hold stays an empty inferred room. Sheet does not label this room;
+    // assigned as the hold because the dossier lists a hold on D3 and this
+    // is the only unassigned large cargo space. Flagged as inferred.
+    const d3Hold = new THREE.Group();
+    const mHold = roomMeshes;
+    d3Hold.add(wallRunZ(-11.5, 11.5, 41.5, 2, 8, 0.3, roomWallMat, [])); // east wall
+    scene.add(d3Hold);
+    const d3HoldStatus = { meshes: roomMeshes - mHold, room: 'D3 hold, x 32..41.5, z -11.5..+11.5 (inferred, empty)', vault: 'NOT built — needs her word' };
+    // --- D3: lower quarters N (x 2..16, z -12..-2) + S (x 2..16, z +2..+12) --
+    // Sheet layout: 2 big unsplit rooms. No cross-walls, no beds/sacks,
+    // no viewports — the 3-per-floor reconciliation (which side splits) is
+    // still OPEN. North/south boundaries = existing walkway walls.
+    const d3Quarters = new THREE.Group();
+    const mD3Q = roomMeshes;
+    d3Quarters.add(wallRunX(2, 16, -2, 2, 8, 0.3, roomWallMat, [{ c: 9 }])); // N south wall, door at x=9
+    d3Quarters.add(wallRunZ(-12, -2, 2, 2, 8, 0.3, roomWallMat, []));         // N west wall
+    d3Quarters.add(wallRunZ(-12, -8, 16, 2, 8, 0.3, roomWallMat, []));        // N east wall (z -8..-2 is aux bay west wall)
+    d3Quarters.add(wallRunX(2, 16, 2, 2, 8, 0.3, roomWallMat, [{ c: 9 }]));  // S north wall, door at x=9
+    d3Quarters.add(wallRunZ(2, 12, 2, 2, 8, 0.3, roomWallMat, []));          // S west wall
+    d3Quarters.add(wallRunZ(8, 12, 16, 2, 8, 0.3, roomWallMat, []));         // S east wall (z +2..+8 is aux bay west wall)
+    scene.add(d3Quarters);
+    const d3QuartersStatus = { meshes: roomMeshes - mD3Q, room: 'D3 lower quarters, 2 big rooms (sheet layout)', split: 'OPEN — which side splits into 3 is her call' };
+
+    // --- D3: heads (x -14..-6, z +2..+9) — off the D3 corridor ----------------
+    // Canon lock (Nov 10): functional reflective mirrors (REAL, not
+    // holograms), one per stall at eye level, brushed-steel frames, purple
+    // wash + cyan strip; holding tank + manual dump, NOT closed-loop.
+    // PLACEMENT (flagged): the plan says heads are "likely near the
+    // quarters" and Jasmine placed them "in the corridors" — this room sits
+    // off the D3 central corridor spine (door in its north wall at x=-10),
+    // in the open mid-aft south area, beside the lower quarters. Confirm
+    // the exact deck/spot with her before treating it as settled.
+    // 3 stalls along the south wall, each with a toilet + a real mirror.
+    const d3Heads = new THREE.Group();
+    const mHeads = roomMeshes;
+    const headsSteelMat = new THREE.MeshStandardMaterial({ color: 0xb8bcc0, metalness: 0.9, roughness: 0.35 });
+    const headsCeramicMat = new THREE.MeshStandardMaterial({ color: 0xd8dde2, metalness: 0.1, roughness: 0.3 });
+    const headsPurpleMat = new THREE.MeshStandardMaterial({ color: 0x8b5cf6, emissive: 0x8b5cf6, emissiveIntensity: 1.0 });
+    d3Heads.add(wallRunX(-14, -6, 2, 2, 8, 0.3, roomWallMat, [{ c: -10 }])); // north wall, door at x=-10 (corridor)
+    d3Heads.add(wallRunX(-14, -6, 9, 2, 8, 0.3, roomWallMat, []));          // south wall (mirror wall)
+    d3Heads.add(wallRunZ(2, 9, -14, 2, 8, 0.3, roomWallMat, []));           // west wall
+    d3Heads.add(wallRunZ(2, 9, -6, 2, 8, 0.3, roomWallMat, []));            // east wall
+    // Stall partitions (2 m tall, open fronts) at x=-12, -10, -8.
+    for (const px of [-12, -10, -8]) {
+      const part = rAdd(d3Heads, new THREE.Mesh(new THREE.BoxGeometry(0.1, 2, 2), roomWallMat));
+      part.position.set(px, 3, 8);
+    }
+    // One toilet + one real mirror per stall (stall centres x=-13, -11, -9).
+    // Mirrors sit at eye level (y=3.6, 1.6 m above the D3 floor) on the
+    // south wall, each in a brushed-steel frame. Reflector = a true planar
+    // reflection (it renders the room), not a hologram.
+    for (const sx of [-13, -11, -9]) {
+      const tBase = rAdd(d3Heads, new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.45, 0.65), headsCeramicMat));
+      tBase.position.set(sx, 2.22, 8.55);
+      const tSeat = rAdd(d3Heads, new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.08, 20), headsCeramicMat));
+      tSeat.position.set(sx, 2.5, 8.55);
+      const tTank = rAdd(d3Heads, new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.6, 0.15), headsCeramicMat));
+      tTank.position.set(sx, 2.7, 8.9);
+      const mFrame = rAdd(d3Heads, new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.9, 0.06), headsSteelMat));
+      mFrame.position.set(sx, 3.6, 8.82);
+      const mirror = new Reflector(new THREE.PlaneGeometry(1.2, 1.6), {
+        clipBias: 0.003, textureWidth: 512, textureHeight: 512, color: 0x9aa5a5,
+      });
+      mirror.rotation.y = Math.PI; // face north, into the room
+      mirror.position.set(sx, 3.6, 8.78);
+      rAdd(d3Heads, mirror);
+    }
+    // Cyan strip above the mirrors (south wall) + purple wash light.
+    const headsStrip = rAdd(d3Heads, new THREE.Mesh(new THREE.BoxGeometry(7.6, 0.08, 0.06), roomTrimMat));
+    headsStrip.position.set(-10, 4.7, 8.84);
+    const headsLight = new THREE.PointLight(0x8b5cf6, 20, 12, 2);
+    headsLight.position.set(-10, 5, 5.5);
+    d3Heads.add(headsLight);
+    // Holding tank (vertical, NE corner) + manual dump valve + outlet.
+    const tankMat = new THREE.MeshStandardMaterial({ color: 0x2a3438, metalness: 0.8, roughness: 0.4 });
+    const tank = rAdd(d3Heads, new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.65, 2.2, 24), tankMat));
+    tank.position.set(-6.9, 3.1, 8.2);
+    const dumpPipe = rAdd(d3Heads, new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.8, 12), headsSteelMat));
+    dumpPipe.position.set(-7.55, 2.4, 8.2);
+    const dumpWheel = rAdd(d3Heads, new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.04, 8, 20), headsSteelMat));
+    dumpWheel.rotation.x = Math.PI / 2; // horizontal wheel, on top of the dump pipe
+    dumpWheel.position.set(-7.55, 2.85, 8.2);
+    // Sink (entry zone): counter + basin + faucet.
+    const sinkCounter = rAdd(d3Heads, new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.9, 0.6), headsCeramicMat));
+    sinkCounter.position.set(-7, 2.45, 3.5);
+    const sinkBasin = rAdd(d3Heads, new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.15, 0.5), headsSteelMat));
+    sinkBasin.position.set(-7, 2.95, 3.5);
+    const faucet = rAdd(d3Heads, new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.4, 8), headsSteelMat));
+    faucet.position.set(-7, 3.1, 3.75);
+    scene.add(d3Heads);
+    const headsStatus = { meshes: roomMeshes - mHeads, room: 'D3 heads, x -14..-6, z +2..+9, off the D3 corridor', stalls: 3, mirrors: '3 real Reflectors (planar reflection), eye level, brushed-steel frames', tank: 'holding tank + manual dump valve (NOT closed-loop)', wash: 'purple wash + cyan strip', placement: 'FLAGGED — placed per "in the corridors, near the quarters"; confirm exact deck/spot' };
+
+    // --- D2 rooms (floor y=10, walls y 10..18) --------------------------------
+    // D2 has no existing enclosure walls (volume is wireframe), so every
+    // room gets its own outer walls. Corridors: central spine z -6..+6
+    // (x -34..+30) + perimeter strips — defined by the room walls, no
+    // separate corridor walls built.
+    // --- D2: engine room (x -4..+4, z -6..+6) — OPEN, 4 entrances -----------
+    // No walls: the space around the shaft IS the room. A thin cyan floor
+    // outline marks its bounds; the surrounding bays' walls define it.
+    const d2Engine = new THREE.Group();
+    const mEngine = roomMeshes;
+    const engOutline = rAdd(d2Engine, new THREE.LineLoop(
+      new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(-4, 0.27, -6), new THREE.Vector3(4, 0.27, -6),
+        new THREE.Vector3(4, 0.27, 6), new THREE.Vector3(-4, 0.27, 6),
+      ]), trimMatStrong
+    ));
+    engOutline.position.set(0, 10, 0);
+    scene.add(d2Engine);
+    const d2EngineStatus = { meshes: roomMeshes - mEngine, room: 'D2 engine room, x -4..+4, z -6..+6, open, 4 entrances' };
+    // --- D2: engineering bays 1-4 (support, around the engine room) ----------
+    // Each bay: 4 walls, one door gap to the central corridor (z -6..+6).
+    const d2Bays = new THREE.Group();
+    const mBays = roomMeshes;
+    // Bay 1 fore-north x 4..18, z -19..-6. Door in south wall (z=-6) at x=11.
+    d2Bays.add(wallRunX(4, 18, -19, 10, 8, 0.3, roomWallMat, []));
+    d2Bays.add(wallRunX(4, 18, -6, 10, 8, 0.3, roomWallMat, [{ c: 11 }]));
+    d2Bays.add(wallRunZ(-19, -6, 4, 10, 8, 0.3, roomWallMat, []));
+    d2Bays.add(wallRunZ(-19, -6, 18, 10, 8, 0.3, roomWallMat, []));
+    // Bay 2 aft-north x -18..-4, z -19..-6. Door in south wall at x=-11.
+    d2Bays.add(wallRunX(-18, -4, -19, 10, 8, 0.3, roomWallMat, []));
+    d2Bays.add(wallRunX(-18, -4, -6, 10, 8, 0.3, roomWallMat, [{ c: -11 }]));
+    d2Bays.add(wallRunZ(-19, -6, -18, 10, 8, 0.3, roomWallMat, []));
+    d2Bays.add(wallRunZ(-19, -6, -4, 10, 8, 0.3, roomWallMat, []));
+    // Bay 3 fore-south x 4..18, z +6..+19. Door in north wall (z=+6) at x=11.
+    d2Bays.add(wallRunX(4, 18, 19, 10, 8, 0.3, roomWallMat, []));
+    d2Bays.add(wallRunX(4, 18, 6, 10, 8, 0.3, roomWallMat, [{ c: 11 }]));
+    d2Bays.add(wallRunZ(6, 19, 4, 10, 8, 0.3, roomWallMat, []));
+    d2Bays.add(wallRunZ(6, 19, 18, 10, 8, 0.3, roomWallMat, []));
+    // Bay 4 aft-south x -18..-4, z +6..+19. Door in north wall at x=-11.
+    d2Bays.add(wallRunX(-18, -4, 19, 10, 8, 0.3, roomWallMat, []));
+    d2Bays.add(wallRunX(-18, -4, 6, 10, 8, 0.3, roomWallMat, [{ c: -11 }]));
+    d2Bays.add(wallRunZ(6, 19, -18, 10, 8, 0.3, roomWallMat, []));
+    d2Bays.add(wallRunZ(6, 19, -4, 10, 8, 0.3, roomWallMat, []));
+    scene.add(d2Bays);
+    const d2BaysStatus = { meshes: roomMeshes - mBays, room: 'D2 engineering bays 1-4, each with a corridor door' };
+    // --- D2: mess (x -34..-20, z -19..-9) — WALLS ONLY ------------------------
+    // Audit flag (e): do NOT build the mess interior until she rules. The
+    // interior is now specified (clean gunmetal table + purple/cyan
+    // underglow) so the build is defined when she rules — walls only here.
+    const d2Mess = new THREE.Group();
+    const mMess = roomMeshes;
+    d2Mess.add(wallRunX(-34, -20, -19, 10, 8, 0.3, roomWallMat, []));
+    d2Mess.add(wallRunX(-34, -20, -9, 10, 8, 0.3, roomWallMat, [{ c: -27 }]));
+    d2Mess.add(wallRunZ(-19, -9, -34, 10, 8, 0.3, roomWallMat, []));
+    d2Mess.add(wallRunZ(-19, -9, -20, 10, 8, 0.3, roomWallMat, []));
+    // --- Mess interior (canon lock, Nov 10): fresh and new -------------------
+    // Clean gunmetal communal table + benches, purple + cyan underglow.
+    // Jade and Nikita hold it down (lore — no figures built).
+    const messTableMat = new THREE.MeshStandardMaterial({ color: 0x3a4048, metalness: 0.85, roughness: 0.25 });
+    const messPurpleMat = new THREE.MeshStandardMaterial({ color: 0x8b5cf6, emissive: 0x8b5cf6, emissiveIntensity: 1.2 });
+    const messTableTop = rAdd(d2Mess, new THREE.Mesh(new THREE.BoxGeometry(8, 0.15, 2), messTableMat));
+    messTableTop.position.set(-27, 11, -14);
+    for (const [lx, lz] of [[-30.5, -14.8], [-30.5, -13.2], [-23.5, -14.8], [-23.5, -13.2]]) {
+      const leg = rAdd(d2Mess, new THREE.Mesh(new THREE.BoxGeometry(0.15, 1, 0.15), messTableMat));
+      leg.position.set(lx, 10.5, lz);
+    }
+    for (const bz of [-16.5, -11.5]) {
+      const bench = rAdd(d2Mess, new THREE.Mesh(new THREE.BoxGeometry(8, 0.12, 0.5), messTableMat));
+      bench.position.set(-27, 10.55, bz);
+      const benchBase = rAdd(d2Mess, new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.5, 0.4), messTableMat));
+      benchBase.position.set(-27, 10.3, bz);
+    }
+    // Underglow: purple strips under the tabletop's long edges + a cyan
+    // strip along the table base + a subtle purple wash light.
+    for (const gz of [-15, -13]) {
+      const glow = rAdd(d2Mess, new THREE.Mesh(new THREE.BoxGeometry(7.8, 0.06, 0.1), messPurpleMat));
+      glow.position.set(-27, 10.9, gz);
+    }
+    const messCyan = rAdd(d2Mess, new THREE.Mesh(new THREE.BoxGeometry(7.8, 0.06, 0.1), roomTrimMat));
+    messCyan.position.set(-27, 10.2, -14);
+    const messLight = new THREE.PointLight(0x8b5cf6, 18, 12, 2);
+    messLight.position.set(-27, 11.5, -14);
+    d2Mess.add(messLight);
+    scene.add(d2Mess);
+    const d2MessStatus = { meshes: roomMeshes - mMess, room: 'D2 mess, x -34..-20, z -19..-9', interior: 'clean gunmetal communal table + benches, purple + cyan underglow', crew: 'Jade and Nikita hold it down' };
+    // --- D2: airlock (x -34..-26, z +13..+19) --------------------------------
+    // Door in north wall (z=+13). The shell's sealed airlock door panel
+    // stays at (10,13,21.5) — the plan's move to (x -30, z +20) is GLB-only
+    // and flagged/revertible, NOT confirmed; not moved here.
+    const d2Airlock = new THREE.Group();
+    const mAirlock = roomMeshes;
+    d2Airlock.add(wallRunX(-34, -26, 13, 10, 8, 0.3, roomWallMat, [{ c: -30 }]));
+    d2Airlock.add(wallRunX(-34, -26, 19, 10, 8, 0.3, roomWallMat, []));
+    d2Airlock.add(wallRunZ(13, 19, -34, 10, 8, 0.3, roomWallMat, []));
+    d2Airlock.add(wallRunZ(13, 19, -26, 10, 8, 0.3, roomWallMat, []));
+    scene.add(d2Airlock);
+    const d2AirlockStatus = { meshes: roomMeshes - mAirlock, room: 'D2 airlock, x -34..-26, z +13..+19', panel: 'sealed panel stays at (10,13,21.5) — GLB move NOT confirmed' };
+    // --- D2: lab — forward circular room, centre (30,10,0), r 9.5 ------------
+    // INFERENCE (flagged, needs her confirmation): the sheet's unlabeled
+    // forward circular room = the lab (Alyha's aquatic plant place).
+    // Benches + empty glass tanks + hydroponics grow beds and plants
+    // (Alyha's domain). Door gap faces aft (-X, toward the corridor).
+    // Built as the lab per the plan; flagged.
+    const d2Lab = new THREE.Group();
+    const mLab = roomMeshes;
+    const labWallMat = new THREE.MeshStandardMaterial({ color: 0x1a1e24, metalness: 0.75, roughness: 0.55, side: THREE.DoubleSide });
+    const labGapHalf = 0.105; // ~1 m gap each side of aft (-X), theta 3pi/2
+    const labWall = rAdd(d2Lab, new THREE.Mesh(
+      new THREE.CylinderGeometry(9.5, 9.5, 8, 48, 1, true, Math.PI * 1.5 + labGapHalf, Math.PI * 2 - labGapHalf * 2),
+      labWallMat
+    ));
+    labWall.position.set(30, 14, 0);
+    // Cyan trim strips at the door gap edges.
+    for (const tz of [-1.0, 1.0]) {
+      const t = rAdd(d2Lab, new THREE.Mesh(new THREE.BoxGeometry(0.12, 8, 0.18), roomTrimMat));
+      t.position.set(20.55, 14, tz);
+    }
+    // Benches + empty glass tanks. Hydroponics grow beds + plants added
+    // below (Alyha's domain) — supersedes the earlier "no plants" note.
+    const labBenchMat = new THREE.MeshStandardMaterial({ color: 0x2e3440, metalness: 0.7, roughness: 0.5 });
+    const labGlassMat = new THREE.MeshPhysicalMaterial({ color: 0xa8d8e8, metalness: 0, roughness: 0.05, transparent: true, opacity: 0.18, clearcoat: 1, clearcoatRoughness: 0.05, side: THREE.DoubleSide, depthWrite: false });
+    for (const bz of [-4, 4]) {
+      rAdd(d2Lab, new THREE.Mesh(new THREE.BoxGeometry(3, 0.9, 1), labBenchMat)).position.set(32, 10.7, bz);
+      rAdd(d2Lab, new THREE.Mesh(new THREE.BoxGeometry(3.1, 0.08, 1.1), roomTrimMat)).position.set(32, 11.18, bz);
+      rAdd(d2Lab, new THREE.Mesh(new THREE.BoxGeometry(1, 1.2, 1), labGlassMat)).position.set(32, 11.8, bz);
+    }
+    rAdd(d2Lab, new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.4, 1.2), labGlassMat)).position.set(26, 10.95, 0);
+    // Hydroponics (Alyha's domain — medicine woman, hydroponics cultivator,
+    // green thumb): two grow beds + plants, north and south arcs of the lab.
+    // The "no plants" note above is superseded by this order — the beds and
+    // plants go in now. Benches + empty glass tanks stay as built.
+    const bedTrayMat = new THREE.MeshStandardMaterial({ color: 0x2e3440, metalness: 0.7, roughness: 0.5 });
+    const bedSoilMat = new THREE.MeshStandardMaterial({ color: 0x2a1f16, metalness: 0, roughness: 1.0 });
+    const plantStemMat = new THREE.MeshStandardMaterial({ color: 0x2d5a2d, metalness: 0, roughness: 0.9 });
+    const plantLeafMat = new THREE.MeshStandardMaterial({ color: 0x4caf50, metalness: 0, roughness: 0.8 });
+    for (const bz of [-6.5, 6.5]) {
+      // Grow bed: tray + soil + nutrient strip (cyan, along the inner edge).
+      const tray = rAdd(d2Lab, new THREE.Mesh(new THREE.BoxGeometry(5, 0.7, 1.2), bedTrayMat));
+      tray.position.set(29, 10.35, bz);
+      const soil = rAdd(d2Lab, new THREE.Mesh(new THREE.BoxGeometry(4.8, 0.15, 1.0), bedSoilMat));
+      soil.position.set(29, 10.75, bz);
+      const nutrient = rAdd(d2Lab, new THREE.Mesh(new THREE.BoxGeometry(5, 0.05, 0.08), roomTrimMat));
+      nutrient.position.set(29, 10.72, bz + (bz < 0 ? 0.55 : -0.55));
+      // Plants: 5 per bed, a stem + a leafy crown each, varied sizes.
+      for (let i = 0; i < 5; i++) {
+        const px = 27 + i;
+        const s = 0.85 + (i % 3) * 0.12;
+        const stem = rAdd(d2Lab, new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.45, 8), plantStemMat));
+        stem.position.set(px, 11.05, bz);
+        const crown = rAdd(d2Lab, new THREE.Mesh(new THREE.IcosahedronGeometry(0.32 * s, 0), plantLeafMat));
+        crown.scale.y = 0.75;
+        crown.position.set(px, 11.45, bz);
+      }
+    }
+    scene.add(d2Lab);
+    const d2LabStatus = { meshes: roomMeshes - mLab, room: 'D2 lab, circular r 9.5 at (30,10,0) — INFERENCE, needs her confirmation', contents: 'benches + empty glass tanks + hydroponics grow beds + plants (Alyha\'s domain)' };
+
+    // --- D2: fore wall + viewport (x=+42, forward of the lab) -----------------
+    // Per the layout plan (Rev 4): the open-glass viewport on D2 near the
+    // lab. A NEW forward wall at x=+42 (z -19..+19, y 10..18) with a
+    // 10 x 3.5 window opening centred (z -5..+5, y 12.25..15.75). The lab's
+    // forward edge is x=39.5, so the wall stands 2.35 m clear of it.
+    // Transparent glass + green outline (same language as the bridge
+    // viewport) — the sky dome + moving sun show through.
+    const d2ForeWall = new THREE.Group();
+    const mFore = roomMeshes;
+    d2ForeWall.add(wallRunZ(-19, -5, 42, 10, 8, 0.3, roomWallMat, []));   // north segment, full height
+    d2ForeWall.add(wallRunZ(5, 19, 42, 10, 8, 0.3, roomWallMat, []));    // south segment, full height
+    d2ForeWall.add(wallRunZ(-5, 5, 42, 10, 2.25, 0.3, roomWallMat, [])); // bottom strip, y 10..12.25
+    d2ForeWall.add(wallRunZ(-5, 5, 42, 15.75, 2.25, 0.3, roomWallMat, [])); // top strip, y 15.75..18
+    // Window glass: 10 x 3.5, in the YZ plane at x=42, centre y=14, z=0.
+    const foreGlass = rAdd(d2ForeWall, new THREE.Mesh(new THREE.PlaneGeometry(10, 3.5), winGlassMat));
+    foreGlass.rotation.y = Math.PI / 2;
+    foreGlass.position.set(42, 14, 0);
+    // Green outline around the opening (rectangle in the YZ plane).
+    const forePts = [
+      new THREE.Vector3(42.06, 12.25, -5), new THREE.Vector3(42.06, 12.25, 5),
+      new THREE.Vector3(42.06, 15.75, 5), new THREE.Vector3(42.06, 15.75, -5),
+    ];
+    rAdd(d2ForeWall, new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(forePts), new THREE.LineBasicMaterial({ color: GREEN })));
+    scene.add(d2ForeWall);
+    const d2ForeWallStatus = { meshes: roomMeshes - mFore, room: 'D2 fore wall + viewport, x=+42, 10 x 3.5 window (z -5..+5, y 12.25..15.75)', glass: 'transparent, sky shows through' };
+
+    // --- D1 rooms (floor y=18, walls y 18..22) --------------------------------
+    // D1 headroom is 4 m (hull curve caps it near y=22 at z=±12) — walls
+    // run y 18..22, same as the GLB preview. D1 has no existing enclosure
+    // walls, so every room gets its own outer walls.
+    // --- D1: Cyphr Bay (x -38..-8, z -12..+12) — observation / lesson ---------
+    const d1CyphrBay = new THREE.Group();
+    const mCyphr = roomMeshes;
+    d1CyphrBay.add(wallRunX(-38, -8, -12, 18, 4, 0.3, roomWallMat, []));          // north wall
+    d1CyphrBay.add(wallRunX(-38, -8, 12, 18, 4, 0.3, roomWallMat, []));           // south wall
+    d1CyphrBay.add(wallRunZ(-12, 12, -38, 18, 4, 0.3, roomWallMat, []));          // west (aft) wall
+    d1CyphrBay.add(wallRunZ(-12, 12, -8, 18, 4, 0.3, roomWallMat, [{ c: 0 }]));  // east wall, door at z=0 (corridor)
+    // Hex window (placeholder) on the aft wall: transparent hex glass + cyan outline.
+    // See-through now — the sky dome + moving sun show through it.
+    const hexGlass = rAdd(d1CyphrBay, new THREE.Mesh(
+      new THREE.CircleGeometry(3, 6),
+      winGlassMat
+    ));
+    hexGlass.rotation.y = Math.PI / 2;
+    hexGlass.position.set(-37.9, 20, 0);
+    const hexPts = [];
+    for (let k = 0; k < 6; k++) {
+      const a = k * Math.PI / 3;
+      hexPts.push(new THREE.Vector3(-37.85, 20 + 3 * Math.sin(a), 3 * Math.cos(a)));
+    }
+    rAdd(d1CyphrBay, new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(hexPts), trimMatStrong));
+    scene.add(d1CyphrBay);
+    const d1CyphrBayStatus = { meshes: roomMeshes - mCyphr, room: 'D1 Cyphr Bay, x -38..-8, z -12..+12', window: 'hex placeholder on aft wall — transparent, sky shows through' };
+    // --- D1: upper quarters (sheet layout, 5 cabins + lift nook) --------------
+    // Sheet: N zone x -8..+12, z -12..-3; S zone x -8..+12, z +3..+12.
+    // Corridor-side walls (z=∓3) stop at the shaft (x ±4.5) — the corridor
+    // wraps around the shaft there, so the middle cabins (x -1..+6) are
+    // OPEN to the corridor, no doors. The N x=-1 cross-wall is OMITTED
+    // (it would cut through the lift tube) — the N middle cabin IS the
+    // lift nook. No beds/sacks/viewports. The 3-per-floor reconciliation
+    // (Option C vs A) is still OPEN — her ruling settles it.
+    const d1Quarters = new THREE.Group();
+    const mD1Q = roomMeshes;
+    // N zone: north wall, south wall segments with doors at x=-6 and x=+9,
+    // cross-wall at x=+6 only, east wall at x=+12.
+    // N zone north wall WITH the quarters window: the solid wall is replaced
+    // by segments around a 6 x 2.5 window in the east N cabin (x 6..12,
+    // y 18.75..21.25). Side segment x -8..+6 full height; bottom/top strips
+    // under/over the window. Transparent glass + green outline — the sky
+    // dome + moving sun show through.
+    d1Quarters.add(wallRunX(-8, 6, -12, 18, 4, 0.3, roomWallMat, []));
+    d1Quarters.add(wallRunX(6, 12, -12, 18, 0.75, 0.3, roomWallMat, []));
+    d1Quarters.add(wallRunX(6, 12, -12, 21.25, 0.75, 0.3, roomWallMat, []));
+    const qWinGlass = rAdd(d1Quarters, new THREE.Mesh(new THREE.PlaneGeometry(6, 2.5), winGlassMat));
+    qWinGlass.position.set(9, 20, -12);
+    const qWinPts = [
+      new THREE.Vector3(6, 18.75, -12.06), new THREE.Vector3(12, 18.75, -12.06),
+      new THREE.Vector3(12, 21.25, -12.06), new THREE.Vector3(6, 21.25, -12.06),
+    ];
+    rAdd(d1Quarters, new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(qWinPts), new THREE.LineBasicMaterial({ color: GREEN })));
+    d1Quarters.add(wallRunX(-8, -4.5, -3, 18, 4, 0.3, roomWallMat, [{ c: -6 }]));
+    d1Quarters.add(wallRunX(4.5, 12, -3, 18, 4, 0.3, roomWallMat, [{ c: 9 }]));
+    d1Quarters.add(wallRunZ(-12, -3, 6, 18, 4, 0.3, roomWallMat, []));
+    d1Quarters.add(wallRunZ(-12, -3, 12, 18, 4, 0.3, roomWallMat, []));
+    // S zone: south wall, north wall segments with doors at x=-6 and x=+9,
+    // cross-walls at x=-1 and x=+6, east wall at x=+12.
+    d1Quarters.add(wallRunX(-8, 12, 12, 18, 4, 0.3, roomWallMat, []));
+    d1Quarters.add(wallRunX(-8, -4.5, 3, 18, 4, 0.3, roomWallMat, [{ c: -6 }]));
+    d1Quarters.add(wallRunX(4.5, 12, 3, 18, 4, 0.3, roomWallMat, [{ c: 9 }]));
+    d1Quarters.add(wallRunZ(3, 12, -1, 18, 4, 0.3, roomWallMat, []));
+    d1Quarters.add(wallRunZ(3, 12, 6, 18, 4, 0.3, roomWallMat, []));
+    d1Quarters.add(wallRunZ(3, 12, 12, 18, 4, 0.3, roomWallMat, []));
+    scene.add(d1Quarters);
+    const d1QuartersStatus = { meshes: roomMeshes - mD1Q, room: 'D1 upper quarters, sheet layout (5 cabins + lift nook)', window: 'N wall, east cabin — 6 x 2.5, transparent, sky shows through', reconciliation: 'OPEN — Option C vs A, middle cabins open to corridor, N x=-1 cross-wall omitted (lift tube)' };
+
+    // --- Bridge detailing — REMOVED Nov 10, 2026: now inside the clean bridge GLB --
+    // The old procedural dais (r 5.5/5.0/4.5), console arcs (r 6), floor
+    // traces and status dots were children of the old cylinder bridge group.
+    // The clean bridge GLB (infinity6-bridge-clean-2026-11-10.glb) carries
+    // all of it — 8 m dais, x30 control-station console, floor traces,
+    // pinpoints — plus the 13-screen array and the dome skylight, which
+    // were the open items here. Keeping the old block would duplicate the
+    // dais/arcs inside the GLB room at the wrong scale.
+    const bridgeDetailStatus = { meshes: 0, room: 'Bridge detailing now inside the clean bridge GLB (dais, x30 console, traces, pinpoints, 13 screens, dome skylight)', notBuilt: 'none — GLB carries it all' };
+    // --- Lift (beside the Reactor Shaft, centre of the ship) ------------------
+    // Smooth ship lift, solid reinforced panels, NO glass; one eye-level
+    // slit on the car's south face (y 11.5..11.75) + a matching slot in the
+    // shaft wall (see the shaft edit below). Car parked at D2. East-face
+    // doors at each deck. D1 airlock transition at the D1 lift landing.
+    const liftGroup = new THREE.Group();
+    const mLift = roomMeshes;
+    const liftMat = new THREE.MeshStandardMaterial({ color: 0x2a2f38, metalness: 0.7, roughness: 0.4 });
+    const liftTube = rAdd(liftGroup, new THREE.Mesh(new THREE.BoxGeometry(3.4, 20, 3.4), liftMat));
+    liftTube.position.set(0, 12, -6.3); // x -1.7..+1.7, z -8..-4.6, y 2..22
+    const liftTubeEdge = rAdd(liftGroup, new THREE.LineSegments(new THREE.EdgesGeometry(liftTube.geometry), trimMatStrong));
+    liftTubeEdge.position.copy(liftTube.position);
+    // Car (3x3x2.6) parked at D2, inside the tube.
+    const liftCar = rAdd(liftGroup, new THREE.Mesh(new THREE.BoxGeometry(3, 2.6, 3), liftMat));
+    liftCar.position.set(0, 11.3, -6.3);
+    // East-face doors at each deck (closed panels + cyan trim).
+    for (const dy of [3.5, 11.5, 19.5]) {
+      const d = rAdd(liftGroup, new THREE.Mesh(new THREE.BoxGeometry(0.12, 2.5, 1.5), loungeDoorMat));
+      d.position.set(1.72, dy, -6.3);
+      const dEdge = rAdd(liftGroup, new THREE.LineSegments(new THREE.EdgesGeometry(d.geometry), trimMatStrong));
+      dEdge.position.copy(d.position);
+    }
+    // Eye-level slit on the south face (y 11.5..11.75, 0.9 x 0.25) + frame bars.
+    const slit = rAdd(liftGroup, new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.25, 0.06), loungeDarkMat));
+    slit.position.set(0, 11.62, -4.58);
+    for (const sy of [11.79, 11.45]) {
+      const bar = rAdd(liftGroup, new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.06, 0.06), roomTrimMat));
+      bar.position.set(0, sy, -4.55);
+    }
+    for (const sx of [-0.55, 0.55]) {
+      const bar = rAdd(liftGroup, new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.35, 0.06), roomTrimMat));
+      bar.position.set(sx, 11.62, -4.55);
+    }
+    // D1 airlock transition (east face of the lift tube, x=1.7, z=-6.3, y 18..20).
+    const sill = rAdd(liftGroup, new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.15, 2.0), liftMat));
+    sill.position.set(2.0, 18.1, -6.3);
+    for (const pz of [-7.3, -5.3]) {
+      const post = rAdd(liftGroup, new THREE.Mesh(new THREE.BoxGeometry(0.15, 2, 0.15), roomTrimMat));
+      post.position.set(2.0, 19, pz);
+    }
+    const transHeader = rAdd(liftGroup, new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.15, 2.2), roomTrimMat));
+    transHeader.position.set(2.0, 20, -6.3);
+    const transDoor = rAdd(liftGroup, new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.9, 1.6), loungeDoorMat));
+    transDoor.position.set(2.05, 19, -6.3);
+    scene.add(liftGroup);
+    const liftStatus = { meshes: roomMeshes - mLift, room: 'Lift beside shaft, tube x -1.7..+1.7, z -8..-4.6, y 2..22; car at D2; slit + D1 transition' };
+    // --- Ladders A/B/C (recessed, descend-first loop) -------------------------
+    // Ladder A: belly bay north wall (-38,-9.6), D2->D3, opens south.
+    // Ladder B: lift tube west face, D3->D2. Ladder C: lift tube north face,
+    // D2->D1. No stairs anywhere. The deck plates are single solid boxes,
+    // so the hatch cuts are NOT built — cyan hatch frames on the plates
+    // mark where the cuts go (future edit). Flagged.
+    const ladderGroup = new THREE.Group();
+    const mLadder = roomMeshes;
+    const ladderMat = new THREE.MeshStandardMaterial({ color: 0x3a4048, metalness: 0.85, roughness: 0.35 });
+    function ladder(x, z, y0, y1, facing) {
+      const g = new THREE.Group();
+      const h = y1 - y0;
+      const cy = (y0 + y1) / 2;
+      const n = Math.floor(h / 0.5);
+      if (facing === 'south' || facing === 'north') {
+        // Rails vertical, offset in X; rungs along X.
+        for (const rx of [-0.3, 0.3]) {
+          const rail = rAdd(g, new THREE.Mesh(new THREE.BoxGeometry(0.08, h, 0.08), ladderMat));
+          rail.position.set(x + rx, cy, z);
+        }
+        for (let i = 0; i <= n; i++) {
+          const rung = rAdd(g, new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.06, 0.06), ladderMat));
+          rung.position.set(x, y0 + i * 0.5, z);
+        }
+      } else {
+        // Rails vertical, offset in Z; rungs along Z (west/east faces).
+        for (const rz of [-0.3, 0.3]) {
+          const rail = rAdd(g, new THREE.Mesh(new THREE.BoxGeometry(0.08, h, 0.08), ladderMat));
+          rail.position.set(x, cy, z + rz);
+        }
+        for (let i = 0; i <= n; i++) {
+          const rung = rAdd(g, new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.06, 0.6), ladderMat));
+          rung.position.set(x, y0 + i * 0.5, z);
+        }
+      }
+      return g;
+    }
+    ladderGroup.add(ladder(-38, -9.6, 2, 10, 'south')); // A: D2->D3
+    ladderGroup.add(ladder(-1.75, -6.3, 2, 10, 'west')); // B: D3->D2, lift west face
+    ladderGroup.add(ladder(0, -8.05, 10, 18, 'north'));  // C: D2->D1, lift north face
+    // Hatch frames on the deck plates (cyan outlines, marking future cuts).
+    function hatchFrame(x0, x1, z0, z1, y) {
+      const pts = [
+        new THREE.Vector3(x0, y, z0), new THREE.Vector3(x1, y, z0),
+        new THREE.Vector3(x1, y, z1), new THREE.Vector3(x0, y, z1),
+      ];
+      return rAdd(ladderGroup, new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts), trimMatStrong));
+    }
+    hatchFrame(-39, -37, -10.2, -9.0, 10.27); // Ladder A hatch, D2 plate
+    hatchFrame(-2.1, 1.7, -8, -4.6, 10.27);   // lift + Ladder B, D2 plate
+    hatchFrame(-1.7, 1.7, -8.5, -4.6, 18.27); // lift + Ladder C, D1 plate
+    scene.add(ladderGroup);
+    const ladderStatus = { meshes: roomMeshes - mLadder, room: 'Ladders A/B/C, descend-first loop', hatches: 'plates are solid — hatch cuts NOT built, cyan frames mark where they go' };
+    // --- Shaft gussets (8, at D2) ---------------------------------------------
+    // 4 diagonals NE/NW/SW/SE, doubled (±0.35 m tangential), 45°, top at
+    // the shaft wall (r 4.5, y 13.5), bottom on the D2 floor (r 8, y 10).
+    const gussetGroup = new THREE.Group();
+    const mGusset = roomMeshes;
+    const gussetMat = new THREE.MeshStandardMaterial({ color: 0x2a3438, metalness: 0.8, roughness: 0.4 });
+    for (const phi of [Math.PI / 4, 3 * Math.PI / 4, 5 * Math.PI / 4, 7 * Math.PI / 4]) {
+      const top = new THREE.Vector3(4.5 * Math.cos(phi), 13.5, 4.5 * Math.sin(phi));
+      const bot = new THREE.Vector3(8 * Math.cos(phi), 10, 8 * Math.sin(phi));
+      const mid = new THREE.Vector3().addVectors(top, bot).multiplyScalar(0.5);
+      const tang = new THREE.Vector3(-Math.sin(phi), 0, Math.cos(phi));
+      for (const off of [-0.35, 0.35]) {
+        const plate = rAdd(gussetGroup, new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.15, 4.95), gussetMat));
+        plate.position.copy(mid).addScaledVector(tang, off);
+        plate.lookAt(top.clone().addScaledVector(tang, off));
+      }
+    }
+    scene.add(gussetGroup);
+    const gussetStatus = { meshes: roomMeshes - mGusset, room: 'Shaft gussets, 8 plates at D2' };
+    // --- Side emergency hatch (D3 south walkway wall, z=+11.5, x=36) ---------
+    // Door panel + frame + handle + amber marker, no text. Exterior (hull
+    // opening, landing feet) is a later phase — NOT built.
+    const hatchGroup = new THREE.Group();
+    const mHatch = roomMeshes;
+    const hatchDoor = rAdd(hatchGroup, new THREE.Mesh(new THREE.BoxGeometry(2, 3, 0.15), loungeDoorMat));
+    hatchDoor.position.set(36, 4.5, 11.3);
+    const hatchEdge = rAdd(hatchGroup, new THREE.LineSegments(new THREE.EdgesGeometry(hatchDoor.geometry), trimMatStrong));
+    hatchEdge.position.copy(hatchDoor.position);
+    for (const hy of [6.1, 2.9]) {
+      const bar = rAdd(hatchGroup, new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.15, 0.08), roomTrimMat));
+      bar.position.set(36, hy, 11.28);
+    }
+    for (const hx of [34.9, 37.1]) {
+      const bar = rAdd(hatchGroup, new THREE.Mesh(new THREE.BoxGeometry(0.15, 3.2, 0.08), roomTrimMat));
+      bar.position.set(hx, 4.5, 11.28);
+    }
+    const hatchHandle = rAdd(hatchGroup, new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.08, 0.08), ladderMat));
+    hatchHandle.position.set(36, 4.5, 11.2);
+    const hatchMarker = rAdd(hatchGroup, new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.15, 0.1), loungeAmberMat));
+    hatchMarker.position.set(36, 6.4, 11.28);
+    scene.add(hatchGroup);
+    const hatchStatus = { meshes: roomMeshes - mHatch, room: 'Side emergency hatch, D3 south walkway wall at x=36', exterior: 'NOT built — hull opening + landing feet are a later phase' };
+    // --- Interior status roll-up ----------------------------------------------
+    meshCount += roomMeshes;
+    // --- Bunk pods (build spec B3, added Nov 23, 2026) -----------------------
+    // Spec: quarters bunk pods 2 x 1 x 1 m, stacked 3-high. D3 lower
+    // quarters: stacks along the west wall of each room. D1 upper
+    // quarters: stacks along the north and south walls. (Spec's ~330
+    // berths/deck is at 180 m ship scale; the build's 110 m scale fits
+    // 48 pods — proportions and the 3-high stack kept.)
+    const bunkMat = new THREE.MeshStandardMaterial({ color: 0x1c2129, metalness: 0.6, roughness: 0.55 });
+    const bunkInnerMat = new THREE.MeshStandardMaterial({ color: 0x0a0d12, metalness: 0.3, roughness: 0.9 });
+    let bunkPods = 0;
+    function bunkStack(parent, x, floorY, z, faceAxis) {
+      for (let lvl = 0; lvl < 3; lvl++) {
+        const pod = rAdd(parent, new THREE.Mesh(new THREE.BoxGeometry(1, 1, 2), bunkMat));
+        pod.position.set(x, floorY + 0.5 + lvl, z);
+        const inner = rAdd(parent, new THREE.Mesh(new THREE.BoxGeometry(0.86, 0.8, 1.86), bunkInnerMat));
+        inner.position.set(x + (faceAxis === 'x' ? 0.08 : 0), floorY + 0.5 + lvl, z + (faceAxis === 'z' ? 0.08 : 0));
+        const strip = rAdd(parent, new THREE.Mesh(new THREE.BoxGeometry(faceAxis === 'x' ? 0.05 : 0.9, 0.05, faceAxis === 'x' ? 0.9 : 0.05), roomTrimMat));
+        strip.position.set(x + (faceAxis === 'x' ? 0.52 : 0), floorY + 0.94 + lvl, z + (faceAxis === 'z' ? 0.52 : 0));
+        bunkPods++;
+      }
+    }
+    for (const bz of [-11, -8.8, -6.6, -4.4]) bunkStack(d3Quarters, 2.6, 2, bz, 'x');
+    for (const bz of [4.4, 6.6, 8.8, 11]) bunkStack(d3Quarters, 2.6, 2, bz, 'x');
+    for (const bx of [-6, -3.4, -0.8, 1.8]) { bunkStack(d1Quarters, bx, 18, -11.4, 'z'); bunkStack(d1Quarters, bx, 18, 11.4, 'z'); }
+    const bunkStatus = { pods: bunkPods, spec: '2 x 1 x 1 m pods, stacked 3-high (build spec B3); D3 lower quarters 24, D1 upper quarters 24' };
+
+    const roomsStatus = {
+      bunkPods: bunkStatus,
+      d3HoldPrep: d3HoldPrepStatus, d3AuxBay: d3AuxBayStatus, d3Hold: d3HoldStatus,
+      d3Quarters: d3QuartersStatus, d3Heads: headsStatus, d2Engine: d2EngineStatus, d2Bays: d2BaysStatus,
+      d2Mess: d2MessStatus, d2Airlock: d2AirlockStatus, d2Lab: d2LabStatus,
+      d2ForeWall: d2ForeWallStatus,
+      d1CyphrBay: d1CyphrBayStatus, d1Quarters: d1QuartersStatus,
+      lift: liftStatus, ladders: ladderStatus, gussets: gussetStatus,
+      hatch: hatchStatus, bridgeDetail: bridgeDetailStatus,
+    };
+
+    // --- Reactor Shaft through the centre (core, 3 decks tall) ----------------
+    // Lift slit slot: a 1.0 m full-height slot in the shaft wall's north side
+    // (theta pi, facing the lift) so the lift's eye-level slit actually sees
+    // the core. A lift consequence, flagged, revertible.
+    const shaft = new THREE.Mesh(
+      new THREE.CylinderGeometry(4.5, 4.5, 22, 32, 1, true, Math.PI + 0.11, Math.PI * 2 - 0.22),
+      new THREE.MeshStandardMaterial({ color: CYAN, transparent: true, opacity: 0.12, side: THREE.DoubleSide, depthWrite: false })
+    );
+    shaft.position.set(0, 13, 0);
+    add(shaft);
+    const core = new THREE.Mesh(
+      new THREE.CylinderGeometry(1.2, 1.2, 22, 16),
+      new THREE.MeshStandardMaterial({ color: 0x0b2b33, emissive: 0x0e7490, emissiveIntensity: 0.8, metalness: 0.6, roughness: 0.4 })
+    );
+    core.position.set(0, 13, 0);
+    add(core);
+    for (const ry of [10, 18]) {
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(4.5, 0.08, 8, 48), new THREE.MeshStandardMaterial({ color: CYAN, emissive: CYAN, emissiveIntensity: 0.6 }));
+      ring.rotation.x = Math.PI / 2;
+      ring.position.set(0, ry, 0);
+      add(ring);
+    }
+    // --- Reactor core fit-out (build spec B3/B4, added Nov 23, 2026) --------
+    // Spec lock: giant MAGENTA reactor ring with radial fins and a
+    // white-pink centre; TEAL turbine disc above; teal energy column.
+    // (Spec dims at 180 m ship scale: ring Ø14 m, disc Ø8 m, shaft Ø30 m;
+    // fitted here to the build's shaft, r 4.5 — proportions kept.)
+    const reactorGroup = new THREE.Group();
+    const mReactor = roomMeshes;
+    const MAGENTA = 0xff2fb3;
+    const magentaMat = new THREE.MeshStandardMaterial({ color: 0x3a0f2c, emissive: MAGENTA, emissiveIntensity: 1.1, metalness: 0.6, roughness: 0.4 });
+    const reactorRing = rAdd(reactorGroup, new THREE.Mesh(new THREE.TorusGeometry(3.1, 0.3, 12, 48), magentaMat));
+    reactorRing.rotation.x = Math.PI / 2;
+    reactorRing.position.set(0, 13, 0);
+    for (let i = 0; i < 12; i++) {
+      const a = (i / 12) * Math.PI * 2;
+      const fin = rAdd(reactorGroup, new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.55, 0.16), magentaMat));
+      fin.position.set(Math.cos(a) * 3.55, 13, Math.sin(a) * 3.55);
+      fin.rotation.y = -a;
+      reactorGroup.add(fin);
+    }
+    const coreGlow = rAdd(reactorGroup, new THREE.Mesh(
+      new THREE.CylinderGeometry(1.28, 1.28, 1.7, 20),
+      new THREE.MeshStandardMaterial({ color: 0x2b0a1e, emissive: 0xffd7f2, emissiveIntensity: 1.6, metalness: 0.3, roughness: 0.4 })
+    ));
+    coreGlow.position.set(0, 13, 0);
+    const beam = rAdd(reactorGroup, new THREE.Mesh(
+      new THREE.CylinderGeometry(0.5, 0.5, 22, 12, 1, true),
+      new THREE.MeshBasicMaterial({ color: 0x2dd4bf, transparent: true, opacity: 0.22, side: THREE.DoubleSide, depthWrite: false })
+    ));
+    beam.position.set(0, 13, 0);
+    const turbine = rAdd(reactorGroup, new THREE.Mesh(
+      new THREE.CylinderGeometry(2.2, 2.2, 0.35, 32),
+      new THREE.MeshStandardMaterial({ color: 0x0d2f36, emissive: 0x14b8a6, emissiveIntensity: 0.7, metalness: 0.7, roughness: 0.35 })
+    ));
+    turbine.position.set(0, 20.5, 0);
+    const catwalk = rAdd(reactorGroup, new THREE.Mesh(
+      new THREE.RingGeometry(3.4, 4.45, 40),
+      new THREE.MeshStandardMaterial({ color: 0x232830, metalness: 0.8, roughness: 0.5, side: THREE.DoubleSide })
+    ));
+    catwalk.rotation.x = -Math.PI / 2;
+    catwalk.position.set(0, 10.12, 0);
+    scene.add(reactorGroup);
+    meshCount += roomMeshes - mReactor;
+    const reactorStatus = { meshes: roomMeshes - mReactor, core: 'magenta ring Ø6.2 + 12 fins + white-pink centre at y=13, teal turbine disc Ø4.4 at y=20.5, teal energy column, catwalk ring at D2 (spec B3/B4 fitted to build shaft r 4.5)' };
+    roomsStatus.reactorCore = reactorStatus;
+
+    // --- Ramp: straight out the back, horizontal, aft, D3, 6 x 22 m -----------
+    // CONNECTED Nov 10, 2026 (her order: the ramp goes in): the ramp now
+    // runs from the belly bay aft wall (x=-44) straight aft to x=-66,
+    // closing the 11 m gap the preview flagged (the old ramp sat at
+    // x -77..-55, disconnected from the bay). The ramp top (y=2.0) meets
+    // the belly bay aft-wall opening sill (y=2.0). Modular group:
+    // rampDeck / rampEdge / rampStrips / rampStruts. Support struts under
+    // the aft end ground it (it runs 11 m past the hull tip).
+    const rampGroup = new THREE.Group();
+    const mRamp = roomMeshes;
+    const rampDeck = rAdd(rampGroup, new THREE.Mesh(new THREE.BoxGeometry(22, 0.4, 6), deckMat));
+    rampDeck.position.set(-55, 1.8, 0); // x -66..-44, top y=2.0 flush with the bay opening sill
+    const rampEdge = rAdd(rampGroup, new THREE.LineSegments(new THREE.EdgesGeometry(rampDeck.geometry), trimMatStrong));
+    rampEdge.position.copy(rampDeck.position);
+    // Cyan edge strips along the ramp's long sides (top of the deck).
+    for (const rz of [-2.9, 2.9]) {
+      const strip = rAdd(rampGroup, new THREE.Mesh(new THREE.BoxGeometry(22, 0.06, 0.14), roomTrimMat));
+      strip.position.set(-55, 2.03, rz);
+    }
+    // Support struts under the aft end (vertical legs to y=0).
+    for (const rz of [-2.5, 2.5]) {
+      const strut = rAdd(rampGroup, new THREE.Mesh(new THREE.BoxGeometry(0.25, 1.7, 0.25), liftMat));
+      strut.position.set(-64, 0.85, rz);
+    }
+    scene.add(rampGroup);
+    meshCount += roomMeshes - mRamp;
+    const rampStatus = { meshes: roomMeshes - mRamp, room: 'Ramp, 6 x 22 m, x -66..-44, horizontal, connected to belly bay aft wall', gap: 'closed — was 11 m (old ramp x -77..-55)' };
+    roomsStatus.ramp = rampStatus;
+
+    // --- Airlock (D2, starboard): SEALED door panel only, no interaction -----
+    const airlock = add(new THREE.Mesh(
+      new THREE.BoxGeometry(3, 6, 0.4),
+      new THREE.MeshStandardMaterial({ color: 0x2a2f38, metalness: 0.7, roughness: 0.4 })
+    ));
+    airlock.position.set(10, 13, 21.5);
+    const airlockEdge = new THREE.LineSegments(
+      new THREE.EdgesGeometry(airlock.geometry),
+      new THREE.LineBasicMaterial({ color: AMBER })
+    );
+    airlockEdge.position.copy(airlock.position);
+    add(airlockEdge);
+
+    // --- Floor-panel arrows toward the bridge (first-entry beat, §XXXVI) ---
+    // Canon Oct 27: "the lights flicker... Arrows glow on the floor panels,
+    // pointing toward the bridge." Emissive cyan-teal arrows on the D3
+    // floor panels, along the walkway from the belly bay toward the bridge.
+    // Geometry only — no story sequence, no Cyphr figure, no flash.
+    const arrowShape = new THREE.Shape();
+    arrowShape.moveTo(-1.3, -0.35); arrowShape.lineTo(0.2, -0.35);
+    arrowShape.lineTo(0.2, -0.75); arrowShape.lineTo(1.3, 0);
+    arrowShape.lineTo(0.2, 0.75); arrowShape.lineTo(0.2, 0.35);
+    arrowShape.lineTo(-1.3, 0.35); arrowShape.closePath();
+    const arrowGeo = new THREE.ShapeGeometry(arrowShape);
+    const arrowMat = new THREE.MeshBasicMaterial({ color: CYAN, transparent: true, opacity: 0.9, side: THREE.DoubleSide });
+    const ARROW_XS = [-32, -20, -8, 10, 20, 32];
+    for (const ax of ARROW_XS) {
+      const arrow = new THREE.Mesh(arrowGeo, arrowMat);
+      arrow.rotation.x = -Math.PI / 2; // lay flat on the floor, pointing +X (bridge)
+      arrow.position.set(ax, 2.28, 0);
+      add(arrow);
+    }
+
+    // --- Walls: reference-grounded wall surfaces (Nov 9) --------------------
+    // Wall language extracted from the ship's own reference images — no new
+    // material invented, nothing that contradicts them:
+    //  - Bridge Interior Corrected (LOCKED look): dark segmented wall
+    //    panels, thin cyan-teal strips tracing every panel seam.
+    //  - Lower-Level Core Corridor frames (closest thing to bare walls):
+    //    brushed-metal rectangular panels with bolts at the corners, pipe
+    //    runs along the walls, vents/gauges/boxes. (Their purple wash is
+    //    the render's mood light, NOT canon — the shell keeps the Bible
+    //    cyan-teal + orange lighting.)
+    //  - Reactor Core + Stasis Pod interiors: tall dark panels, vertical
+    //    cyan-teal strips in recessed seams, small orange status dots,
+    //    ribbed columns.
+    //  - Veras Quarters A (render, mood only): dark panels with cyan edge
+    //    trim on every panel and ceiling tile.
+    // Applied here: D3 walkway walls (both sides, full length) — segmented
+    // gunmetal panels with cyan-teal seam strips, vertical ribs, and pipe
+    // runs along the top; vertical cyan seams on the bridge wall (locked
+    // bridge paneling); vertical ribs on the Reactor Shaft (reactor
+    // columns). D1/D2 volumes stay wireframe — their walls come with the
+    // room partitions, one at a time, on her order.
+    const wallPanelMat = new THREE.MeshStandardMaterial({ color: 0x1a1e24, metalness: 0.75, roughness: 0.55, side: THREE.DoubleSide });
+    const wallSeamMat = new THREE.MeshStandardMaterial({ color: CYAN, emissive: CYAN, emissiveIntensity: 0.9 });
+    const pipeMat = new THREE.MeshStandardMaterial({ color: 0x3a4048, metalness: 0.85, roughness: 0.35 });
+    const copperMat = new THREE.MeshStandardMaterial({ color: 0x6e4536, metalness: 0.8, roughness: 0.45 });
+    const ribMat = new THREE.MeshStandardMaterial({ color: 0x2a3438, metalness: 0.8, roughness: 0.4 });
+    let wallPanels = 0, wallSeams = 0, wallRibs = 0;
+    for (const side of [-1, 1]) {
+      const z = side * 11.5;
+      for (let i = 0; i < 12; i++) {
+        const px = -38.5 + i * 7;
+        const panel = new THREE.Mesh(new THREE.BoxGeometry(6.8, 8, 0.3), wallPanelMat);
+        panel.position.set(px, 6, z);
+        add(panel); wallPanels++;
+        if (i < 11) {
+          const seam = new THREE.Mesh(new THREE.BoxGeometry(0.12, 8, 0.1), wallSeamMat);
+          seam.position.set(px + 3.5, 6, z - side * 0.18);
+          add(seam); wallSeams++;
+        }
+        if (i % 2 === 0) {
+          const rib = new THREE.Mesh(new THREE.BoxGeometry(0.5, 8, 0.35), ribMat);
+          rib.position.set(px, 6, z - side * 0.3);
+          add(rib); wallRibs++;
+        }
+      }
+      // Pipe runs along the top of the wall (corridor frames).
+      const pipe = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 84, 12), pipeMat);
+      pipe.rotation.z = Math.PI / 2;
+      pipe.position.set(0, 9.2, z - side * 0.35);
+      add(pipe);
+      const copper = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 84, 12), copperMat);
+      copper.rotation.z = Math.PI / 2;
+      copper.position.set(0, 8.7, z - side * 0.35);
+      add(copper);
+    }
+    // Bridge wall seams — REMOVED Nov 10, 2026: the 7 cyan strips at r 8.95
+    // belonged to the old cylinder bridge wall. In the clean bridge GLB
+    // room (24 x 30 m) they would float in mid-air over the console, so
+    // they are gone; the GLB walls carry their own paneling and trim.
+    // Reactor Shaft: vertical ribs echoing the reactor columns.
+    for (const th of [Math.PI / 4, 3 * Math.PI / 4, 5 * Math.PI / 4, 7 * Math.PI / 4]) {
+      const rib = new THREE.Mesh(new THREE.BoxGeometry(0.3, 22, 0.3), ribMat);
+      rib.position.set(4.6 * Math.cos(th), 13, 4.6 * Math.sin(th));
+      add(rib); wallRibs++;
+    }
+    const wallsStatus = { d3Panels: wallPanels, seams: wallSeams, ribs: wallRibs };
+
+    // --- Stasis chamber room (D3 aux bay) — FIRST ROOM, Nov 9, 2026 -------
+    // Her voice call: "drop in one of the GLBs of the cryo or I mean the
+    // stasis chamber." Tripo stasis-chamber-room.glb (Blender-checked Nov 4:
+    // 1 mesh, 17,526 verts, 22,065 faces, 1 material, no armatures, no
+    // animations — a static room), MD5 e600a1baed67471704e141db88268d81,
+    // 18,106,292 bytes (~17.3 MB — under the 25 MB cap, over the 10 MB
+    // ideal; noted, model not reworked).
+    //
+    // LIGHTING REWORK + GLASS COVER, Nov 9, 2026 (her voice call: "play
+    // with the lighting... the lighting of the ship, according to the lore
+    // and the Bible" + "add like a glass cover to it or something"):
+    // Lights use ONLY Bible/dossier language — thin cyan-teal emissive
+    // trim (dominant accent), small orange status lights, glowing
+    // floor-panel arrows pointing toward the bridge (first-entry beat,
+    // §XXXVI). No pink fog inside. The glass cover over the pod's center
+    // dip is physical glass (low opacity, low roughness, clearcoat)
+    // so it catches the ship's cyan-teal + orange lights; the dip stays
+    // visible through it. Chamber still EMPTY — §LI hold-open stands.
+    //
+    // WALLS, Nov 9, 2026 (her question: do we have images of just the
+    // ship's walls / reference images to use as a base for the walls):
+    // Wall language pulled from the ship's own references — Bridge
+    // Interior Corrected (LOCKED look), Lower-Level Core Corridor frames,
+    // Reactor Core + Stasis Pod interiors, Veras Quarters A (mood only).
+    // Dark segmented gunmetal panels, thin cyan-teal strips in the seams,
+    // vertical ribs, pipe runs along the walls. The corridor frames'
+    // purple wash is their render mood light, NOT canon — the shell keeps
+    // the Bible cyan-teal + orange lighting. Applied to the D3 walkway
+    // walls, the bridge wall seams, and the Reactor Shaft ribs. D1/D2
+    // volumes stay wireframe until their rooms are built.
+    // File bbox ~0.97 (X) x 0.98 (Y) x 0.43 (Z) m; scaled so the room is
+    // ~7 m tall, fitting the 8 m deck-to-deck height with clearance
+    // (the Nov 8 test scaled it to ~8 m tall for a 10.5 m clear height —
+    // too tall for this shell). Scaled size: ~7.0 m long (X) x ~7.0 m
+    // tall x ~3.1 m deep (Z). Floor sits on the D3 floor (y=2).
+    // Placement (SUPERSEDED Nov 23, 2026 — see the PLACEMENT CORRECTED
+    // note at stasisStatus below): originally the aux bay, D3, group at
+    // (24, 2, 0). Rotation -PI/2: the file's open side faces +Z in model
+    // space, so it faces -X here.
+    // EMPTY room: no occupant, no figure inside. HOLD-OPEN (Bible §LI):
+    // whether ANYONE is in stasis on the ship is NOT settled — no text
+    // anywhere in this file says who is in stasis.
+    // LAY-FLAT LOCK — Nov 23, 2026 (User's, live call): "the stasis
+    // chamber... I want that to lay flat. It doesn't stand up. It should
+    // lay flat." The chamber is HORIZONTAL now: the model is rotated
+    // -90° about X so its front face (the pod face) points UP and its
+    // former height lies along the floor — a flat bed, not a standing
+    // unit. Scale is still set by the model's height axis (s = 7 / size.y),
+    // so the chamber is ~7 m LONG lying down and ~3.1 m high (its old
+    // depth). The glass cover below is repositioned onto the up-facing
+    // pod dip in the load callback. Reversible: remove model.rotation.x
+    // and the chamber stands again (glass block has the old numbers in
+    // its comment history).
+    // PLACEMENT — FINAL RULING Nov 23, 2026 (User's, live call ~10:11 PST:
+    // "No, it needs to be in the aux bay"): the chamber is IN THE AUX BAY
+    // (D3), laid flat, dark glass over the top, with PURPLE PLASMA LIGHTS
+    // around it. This supersedes the same-morning D2 ruling (~09:42 PST:
+    // under the bridge, second floor — built, verified, then superseded
+    // by this correction). The canon D3 sheet's "VAL-18 stasis" label
+    // AGREES with this final ruling. The D2 circular room returns to the
+    // unlabelled/lab-inference question (lab gear + console stay there).
+    const STASIS_POS = [24, 2, 0]; // D3 aux bay, floor y=2
+    const stasisStatus = { loaded: false, error: null, scale: null, pos: STASIS_POS, flat: true, deck: 'D3 — aux bay (FINAL ruling Nov 23, 2026, ~10:11 PST)' };
+    const stasisGroup = new THREE.Group();
+    stasisGroup.position.set(...STASIS_POS);
+    stasisGroup.rotation.y = -Math.PI / 2;
+    scene.add(stasisGroup);
+    new GLTFLoader().load('./assets/stasis-chamber-room.glb', (gltf) => {
+      const model = gltf.scene;
+      const box = new THREE.Box3().setFromObject(model);
+      const size = new THREE.Vector3(); box.getSize(size);
+      const s = 7 / size.y; // ~7 m along its height axis — now its LENGTH lying flat
+      model.scale.setScalar(s);
+      model.rotation.x = -Math.PI / 2; // LAY FLAT (Nov 23 lock): front/pod face up
+      stasisGroup.add(model);
+      stasisGroup.updateMatrixWorld(true);
+      const flatBox = new THREE.Box3().setFromObject(model);
+      const fc = new THREE.Vector3(); flatBox.getCenter(fc);
+      // Rest the flat chamber on the D2 floor (y=10) and centre it on
+      // STASIS_POS, using the post-rotation world bbox.
+      stasisGroup.position.x += STASIS_POS[0] - fc.x;
+      stasisGroup.position.z += STASIS_POS[2] - fc.z;
+      stasisGroup.position.y += STASIS_POS[1] - flatBox.min.y;
+      stasisGroup.updateMatrixWorld(true);
+      const restBox = new THREE.Box3().setFromObject(model);
+      stasisStatus.loaded = true;
+      stasisStatus.scale = s;
+      stasisStatus.worldBox = { min: restBox.min.toArray(), max: restBox.max.toArray() };
+      // Glass cover: lay it over the up-facing pod dip — horizontal pane
+      // centred on the chamber's top face (see the glass block below).
+      if (typeof layGlassFlat === 'function') layGlassFlat(restBox);
+      console.log('[stasis] chamber mounted FLAT', JSON.stringify({
+        file: 'stasis-chamber-room.glb', md5: 'e600a1baed67471704e141db88268d81',
+        rawSize: [size.x, size.y, size.z], scale: s,
+        worldBox: stasisStatus.worldBox,
+        pos: STASIS_POS, rotY: -Math.PI / 2, flat: true, occupant: 'none — empty room'
+      }));
+    }, undefined, (err) => {
+      stasisStatus.error = String(err && err.message ? err.message : err);
+      fail('stasis chamber GLB failed to load: ' + stasisStatus.error);
+    });
+
+    // --- Glass cover on the stasis pod dip (REVISED Nov 9, her voice call) --
+    // "the glass needs to just be around the one little [dip] in the center
+    // of it" — the big 7.0 x 7.0 pane over the chamber's open front is GONE.
+    // The glass now covers ONLY the little recessed oval dip in the center
+    // of the central pod. Measured from the GLB (in-browser probe, three.js
+    // model space): the dip recess is ~0.18 m wide x ~0.34 m tall (model),
+    // centre (x ~ -0.01, y ~ 0.51) — ~1.29 x 2.44 m at the shell's scale
+    // (s = 7.165). The pod face/rim around the dip reaches model z ~ 0.047,
+    // so the pane sits just in front of it (world x 23.58). Same physical
+    // glass material and same slim emissive cyan frame style as the old
+    // cover, only much smaller. The chamber stays an EMPTY room — no
+    // occupant, no figure (§LI hold-open).
+    const glassGroup = new THREE.Group();
+    // DARK GLASS — Nov 23, 2026 (User's, live call): the glass over the
+    // top of the stasis chamber is DARK (was pale blue, opacity 0.16).
+    const glassMat = new THREE.MeshPhysicalMaterial({
+      color: 0x11151c, metalness: 0, roughness: 0.12,
+      transparent: true, opacity: 0.62,
+      clearcoat: 1, clearcoatRoughness: 0.05, specularIntensity: 1,
+      side: THREE.DoubleSide, depthWrite: false
+    });
+    // LAY-FLAT (Nov 23, 2026 lock): the chamber lies flat and the pod face
+    // points UP, so the glass cover is a HORIZONTAL pane over the dip,
+    // centred on the chamber's top face by layGlassFlat(), called from
+    // the stasis load callback with the mounted chamber's world bbox.
+    // (Upright-era numbers, for the record: vertical pane at world
+    // (23.58, 5.65, -0.07), frame bars at x 23.56.)
+    const glassPane = new THREE.Mesh(new THREE.PlaneGeometry(1.45, 2.60), glassMat);
+    glassPane.rotation.x = -Math.PI / 2; // horizontal — over the up-facing dip
+    glassGroup.add(glassPane);
+    const frameMat = new THREE.MeshStandardMaterial({ color: CYAN, emissive: CYAN, emissiveIntensity: 1.2 });
+    for (const [bx, bz, bw, bd] of [[0, -1.375, 1.75, 0.15], [0, 1.375, 1.75, 0.15], [-0.80, 0, 0.15, 2.90], [0.80, 0, 0.15, 2.90]]) {
+      const bar = new THREE.Mesh(new THREE.BoxGeometry(bw, 0.12, bd), frameMat);
+      bar.position.set(bx, 0, bz);
+      glassGroup.add(bar);
+    }
+    scene.add(glassGroup);
+    meshCount += glassGroup.children.length;
+    const glassStatus = { present: true, pane: [1.45, 2.60], flat: true, dark: true, pos: null };
+    function layGlassFlat(worldBox) {
+      const c = new THREE.Vector3(); worldBox.getCenter(c);
+      glassGroup.position.set(c.x, worldBox.max.y + 0.07, c.z);
+      glassStatus.pos = glassGroup.position.toArray();
+      console.log('[stasis] glass cover laid flat over the dip at', JSON.stringify(glassStatus.pos));
+    }
+
+    // --- Purple plasma lights around the chamber (Nov 23, 2026 — User's
+    // final ruling: "more of the purple plasma lights around it"). Four
+    // corner fixtures just outside the chamber's footprint in the aux bay,
+    // emissive plasma orbs + point lights, plus one pulsing light above.
+    const plasmaStatus = { fixtures: 0 };
+    const plasmaGroup = new THREE.Group();
+    const plasmaMat = new THREE.MeshStandardMaterial({ color: 0x2a0a3a, emissive: 0x9a4dff, emissiveIntensity: 2.6, roughness: 0.4 });
+    const plasmaPulse = new THREE.PointLight(0x9a4dff, 30, 18, 1.6);
+    plasmaPulse.position.set(STASIS_POS[0], STASIS_POS[1] + 3.6, STASIS_POS[2]);
+    plasmaGroup.add(plasmaPulse);
+    for (const [px, pz] of [[-4.6, -4.4], [-4.6, 4.4], [4.6, -4.4], [4.6, 4.4]]) {
+      const orb = new THREE.Mesh(new THREE.SphereGeometry(0.22, 12, 10), plasmaMat);
+      orb.position.set(STASIS_POS[0] + px, STASIS_POS[1] + 2.1, STASIS_POS[2] + pz);
+      const pl = new THREE.PointLight(0x9a4dff, 22, 14, 1.6);
+      pl.position.copy(orb.position);
+      plasmaGroup.add(orb, pl);
+      plasmaStatus.fixtures++;
+    }
+    scene.add(plasmaGroup);
+
+    // --- Tripo ship pieces (Nov 23, 2026 — User's order: every ship piece
+    // downloaded and put in). Interior pieces placed here; whole-ship
+    // models (starships, spherical craft, the sci-fi capsule) are NOT
+    // interior pieces — reported to User, not forced in. Probed native
+    // sizes (headless, Nov 23): all control-station files are the same
+    // ~1 m console piece family (1.0 x 0.349 x 0.796 m; files 3/4/5 are
+    // MD5-identical dupes — only the 3 distinct files are placed).
+    // Portal native 1.0 x 0.926 x 0.26 m. Uniform scale only.
+    const tripoStatus = { placed: [], errors: [] };
+    const tripoPieces = [
+      { file: 'control-station-1.glb', pos: [11, 10, -12.5], rotY: Math.PI, targetH: 1.15, name: 'console — engineering bay 1' },
+      { file: 'control-station-2.glb', pos: [24, 10, 5.5], rotY: -Math.PI / 2, targetH: 1.15, name: 'console — lab' },
+      { file: 'control-station-3.glb', pos: [-20, 18, 8], rotY: Math.PI / 2, targetH: 1.15, name: 'console — Cyphr Bay' },
+      { file: 'portal-futuristic.glb', pos: [-30, 10, 16], rotY: 0, targetH: 3.0, name: 'portal frame — airlock' },
+    ];
+    for (const piece of tripoPieces) {
+      new GLTFLoader().load('./assets/' + piece.file, (gltf) => {
+        const model = gltf.scene;
+        const box = new THREE.Box3().setFromObject(model);
+        const size = new THREE.Vector3(); box.getSize(size);
+        const center = new THREE.Vector3(); box.getCenter(center);
+        const s = piece.targetH / size.y;
+        model.scale.setScalar(s);
+        model.position.set(-center.x * s, -box.min.y * s, -center.z * s);
+        const holder = new THREE.Group();
+        holder.position.set(piece.pos[0], piece.pos[1], piece.pos[2]);
+        holder.rotation.y = piece.rotY;
+        holder.add(model);
+        scene.add(holder);
+        tripoStatus.placed.push({ file: piece.file, name: piece.name, pos: piece.pos, scale: Math.round(s * 100) / 100 });
+        console.log('[tripo] placed', piece.file, piece.name, 'scale', s);
+      }, undefined, (err) => {
+        tripoStatus.errors.push(piece.file + ': ' + String(err && err.message ? err.message : err));
+        console.warn('[tripo] FAILED', piece.file, err);
+      });
+    }
+
+    // --- Shutters — Nov 23, 2026 (User's, live call) --------------------------
+    // A shutter must be able to CLOSE at the FRONT window, and a shutter
+    // must close on the TOP window. There is NO back window — the back
+    // side connects toward the mess hall and the other interior spaces,
+    // so no window and no shutter is built at the back. Surfaces:
+    //  1. Bridge FRONT viewport — the great oval window at the prow.
+    //  2. Bridge TOP window — the dome skylight the bridge GLB carries.
+    //  3. D2 fore viewport (10 x 3.5 at x=+42) — the front window of the
+    //     second floor, in front of the stasis chamber's room.
+    // Slatted dark-gunmetal panels with a cyan leading edge. S key (or
+    // ?shutter=closed) opens/closes all three together. Default: open.
+    // BLUEPRINT NOTE: the canon deck plans are top-down and label no top
+    // window — the skylight comes from the bridge GLB itself; flagged to
+    // User with this build.
+    const shutterMat = new THREE.MeshStandardMaterial({ color: 0x232830, metalness: 0.8, roughness: 0.45 });
+    function slatShutter(slatGeo, count, step, axis) {
+      const g = new THREE.Group();
+      for (let i = 0; i < count; i++) {
+        const slat = new THREE.Mesh(slatGeo, shutterMat);
+        const off = (i - (count - 1) / 2) * step;
+        if (axis === 'y') slat.position.y = off; else slat.position.x = off;
+        g.add(slat);
+      }
+      return g;
+    }
+    const shutters = [];
+    function addShutter(group, closedPos, openPos, name) {
+      group.position.copy(openPos);
+      group.userData.shutter = { closedPos, openPos, name };
+      scene.add(group);
+      shutters.push(group);
+      meshCount += group.children.length;
+      return group;
+    }
+    // 1 — bridge front viewport: slats span Z, stack in Y, slides UP to open.
+    addShutter(slatShutter(new THREE.BoxGeometry(0.16, 0.62, 22.5), 12, 0.62, 'y'),
+      new THREE.Vector3(41.3, 22.2, 0), new THREE.Vector3(41.3, 30.0, 0), 'bridge front viewport');
+    // 2 — bridge top window (dome skylight): slats span Z, stack in X, slides AFT to open.
+    addShutter(slatShutter(new THREE.BoxGeometry(0.62, 0.16, 10.5), 16, 0.62, 'x'),
+      new THREE.Vector3(34, 28.4, 0), new THREE.Vector3(23.5, 28.4, 0), 'bridge top window (dome skylight)');
+    // 3 — D2 fore viewport: slats span Z, stack in Y, slides UP to open.
+    addShutter(slatShutter(new THREE.BoxGeometry(0.14, 0.42, 10.2), 9, 0.42, 'y'),
+      new THREE.Vector3(41.55, 14, 0), new THREE.Vector3(41.55, 17.9, 0), 'D2 fore viewport');
+    const shutterStatus = {
+      closed: (new URLSearchParams(location.search).get('shutter') || '') === 'closed',
+      surfaces: shutters.map((g) => g.userData.shutter.name),
+      backWindow: 'none — back connects to the interior (mess hall side), per User Nov 23, 2026',
+    };
+    let shutterT = shutterStatus.closed ? 1 : 0; // 0 = open, 1 = closed
+    for (const g of shutters) g.position.lerpVectors(g.userData.shutter.openPos, g.userData.shutter.closedPos, shutterT);
+    function setShutters(closed) {
+      shutterStatus.closed = closed;
+      console.log('[shutters]', closed ? 'CLOSED' : 'OPEN', JSON.stringify(shutterStatus.surfaces));
+    }
+    function updateShutters() {
+      const goal = shutterStatus.closed ? 1 : 0;
+      if (shutterT === goal) return;
+      const step = (1 / 60) * 1.4;
+      shutterT = goal > shutterT ? Math.min(goal, shutterT + step) : Math.max(goal, shutterT - step);
+      for (const g of shutters) g.position.lerpVectors(g.userData.shutter.openPos, g.userData.shutter.closedPos, shutterT);
+    }
+    addEventListener('keydown', (e) => { if (e.key === 's' || e.key === 'S') setShutters(!shutterStatus.closed); });
+
+    // --- Weather (locked work, carried in Nov 23, 2026 from the AI Studio
+    // prototype's weather.ts via ../level-2/nv-weather.js): GPU particle
+    // rain (default) / snow. EXTERIOR ONLY — Level 1 is the ship interior,
+    // so the rig shows only when the camera is OUTSIDE the hull (orbit /
+    // sky views, and it reads through the viewports from inside as the
+    // volume hugs the camera when near a window line — the exterior test
+    // is the hull bounds: 110 x 45 m footprint, top ~30 m).
+    const weather = createWeatherRig();
+
+    // Player walk rig (Nov 23, 2026): SL mobile-style joystick + drag look,
+    // WASD on desktop, JUMP (Space / on-screen button — hard requirement).
+    // Ground = the deck floor at/below the player's feet. ?walk=1 starts
+    // in walk mode at the belly-bay spawn; orbit dev cameras otherwise.
+    const DECK_FLOORS = [2, 10, 18];
+    const player = createPlayerRig({
+      camera, dom: renderer.domElement, start: [-38, 2, 0], yaw: -Math.PI / 2,
+      groundY: (p) => { let g = DECK_FLOORS[0]; for (const f of DECK_FLOORS) if (f <= p.y + 0.05) g = f; return g; },
+    });
+    const setWalk = (on) => { player.setEnabled(on); controls.enabled = !on; };
+    if (new URLSearchParams(location.search).get('walk') === '1') setWalk(true);
+    scene.add(weather.group);
+    const weatherStatus = { mode: weather.getMode(), counts: weather.counts, exteriorOnly: true };
+    const weatherExterior = (p) => Math.abs(p.x) > 56 || Math.abs(p.z) > 24 || p.y > 31 || p.y < 0;
+
+    // --- Camera / spawn --------------------------------------------------------
+    // Player starts inside the ship: belly bay, D3 — where she wakes.
+    const cams = {
+      spawn:  { pos: [-38, 5, 0],   tgt: [0, 5.5, 0] },
+      belly:  { pos: [-41, 4.5, 8.5], tgt: [-22, 4, -4] },
+      orbit:  { pos: [95, 55, 95],  tgt: [0, 12, 0] },
+      bridge: { pos: [14, 23, 0], tgt: [40, 23, 0] }, // inside the clean bridge GLB, looking forward to the viewport
+      avatar: { pos: [22, 20.5, -5], tgt: [27, 19.8, -1.8] }, // close-up on the placeholder avatar, standing on the bridge dais
+      top:    { pos: [0, 90, 0.1],  tgt: [0, 12, 0] },
+      auxbay: { pos: [11, 7.5, 7],  tgt: [24, 3.5, 0] }, // D3 aux bay — the flat stasis chamber, dark glass, plasma lights
+      stasis: { pos: [10, 6.5, 8],  tgt: [24, 3, 0] }, // same chamber, closer view
+      lounge:  { pos: [14.5, 20.2, -9], tgt: [20, 19.3, 10] },
+      lounge2: { pos: [14.5, 19.8, 0],  tgt: [21, 19.3, 0] },
+      d2:     { pos: [0, 14, -14],     tgt: [0, 13, 0] },
+      lab:    { pos: [21, 13.5, 0],    tgt: [32, 12, 0] },
+      d1:     { pos: [-30, 20.5, 0],   tgt: [0, 20, 0] },
+      cyphr:  { pos: [-12, 20.5, 0],   tgt: [-38, 20, 0] },
+      d3:     { pos: [0, 5, 0],        tgt: [30, 5, 0] },
+      ramp:   { pos: [-72, 7, 12],    tgt: [-50, 3, 0] },
+      rampin: { pos: [-40, 4.5, 0],   tgt: [-66, 2, 0] },
+      d2fore: { pos: [36, 14.5, -13], tgt: [42, 14, 0] },
+      d1win:  { pos: [9, 20, -4],     tgt: [9, 20, -12] },
+      sky:    { pos: [0, 25, 180],    tgt: sky.sunPosition().toArray() },
+      topD1:  { pos: [0, 90, 0.1],    tgt: [0, 18, 0] },
+      topD2:  { pos: [0, 90, 0.1],    tgt: [0, 10, 0] },
+      topD3:  { pos: [0, 90, 0.1],    tgt: [0, 2, 0] },
+      heads:  { pos: [-10, 5, 3.5],   tgt: [-10, 3.5, 9] },
+      mess:   { pos: [-27, 13, -10.5], tgt: [-27, 11, -14] },
+      labhydro: { pos: [29, 16, 0],   tgt: [29, 10.5, 0] },
+    };
+    const camName = (new URLSearchParams(location.search).get('cam') || 'spawn');
+    const cam = cams[camName] || cams.spawn;
+    camera.position.set(...cam.pos);
+    controls.target.set(...cam.tgt);
+    controls.update();
+
+    // --- Per-deck top views: hide what sits above the viewed deck --------------
+    // topD1/topD2/topD3 look straight down from 90 m. Without isolation the
+    // deck plates + rooms above would hide the viewed deck, so the slabs,
+    // volume outlines, and room groups above the viewed deck are hidden
+    // (cross-deck structures — shaft, lift, ladders — stay: they belong to
+    // every deck's plan). The hull is hidden for all three (clean plan).
+    if (camName === 'topD1' || camName === 'topD2' || camName === 'topD3') {
+      hull.visible = false;
+      const above = { topD1: [], topD2: ['D1'], topD3: ['D1', 'D2'] }[camName];
+      for (const dn of above) { deckPlates[dn].visible = false; deckVols[dn].visible = false; }
+      const d1Groups = [bridge, lounge, d1CyphrBay, d1Quarters];
+      const d2Groups = [d2Engine, d2Bays, d2Mess, d2Airlock, d2Lab, d2ForeWall, gussetGroup];
+      if (camName === 'topD2' || camName === 'topD3') for (const g of d1Groups) g.visible = false;
+      if (camName === 'topD3') for (const g of d2Groups) g.visible = false;
+    }
+
+    addEventListener('resize', () => {
+      camera.aspect = innerWidth / innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth, innerHeight);
+    });
+
+    // Expose a small handle for verification tooling.
+    window.__level1 = { scene, camera, renderer, ready: false, meshCount, bridge: bridgeStatus, avatar: avatarStatus, stasis: stasisStatus, glass: glassStatus, shutters: shutterStatus, setShutters, weather: weatherStatus, setWeather: (m) => { weather.setMode(m); weatherStatus.mode = weather.getMode(); }, tripo: tripoStatus, plasma: plasmaStatus, player, setWalk, arrows: ARROW_XS.length, walls: wallsStatus, bellyBay: bellyBayStatus, lounge: loungeStatus, rooms: roomsStatus, sky: skyStatus, setBellyWallTexture };
+
+    let frames = 0;
+    function tick() {
+      requestAnimationFrame(tick);
+      controls.update();
+      // Sky: advance the sun + drift the clouds (10 min per full sweep).
+      sky.update(1 / 60);
+      weather.update(1 / 60, camera.position, weatherExterior(camera.position));
+      player.update(1 / 60);
+      updateShutters();
+      // Lounge reactor pulse (visual only, no systems): the purple lounge
+      // light breathes with the reactor — a locked lounge property.
+      loungeLight.intensity = 60 + 14 * Math.sin(frames * 0.02);
+      plasmaPulse.intensity = 30 + 10 * Math.sin(frames * 0.03 + 2);
+      // No avatar mixer: the bald placeholder has no animations, she stands still.
+      renderer.render(scene, camera);
+      if (++frames === 5) {
+        window.__level1.ready = true;
+        console.log('LEVEL-1 SHELL READY', JSON.stringify({
+          cam: camName, meshes: meshCount,
+          ship: 'Infinity 6', level: 'Level 1 — ship interior',
+          dims: '110 x 45 x 20-30 m', decks: ['D1', 'D2', 'D3'],
+          spawn: 'belly bay, D3', outside: 'sky dome + moving striped sun',
+          stasis: stasisStatus, glass: glassStatus, shutters: shutterStatus, arrows: ARROW_XS.length,
+          walls: wallsStatus, bellyBay: bellyBayStatus, lounge: loungeStatus, rooms: roomsStatus,
+          sky: skyStatus
+        }));
+      }
+    }
+    tick();
+  </script>
+  <script>
+    /* Compact UI (Nov 23, 2026 — unified UI pass, mirrors Level 2):
+       diagnostics collapse toggle (button + G key) and the level
+       mini-dock idle fade. */
+    (function () {
+      var body = document.getElementById('hud-body');
+      var btn = document.getElementById('hud-toggle');
+      function toggle() {
+        if (!body || !btn) return;
+        body.hidden = !body.hidden;
+        btn.setAttribute('aria-expanded', body.hidden ? 'false' : 'true');
+      }
+      if (btn) btn.addEventListener('click', toggle);
+      window.addEventListener('keydown', function (e) {
+        var t = e.target;
+        if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
+        if (e.code === 'KeyG' && !e.metaKey && !e.ctrlKey && !e.altKey) toggle();
+      });
+      var dock = document.getElementById('level-dock');
+      if (dock) {
+        var timer = null;
+        var wake = function () {
+          dock.classList.remove('idle');
+          if (timer) clearTimeout(timer);
+          timer = setTimeout(function () { dock.classList.add('idle'); }, 3000);
+        };
+        ['pointermove', 'pointerdown', 'keydown', 'touchstart'].forEach(function (ev) {
+          window.addEventListener(ev, wake, { passive: true });
+        });
+        wake();
+      }
+    })();
+  </script>
+</body>
+</html>
