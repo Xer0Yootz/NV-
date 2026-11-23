@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <link rel="icon" href="data:," />
+  <title>Gigas Garden — Level 3 (The Ruins)</title>
+  <!--
+    ===========================================================================
+    NEON VIGIL — LEVEL 3: THE RUINS
+    Built Nov 15, 2026 on Jasmine's word (Chrome voice call) as a separate
+    level of its own: the ruins. It originally loaded a Blender combine of
+    the Ruined Megastructures model — two buildings facing each other
+    across a flat street slab over a dark ground plane.
+    The megastructure combine was REMOVED Nov 22, 2026 on Jasmine's word
+    (megastructures out of every version of the game). The street slab and
+    the combine's ground plane were part of that same GLB, so they went
+    with it; what stands here now is the shell: NV Skysphere (worldRadius
+    140 m here), the outer ground plane, OrbitControls, compact HUD,
+    level mini-dock. No characters, no systems yet.
+    Dev cameras: ?cam=orbit (default), ?cam=street (low over the ground),
+    ?cam=tower (mid view), ?cam=top.
+    ===========================================================================
+  -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background: #2e1440; }
+    #app { position: fixed; inset: 0; }
+    canvas { display: block; }
+    #hud {
+      position: fixed; top: 12px; left: 12px; z-index: 10;
+      font-family: "Courier New", Courier, monospace; color: #ffd7e8;
+      background: rgba(20, 4, 24, 0.72); border: 1px solid rgba(255, 94, 138, 0.45);
+      padding: 10px 12px; max-width: 360px; font-size: 12px; line-height: 1.55;
+    }
+    #hud b { color: #fff; letter-spacing: 1px; }
+    #hud .dim { color: #c98aa8; }
+    #hud .cyan { color: #19e3ff; }
+    #hud-toggle {
+      pointer-events: auto; display: flex; justify-content: space-between; gap: 8px;
+      width: 100%; background: none; border: none; padding: 0; cursor: pointer;
+      color: #ffd7e8; font: inherit; font-weight: bold; text-align: left; text-transform: uppercase;
+    }
+    #hud-body { padding-top: 4px; }
+    #hud-body[hidden] { display: none; }
+    #scale {
+      position: fixed; bottom: 36px; right: 12px; z-index: 10;
+      font-family: "Courier New", Courier, monospace; color: #c98aa8;
+      background: rgba(20, 4, 24, 0.72); border: 1px solid rgba(255, 94, 138, 0.3);
+      padding: 6px 10px; font-size: 11px; pointer-events: none;
+    }
+    #level-dock {
+      position: fixed; left: 50%; bottom: 8px; transform: translateX(-50%); z-index: 10;
+      height: 24px; display: flex; align-items: center; gap: 12px; padding: 0 12px;
+      background: rgba(20, 4, 24, 0.78); border: 1px solid rgba(255, 94, 138, 0.45);
+      font-family: "Courier New", Courier, monospace; font-size: 10px; font-weight: bold;
+      letter-spacing: 1px; white-space: nowrap; transition: opacity 0.6s ease;
+    }
+    #level-dock.idle { opacity: 0.3; }
+    #level-dock .dock-current { color: #ffd7e8; }
+    #level-dock a { color: #19e3ff; text-decoration: none; }
+    #level-dock a:hover, #level-dock a:focus-visible { color: #fff; text-decoration: underline; }
+    #err {
+      display: none; position: fixed; top: 12px; right: 12px; z-index: 20;
+      font-family: "Courier New", Courier, monospace; color: #fff;
+      background: rgba(160, 10, 30, 0.92); border: 1px solid #ff5566;
+      padding: 10px 12px; max-width: 420px; font-size: 12px; line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <div id="hud">
+    <button id="hud-toggle" aria-expanded="true"><span>⬡ LEVEL 3 · THE RUINS</span><span>[G]</span></button>
+    <div id="hud-body">
+      Open ground under the pink sun — the ruins are out<br />
+      <span class="dim">The megastructure combine was removed Nov 22, 2026</span><br />
+      <span class="cyan">Pink sun: striped sphere — rises/sets, drives the light dawn→dusk*</span><br />
+      <span class="dim" id="load-line">Open ground — nothing to load</span><br />
+      <span class="dim">Drag to orbit · scroll to zoom · no systems yet</span>
+    </div>
+  </div>
+  <div id="scale">Ground plane 2400 m across · *sun identity pending her word</div>
+  <div id="err"></div>
+  <!-- Level mini-dock: 24px, labels only, fades when idle. Also the level selector. -->
+  <nav id="level-dock" aria-label="Level select">
+    <a href="../">LEVEL 1 · INFINITY 6</a>
+    <a href="../level-2/">LEVEL 2 · GIGAS GARDEN</a>
+    <span class="dock-current" aria-current="page">⬡ LEVEL 3 · THE RUINS</span>
+  </nav>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { createSkysphere } from './nv-skysphere.js';
+
+    const errBox = document.getElementById('err');
+    function fail(msg) {
+      errBox.style.display = 'block';
+      errBox.textContent = 'LEVEL-3 ERROR: ' + msg;
+      console.error('LEVEL-3 ERROR:', msg);
+    }
+    window.addEventListener('error', (e) => fail(e.message || String(e.error || e)));
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xd96a8f);
+    scene.fog = new THREE.Fog(0xc65a82, 160, 1100);
+
+    const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.5, 4000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.setClearColor(0xd96a8f, 1);
+    document.getElementById('app').appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    controls.maxPolarAngle = Math.PI * 0.52;
+
+    const hemiLight = new THREE.HemisphereLight(0xff9ec4, 0x2a2622, 0.85);
+    scene.add(hemiLight);
+    const sunLight = new THREE.DirectionalLight(0xffb0c8, 1.6);
+    sunLight.position.set(0, 120, -300);
+    scene.add(sunLight);
+    const cyanFill = new THREE.DirectionalLight(0x19e3ff, 0.25);
+    cyanFill.position.set(200, 80, 200);
+    scene.add(cyanFill);
+    const southFill = new THREE.DirectionalLight(0x9fc4d4, 1.0);
+    southFill.position.set(150, 80, 300);
+    scene.add(southFill);
+
+    // Sky: NV Skysphere, scaled to this diorama (world ~140 m across).
+    const timeParam = parseFloat(new URLSearchParams(location.search).get('time'));
+    const skysphere = createSkysphere(THREE, {
+      timeOfDay: Number.isNaN(timeParam) ? 0.5 : timeParam,
+      sunLight,
+      hemiLight,
+      worldRadius: 140,
+      sunDistance: 320,
+    });
+    scene.add(skysphere.group);
+
+    // Ground: one dark plane running to the horizon.
+    const outer = new THREE.Mesh(
+      new THREE.PlaneGeometry(2400, 2400),
+      new THREE.MeshStandardMaterial({ color: 0x100c1c, metalness: 0, roughness: 1 })
+    );
+    outer.rotation.x = -Math.PI / 2;
+    outer.position.y = -0.32;
+    outer.name = 'outerGround';
+    scene.add(outer);
+
+    // No combine loads here: the megastructure ruins were removed
+    // Nov 22, 2026 on Jasmine's word. Level 3 is sky + ground for now.
+
+    const cams = {
+      orbit:  { pos: [86, 46, 96],   tgt: [0, 10, 0] },
+      street: { pos: [-38, 2.2, 0],  tgt: [30, 9, 0] },
+      tower:  { pos: [26, 14, 52],   tgt: [0, 16, 22] },
+      top:    { pos: [0, 150, 0.01], tgt: [0, 0, 0] },
+    };
+    const camName = (new URLSearchParams(location.search).get('cam') || 'orbit');
+    const cam = cams[camName] || cams.orbit;
+    if (camName === 'sky') cam.tgt = skysphere.sunPosition().toArray();
+    camera.position.set(...cam.pos);
+    controls.target.set(...cam.tgt);
+    controls.update();
+
+    addEventListener('resize', () => {
+      camera.aspect = innerWidth / innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth, innerHeight);
+    });
+
+    window.__level3 = {
+      scene, camera, renderer, ready: false, ruinsLoaded: false, skysphere,
+      sky: { worldRadius: 140, timeOfDay: skysphere.getTimeOfDay() },
+    };
+
+    const clock = new THREE.Clock();
+    let frames = 0;
+    function tick() {
+      requestAnimationFrame(tick);
+      skysphere.update(clock.getDelta());
+      controls.update();
+      renderer.render(scene, camera);
+      if (++frames === 5) {
+        window.__level3.ready = true;
+        console.log('LEVEL-3 READY', JSON.stringify({ cam: camName, level: 'Level 3 — The Ruins' }));
+      }
+    }
+    tick();
+  </script>
+  <script>
+    /* Compact UI: diagnostics collapse toggle (G key) + level mini-dock idle fade. */
+    (function () {
+      var body = document.getElementById('hud-body');
+      var btn = document.getElementById('hud-toggle');
+      function toggle() {
+        if (!body || !btn) return;
+        body.hidden = !body.hidden;
+        btn.setAttribute('aria-expanded', body.hidden ? 'false' : 'true');
+      }
+      if (btn) btn.addEventListener('click', toggle);
+      window.addEventListener('keydown', function (e) {
+        var t = e.target;
+        if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
+        if (e.code === 'KeyG' && !e.metaKey && !e.ctrlKey && !e.altKey) toggle();
+      });
+      var dock = document.getElementById('level-dock');
+      if (dock) {
+        var timer = null;
+        var wake = function () {
+          dock.classList.remove('idle');
+          if (timer) clearTimeout(timer);
+          timer = setTimeout(function () { dock.classList.add('idle'); }, 3000);
+        };
+        ['pointermove', 'pointerdown', 'touchstart', 'keydown'].forEach(function (ev) {
+          window.addEventListener(ev, wake, { passive: true });
+        });
+        wake();
+      }
+    })();
+  </script>
+</body>
+</html>
