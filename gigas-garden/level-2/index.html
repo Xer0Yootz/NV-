@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <link rel="icon" href="data:," />
+  <title>Gigas Garden — Level 2 (Empty Garden Shell)</title>
+  <!--
+    ===========================================================================
+    NEON VIGIL — GAME REBUILD, LEVEL 2: EMPTY GARDEN SHELL
+    Level 2 is the Gigas Garden — the living continent OUTSIDE the ship.
+    Built Nov 10, 2026, on branch merge/prototype-into-main, on Jasmine's
+    word ("Unhold the Gigas Garden shell — build it now instead of waiting
+    for her Drive assets"). Empty shell only: geometry, no movement rules,
+    no activities, no rank, no characters, no models, no Praxia figure,
+    no IWW, no auth. When her Drive assets land, they match in through
+    the named asset slots below — the shell stays the master.
+
+    Locked geography (rebuild plan, Nov 9, 2026):
+    - Living continent. Crash site = glass beach (black sand, frosted sea
+      glass) at the base of a cliff near the tree line; crashed Infinity 6
+      on the beach. Overgrown ruins of San Francisco in the FAR distance
+      (a 2-mile hike up to the tree line). Sutro Baths ruins close but NOT
+      in frame — do not build. First Water (milky/acidic grove) is a LATER
+      location — do not build yet. Outdoor sky (NOT black — only the ship's
+      outside is black).
+    - What is NOT built here, and why: there is NO glass beach yet (no
+      frosted sea glass, no black-sand detail) — that comes with the
+      Sickle Coast Drive asset via the ground slot. NO cliff — the cliff
+      exists here only as a named empty slot. TREES LANDED Nov 23, 2026
+      on User's direction: the Flow Studio tree GLBs (Tree A, Tree B,
+      Tree C Acacia) now fill the tree-line slot (see the slot block).
+      NO Sutro Baths ruins, NO First Water, NO characters, NO Praxia.
+
+    What IS built:
+    - NV Skysphere (nv-skysphere.js, reusable module): inverted gradient
+      dome PINK TO PURPLE across the sky (magenta-pink horizon to deep
+      purple-pink zenith — NO cyan; cyan is water-only) at 10x the world
+      extent (world ~2 mi -> dome radius ~32,187 m, one named
+      constant WORLD_RADIUS); the giant striped pink-sun disc, which
+      RISES AND SETS across the sky driving the key light dawn -> dusk
+      (NVSun.js behaviour contract, Oct 27, 2026 — sun moved only, look
+      unchanged); and a soft drifting cloud layer (pink/purple/white,
+      no cyan). FLAG: the striped pink sun is the presumed "big weird
+      pink thing" (inventory §6 — strongest candidate, NOT confirmed).
+      Pending her word; if she means something else, the disc is one
+      named group and swaps out cleanly. No moon yet — its appearance
+      is still open for her ruling.
+    - Ground: simple procedural terrain base, neutral and low-detail
+      (dark rock/soil, gentle undulation, flattened near the hull) with
+      a clearly marked asset slot for the Sickle Coast GLB to land in
+      later. NOT a glass beach — no sea glass, no black-sand detail.
+      Nov 10, 2026 (Jasmine's word, TEMPORARY stand-in): the ocean-water
+      GIF is the ground texture for now — blue water (GIF first frame +
+      a VP9 loop of the same GIF as a video texture for motion). It hides
+      with terrainBase when the Sickle Coast GLB lands.
+    - Far ruins: the picture plates were REMOVED Nov 10, 2026 on
+      Jasmine's word (she looked at the screenshots and wanted those
+      picture planes gone). No far-city geometry here now — the overgrown
+      ruins of San Francisco in the far distance stay as world fiction
+      only, no plates, no planes.
+    - Crashed Infinity 6: simple procedural hull form at locked
+      dimensions (110 x 45 x 20-30 m varying, imperfect oblong, taller
+      through the middle, slightly lopsided), dark gunmetal with thin
+      cyan-teal rib rings — same hull language as Level 1. NOT the
+      detailed interior GLB (existing variants are retired-scale
+      interiors; which variant is canonical is not established).
+      A subtle dark crash scar under the hull is provisional — flagged
+      in the record, removable in one line.
+    - ONE small procedural ruin stand-in, grounded STRICTLY on the
+      f1_ruin Flow reference as described in the inventory (overgrown
+      ruined concrete structure, ferns, pink flowering plants, pink
+      mist, teal neon floor strips) — mid-ground, small, flagged as a
+      stand-in. No other Flow reference is used here: the bridge
+      interiors with city skyline and the ocean/ship silhouette are
+      not needed for an empty outdoor shell.
+    - Asset/texture slots (same idea as Level 1's bellyBay
+      setBellyWallTexture): ground slot (Sickle Coast GLB), tree-line
+      slot, cliff slot, hull-replacement slot. Named groups, modular,
+      changeable.
+
+    Tech: standalone single file, Three.js 0.160.0 via unpkg (same version
+    as Level 1 / the old world). No auth gate, no Remix SDK, no GLBs yet.
+    Dev cameras: ?cam=orbit (default, wide form check), ?cam=ground
+    (low, past the hull toward the north + sun), ?cam=hull (close on
+    the crashed ship), ?cam=sky (up at the pink sun), ?cam=ruin (the
+    f1_ruin stand-in).
+    ===========================================================================
+  -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background: #2e1440; }
+    #app { position: fixed; inset: 0; }
+    canvas { display: block; }
+    #hud {
+      position: fixed; top: 12px; left: 12px; z-index: 10;
+      font-family: "Courier New", Courier, monospace; color: #ffd7e8;
+      background: rgba(20, 4, 24, 0.72); border: 1px solid rgba(255, 94, 138, 0.45);
+      padding: 10px 12px; max-width: 360px; pointer-events: none;
+      font-size: 10px; line-height: 1.55;
+    }
+    /* Diagnostics collapse (Nov 13, 2026): the HUD readout is collapsed by
+       default behind its one-line summary; G key or the summary toggles it. */
+    #hud-toggle {
+      pointer-events: auto; background: none; border: none; padding: 0; cursor: pointer;
+      color: #fff; font: inherit; font-weight: bold; letter-spacing: 1px; text-align: left;
+    }
+    #hud-body[hidden] { display: none; }
+    /* Level mini-dock (Nov 13, 2026): 24px, labels only, bottom-center; fades
+       to 30% opacity after 3s idle. Also the level selector. */
+    #level-dock {
+      position: fixed; left: 50%; bottom: 8px; transform: translateX(-50%); z-index: 10;
+      height: 24px; display: flex; align-items: center; gap: 12px; padding: 0 12px;
+      background: rgba(20, 4, 24, 0.78); border: 1px solid rgba(255, 94, 138, 0.45);
+      font-family: "Courier New", Courier, monospace; font-size: 10px; font-weight: bold;
+      letter-spacing: 1px; white-space: nowrap; transition: opacity 0.6s ease;
+    }
+    #level-dock.idle { opacity: 0.3; }
+    #level-dock .dock-current { color: #ffd7e8; }
+    #level-dock a { color: #19e3ff; text-decoration: none; }
+    #level-dock a:hover, #level-dock a:focus-visible { color: #fff; text-decoration: underline; }
+    #hud b { color: #fff; letter-spacing: 1px; }
+    #hud .dim { color: #c98aa8; }
+    #hud .warn { color: #ffb020; }
+    #hud .cyan { color: #19e3ff; }
+    #scale {
+      position: fixed; bottom: 12px; right: 12px; z-index: 10;
+      font-family: "Courier New", Courier, monospace; color: #c98aa8;
+      background: rgba(20, 4, 24, 0.72); border: 1px solid rgba(255, 94, 138, 0.3);
+      padding: 6px 10px; font-size: 10px; pointer-events: none;
+    }
+    #err {
+      display: none; position: fixed; top: 12px; right: 12px; z-index: 20;
+      font-family: "Courier New", Courier, monospace; color: #fff;
+      background: rgba(160, 10, 30, 0.92); border: 1px solid #ff5566;
+      padding: 10px 12px; max-width: 420px; font-size: 12px; line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <div id="hud">
+    <button id="hud-toggle" type="button" aria-expanded="false" aria-controls="hud-body" title="Diagnostics (G)">GIGAS GARDEN — LEVEL 2 · DIAGNOSTICS (G)</button>
+    <div id="hud-body" hidden>
+    Empty garden shell — outdoor, not black<br />
+    <span class="dim">Crash site: hull on the beach, cliff base, tree line</span><br />
+    <span class="cyan">Pink sun: striped disc — rises/sets, drives the light dawn→dusk*</span><br />
+    <span class="dim">Ruin stand-in: f1_ruin reference only (concrete · ferns · pink flowers · mist · teal strips)</span><br />
+    <span class="warn">NOT built: glass beach · cliff · Sutro Baths · First Water · characters</span><br />
+    <span class="dim">Tree line: Flow Studio trees (A · B · C Acacia) — landed Nov 23, 2026, her word</span><br />
+    <span class="dim">Slots: ground (Sickle Coast) · tree line · cliff · hull — see record</span><br />
+    <span class="dim">Ground: ocean-water GIF stand-in (temporary blue water, 25% transparent over a seabed)</span><br />
+    <span class="dim">Drag to orbit · scroll to zoom · no systems yet</span>
+    </div>
+  </div>
+  <div id="scale">Hull 110 m × 45 m × 20–30 m · sky dome 10× world (~32 km) · *sun identity pending her word</div>
+  <div id="err"></div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { createSkysphere, SKY_RADIUS, CAMERA_FAR } from './nv-skysphere.js';
+    import { createWeatherRig } from './nv-weather.js';
+    import { createPlayerRig } from './nv-player.js';
+
+    const errBox = document.getElementById('err');
+    function fail(msg) {
+      errBox.style.display = 'block';
+      errBox.textContent = 'LEVEL-2 SHELL ERROR: ' + msg;
+      console.error('LEVEL-2 SHELL ERROR:', msg);
+    }
+    window.addEventListener('error', (e) => fail(e.message || String(e.error || e)));
+
+    // --- Canon dimensions (metres) -------------------------------------------
+    const SHIP_LENGTH = 110;   // along X, bow +X forward
+    const SHIP_WIDTH  = 45;    // along Z
+    const SHIP_HEIGHT = 24;    // mid-height, inside the locked 20-30 m range
+    const CYAN  = 0x19e3ff;    // thin cyan-teal emissive trim (ship)
+    const PINK  = 0xff5e8a;    // striped pink sun / magenta sky
+    const PINK_PALE = 0xffd7e8;
+
+    const scene = new THREE.Scene();
+    // Procedural sky dome (below) is the background; clear colour matches
+    // the horizon so no black ever shows through.
+    scene.background = new THREE.Color(0xd96a8f);
+    scene.fog = new THREE.Fog(0xc65a82, 380, 1000);
+
+    const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 1, CAMERA_FAR);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.setClearColor(0xd96a8f, 1);
+    document.getElementById('app').appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+
+    // --- Lights: outdoor, pink-sun key + cyan-teal fill -----------------------
+    // Key light comes from the pink sun's direction (low, north) — the
+    // skysphere module moves it with the sun and drives its colour and
+    // strength from dawn through dusk (see nv-skysphere.js).
+    const hemiLight = new THREE.HemisphereLight(0xff9ec4, 0x2a2622, 0.85);
+    scene.add(hemiLight);
+    const sunLight = new THREE.DirectionalLight(0xffb0c8, 1.6);
+    sunLight.position.set(0, 120, -700);
+    scene.add(sunLight);
+    const cyanFill = new THREE.DirectionalLight(CYAN, 0.25);
+    cyanFill.position.set(200, 80, 200);
+    scene.add(cyanFill);
+    // Soft cool fill from the south so the hull's camera side never reads
+    // as a black void (the pink key light comes from the north).
+    const southFill = new THREE.DirectionalLight(0x9fc4d4, 1.0);
+    southFill.position.set(150, 80, 300);
+    scene.add(southFill);
+
+    let meshCount = 0;
+    function add(mesh) { scene.add(mesh); meshCount++; return mesh; }
+
+    // --- Sky: NV Skysphere module (nv-skysphere.js) --------------------------
+    // ONE module, one named size constant: dome radius = 10x the world
+    // extent (world ~2 mi -> SKY_RADIUS ~32,187 m). Gradient dome
+    // (pink horizon -> deep purple zenith, NO cyan — cyan is water-only),
+    // striped pink sun disc that rises and sets across the sky driving
+    // the key light dawn -> dusk, and a soft drifting pink/purple cloud
+    // layer. Replaces the old inline procedural sky entirely — there is
+    // only one sky in this scene.
+    // ?time=0..1 sets the time of day (0 = dawn, 0.5 = midday, 1 = dusk).
+    // Default 0.5: sun low in the north.
+    const timeParam = parseFloat(new URLSearchParams(location.search).get('time'));
+    const skysphere = createSkysphere(THREE, {
+      timeOfDay: Number.isNaN(timeParam) ? 0.5 : timeParam,
+      sunLight,
+      hemiLight,
+    });
+    scene.add(skysphere.group);
+    meshCount += skysphere.meshCount;
+
+    // --- Ground: procedural terrain base + Sickle Coast slot ------------------
+    // Neutral, low-detail dark rock/soil. Gentle undulation, flattened
+    // near the hull so the ship sits level. NOT a glass beach — no frosted
+    // sea glass, no black-sand detail; those come with the Sickle Coast
+    // GLB via the ground slot. Terrain base hides when a Drive asset lands.
+    const terrainBase = new THREE.Group();
+    terrainBase.name = 'terrainBase';
+    const terrainGeo = new THREE.PlaneGeometry(1000, 1000, 64, 64);
+    terrainGeo.rotateX(-Math.PI / 2);
+    {
+      const p = terrainGeo.attributes.position;
+      for (let i = 0; i < p.count; i++) {
+        const x = p.getX(i), z = p.getZ(i);
+        const r = Math.sqrt(x * x + z * z);
+        const flatten = THREE.MathUtils.clamp((r - 90) / 120, 0, 1); // flat near hull
+        const h = (
+          2.8 * Math.sin(x * 0.012 + 1.3) * Math.cos(z * 0.011 - 0.7) +
+          1.5 * Math.sin(x * 0.03 - 0.5) * Math.sin(z * 0.027 + 2.1) +
+          0.4 * Math.sin(x * 0.07) * Math.cos(z * 0.06)
+        ) * flatten;
+        p.setY(i, h);
+      }
+      terrainGeo.computeVertexNormals();
+    }
+    const terrainMat = new THREE.MeshStandardMaterial({ color: 0x413a30, metalness: 0.05, roughness: 0.95 });
+    terrainMat.userData.terrainBase = true;
+    const terrain = new THREE.Mesh(terrainGeo, terrainMat);
+    terrainBase.add(terrain);
+
+    // --- Ground water stand-in (Nov 10, 2026, Jasmine's word — TEMPORARY):
+    // the ocean-water GIF goes on the ground as the blue water, for now.
+    // Three.js does not animate GIF textures, so the GIF file itself is
+    // the first-frame texture (it always shows), and a VP9 loop converted
+    // from the same GIF (ocean-water-seamless.webm) drives a VideoTexture
+    // that takes over once it can play — that is the motion. Both are
+    // local copies in level-2/; the canon reference GIF is untouched.
+    // DE-TILED Nov 10, 2026: the seamless files are 2x2 mirrored mosaics
+    // of the locked GIF, so the tile edges match and there is no visible
+    // grid; MirroredRepeatWrapping + a second layer of the same water
+    // sampled rotated and smaller (45% mix) breaks the large-scale
+    // repeat. Same locked colours, same 76 frames / 30 ms / 2.28 s loop.
+    // When the Sickle Coast GLB lands via setGroundAsset, terrainBase
+    // hides and the stand-in goes with it.
+    const waterGifTex = new THREE.TextureLoader().load('./ocean-water-seamless.gif');
+    waterGifTex.colorSpace = THREE.SRGBColorSpace;
+    waterGifTex.wrapS = waterGifTex.wrapT = THREE.MirroredRepeatWrapping;
+    waterGifTex.repeat.set(4, 4);
+    const waterDetailTex = new THREE.TextureLoader().load('./ocean-water-seamless.gif');
+    waterDetailTex.colorSpace = THREE.SRGBColorSpace;
+    waterDetailTex.wrapS = waterDetailTex.wrapT = THREE.MirroredRepeatWrapping;
+    waterDetailTex.repeat.set(4, 4);
+    terrainMat.map = waterGifTex;
+    terrainMat.color.set(0xffffff);
+    terrainMat.roughness = 0.55;
+    // Second blended layer: same water sampled rotated/smaller so no
+    // tile pattern survives at ground scale. Injected into the standard
+    // material — vMapUv is the map UV (already 4x4 repeated).
+    terrainMat.onBeforeCompile = (shader) => {
+      shader.uniforms.waterDetailMap = { value: waterDetailTex };
+      shader.fragmentShader = shader.fragmentShader
+        .replace('#include <common>', '#include <common>\nuniform sampler2D waterDetailMap;')
+        .replace('#include <map_fragment>', `#include <map_fragment>
+          {
+            float dc = cos(0.7), ds = sin(0.7);
+            vec2 ruv = vec2(dc * vMapUv.x - ds * vMapUv.y, ds * vMapUv.x + dc * vMapUv.y);
+            vec2 detailUv = ruv * 0.37 + vec2(0.13, 0.71);
+            vec4 detailTexel = texture2D(waterDetailMap, detailUv);
+            diffuseColor.rgb = mix(diffuseColor.rgb, detailTexel.rgb, 0.45);
+          }`);
+      terrainMat.userData.detailShader = shader;
+    };
+    terrainMat.needsUpdate = true;
+    const waterVideo = document.createElement('video');
+    waterVideo.src = './ocean-water-seamless.webm';
+    waterVideo.muted = true;
+    waterVideo.loop = true;
+    waterVideo.playsInline = true;
+    waterVideo.preload = 'auto';
+    window.__waterVideo = waterVideo; // verification handle
+    waterVideo.addEventListener('canplay', () => {
+      const vTex = new THREE.VideoTexture(waterVideo);
+      vTex.colorSpace = THREE.SRGBColorSpace;
+      vTex.wrapS = vTex.wrapT = THREE.MirroredRepeatWrapping;
+      vTex.repeat.set(4, 4);
+      terrainMat.map = vTex;
+      terrainMat.needsUpdate = true;
+      window.__waterVideoTexture = vTex;
+      // Detail layer switches to the same video so both layers animate.
+      const vDetail = new THREE.VideoTexture(waterVideo);
+      vDetail.colorSpace = THREE.SRGBColorSpace;
+      vDetail.wrapS = vDetail.wrapT = THREE.MirroredRepeatWrapping;
+      vDetail.repeat.set(4, 4);
+      const sh = terrainMat.userData.detailShader;
+      if (sh) sh.uniforms.waterDetailMap.value = vDetail;
+      window.__waterDetailTexture = vDetail;
+      console.log('[level2] ocean-water video texture live on terrain');
+    });
+    waterVideo.play().catch((e) => {
+      console.warn('[level2] ocean-water video autoplay blocked, GIF frame stays:', e);
+    });
+
+    // --- Water transparency (Nov 12, 2026, User's order): the ocean is
+    // 25% transparent (opacity 0.75) over a seabed, so the water has
+    // depth instead of sitting as an opaque sheet. In Level 2 the water
+    // lives in terrainMat (GIF frame + WebM VideoTexture on the terrain
+    // base), so the transparency goes on that material. depthWrite off
+    // is per the order; the seabed and hull still depth-test correctly
+    // because they render in the opaque pass first.
+    terrainMat.transparent = true;
+    terrainMat.opacity = 0.75;
+    terrainMat.depthWrite = false;
+    terrainMat.needsUpdate = true;
+    // Seabed beneath the ocean plane: deep indigo bed at y = -5.5,
+    // below the lowest terrain dip (~-4.7 m at full undulation), so the
+    // transparency never exposes the bare clear colour or the dome's
+    // lower half — you see dark bed through the water.
+    const seabed = new THREE.Mesh(
+      new THREE.PlaneGeometry(1000, 1000),
+      new THREE.MeshStandardMaterial({ color: 0x14082e, metalness: 0, roughness: 1 }),
+    );
+    seabed.rotation.x = -Math.PI / 2;
+    seabed.position.y = -5.5;
+    seabed.name = 'seabed';
+    scene.add(seabed);
+    meshCount++;
+
+    scene.add(terrainBase);
+    meshCount++;
+
+    // Ground slot: the Sickle Coast GLB lands here when her Drive assets
+    // arrive (inventory: scale x~500 for a ~950 m coast; 26.4 MB — over
+    // the 25 MB cap, flagged). setGroundAsset hides the procedural base.
+    const groundSlot = new THREE.Group();
+    groundSlot.name = 'groundSlot';
+    groundSlot.userData.assetSlot = 'sickle-coast-glb';
+    scene.add(groundSlot);
+    function setGroundAsset(model) {
+      terrainBase.visible = false;
+      groundSlot.add(model);
+      console.log('[level2] ground asset mounted in groundSlot; terrainBase hidden');
+    }
+    // Sickle Coast — IN the build Nov 23, 2026 (User's direction, live call:
+    // "trees" means ALL the trees, incl. "the Sickle Coast like those big
+    // sharp shard things"). The shard trees are NOT separate models: the
+    // Sickle Coast GLB (5092991674, Blender-checked Nov 5, 2026) is ONE
+    // baked mesh — coast, water, sky panel and the shard/root forms baked
+    // together, hollow diorama back — so it comes in whole, via this
+    // ground slot, the way the hub viewer used it. Assets in ../assets/:
+    // sickle-coast.glb (5092991674, MD5 8c8395d9…), sickle-coast-arch.glb
+    // (5092998147, the arching root form), sickle-coast-variant-5092998148.glb.
+    // PLACEMENT IS GATED: the coast mounts only with ?ground=sickle, at the
+    // inventory scale (~x500 for a ~950 m coast). It does NOT replace the
+    // default ground until User has seen the Blender lane's ground preview
+    // and rules — the baked sky panel/water may fight the skysphere, which
+    // is what the preview is for. NOTE: at 26.4 MB the file is over the
+    // 25 MB Cloudflare Pages per-file cap — flagged for the app fold-in.
+    if ((new URLSearchParams(location.search).get('ground') || '') === 'sickle') {
+      new GLTFLoader().load('../assets/sickle-coast.glb', (gltf) => {
+        const coast = gltf.scene;
+        const box = new THREE.Box3().setFromObject(coast);
+        const s = 950 / Math.max(0.001, box.max.x - box.min.x);
+        coast.scale.setScalar(s); // uniform scale only — never stretched
+        coast.position.set(-(box.min.x + box.max.x) / 2 * s, -box.min.y * s, -(box.min.z + box.max.z) / 2 * s);
+        setGroundAsset(coast);
+        if (window.__level2) {
+          window.__level2.slots.ground.filled = true;
+          window.__level2.slots.ground.asset = 'sickle-coast.glb (5092991674)';
+          window.__level2.groundSickle = true;
+        }
+        console.log('[level2] Sickle Coast mounted in groundSlot at scale', s.toFixed(1));
+      }, undefined, (err) => fail('Sickle Coast load failed: ' + (err && err.message || err)));
+    }
+
+    // --- Crashed Infinity 6: simple procedural hull ---------------------------
+    // Same hull language as Level 1 (capsule, imperfect oblong, taller
+    // through the middle, slightly lopsided), SOLID here — a crashed ship
+    // on the beach, not a wireframe. Resting on the terrain with a slight
+    // list and yaw, bow toward +X. NOT the detailed interior GLB.
+    const hullGroup = new THREE.Group();
+    hullGroup.name = 'hullGroup';
+    hullGroup.position.set(0, 11.5, 0);
+    hullGroup.rotation.set(0, 0.06, -0.035);
+    const hullGeo = new THREE.CapsuleGeometry(12, 86, 8, 48);
+    hullGeo.rotateZ(Math.PI / 2); // capsule axis Y -> X
+    {
+      const p = hullGeo.attributes.position;
+      for (let i = 0; i < p.count; i++) {
+        const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
+        const fade = Math.max(0, 1 - Math.pow(x / 55, 2));
+        const lift = 0.9 * Math.sin((x / 55) * Math.PI * 0.5) * fade;
+        p.setY(i, y + lift);
+        p.setZ(i, z + 0.4 * Math.sin(x * 0.09) * fade);
+      }
+      hullGeo.computeVertexNormals();
+    }
+    const hullMat = new THREE.MeshStandardMaterial({ color: 0x2e3440, metalness: 0.45, roughness: 0.5 });
+    const hull = new THREE.Mesh(hullGeo, hullMat);
+    hull.scale.set(1, 1, 1.875); // 24 m high -> 45 m wide
+    hullGroup.add(hull);
+    const trimMat = new THREE.LineBasicMaterial({ color: CYAN, transparent: true, opacity: 0.55 });
+    for (const rx of [-44, -22, 0, 22, 44]) {
+      const curve = new THREE.EllipseCurve(0, 0, 22.5, 12, 0, Math.PI * 2, false, 0);
+      const pts = curve.getPoints(96).map((v) => new THREE.Vector3(0, v.y, v.x));
+      const ring = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts), trimMat);
+      ring.position.set(rx, 0, 0);
+      hullGroup.add(ring);
+    }
+    scene.add(hullGroup);
+    meshCount += hullGroup.children.length;
+    // Hull slot: a detailed Infinity 6 GLB replaces this procedural hull
+    // when a canonical variant is chosen (none is, yet).
+    const hullSlot = new THREE.Group();
+    hullSlot.name = 'hullSlot';
+    hullSlot.userData.assetSlot = 'infinity-6-glb';
+    scene.add(hullSlot);
+    function setHull(model) {
+      hullGroup.visible = false;
+      hullSlot.add(model);
+      console.log('[level2] hull asset mounted in hullSlot; procedural hull hidden');
+    }
+    // Provisional crash scar: dark ellipse under the hull. Flagged —
+    // part of the crash itself, not a location; removable in one line.
+    const scar = new THREE.Mesh(
+      new THREE.CircleGeometry(1, 48),
+      new THREE.MeshBasicMaterial({ color: 0x0e0c0a, transparent: true, opacity: 0.55, depthWrite: false })
+    );
+    scar.rotation.x = -Math.PI / 2;
+    scar.scale.set(78, 46, 1);
+    scar.position.set(0, 0.15, 0);
+    add(scar);
+
+    // --- Far ruins: picture plates REMOVED Nov 10, 2026, Jasmine's word --
+    // The two repo plates (Mega_City_Ruins_Flood_Street_01.jpg,
+    // Mega_City_Ruins_Garden_Ring_01.jpg) were taken out of the scene
+    // entirely — she looked at the screenshots and wanted those picture
+    // planes gone. No far-city geometry replaces them here; the f1_ruin
+    // stand-in below stays, and ?cam=ruin still points at it.
+
+    // --- Tree-line slot — FLOW STUDIO TREES LANDED Nov 23, 2026 ---------------
+    // The tree line sits where the beach meets the cliffs, toward the far
+    // ruins (north). This slot stayed empty until canon trees existed.
+    // Nov 23, 2026 (User's direction, live call): "trees first" — the Flow
+    // Studio tree GLBs (Tree A, Tree B, Tree C Acacia, downloaded credit-free
+    // that morning and first planted in the AI Studio prototype) are planted
+    // here, cycling the three models along the line. Uniform scale only
+    // (natural heights ~10-16 m, measured per model), never stretched.
+    // Removable: delete this block + the three flow-tree-*.glb files in
+    // ../assets/ and the slot is empty again.
+    const treeLineSlot = new THREE.Group();
+    treeLineSlot.name = 'treeLineSlot';
+    treeLineSlot.userData.assetSlot = 'tree-line-glb';
+    treeLineSlot.position.set(40, 0, -230);
+    scene.add(treeLineSlot);
+    function setTreeLine(model) {
+      treeLineSlot.add(model);
+      console.log('[level2] tree-line asset mounted in treeLineSlot');
+    }
+    const FLOW_TREES = [
+      { file: '../assets/flow-tree-a.glb',        heights: [11, 14, 10, 15, 12, 16, 11, 13, 10, 14, 12, 15] },
+      { file: '../assets/flow-tree-b.glb',        heights: [13, 10, 15, 12, 16, 11, 14, 10, 13, 15, 12, 11] },
+      { file: '../assets/flow-tree-c-acacia.glb', heights: [10, 13, 16, 11, 14, 12, 15, 10, 13, 11, 16, 12] },
+    ];
+    // Deterministic placement (seeded) so the line is the same every load:
+    // 36 trees spread along local X -170..+170, jittered in Z, cycling models.
+    let treeSeed = 20261123;
+    function treeRand() { treeSeed = (treeSeed * 1103515245 + 12345) % 2147483648; return treeSeed / 2147483648; }
+    const treeLoader = new GLTFLoader();
+    let treesPlanted = 0;
+    FLOW_TREES.forEach((spec, modelIdx) => {
+      treeLoader.load(spec.file, (gltf) => {
+        const proto = gltf.scene;
+        const box = new THREE.Box3().setFromObject(proto);
+        const protoHeight = Math.max(0.001, box.max.y - box.min.y);
+        spec.heights.forEach((targetH, i) => {
+          const n = modelIdx * spec.heights.length + i;
+          const tree = proto.clone(true);
+          const s = targetH / protoHeight;
+          tree.scale.setScalar(s); // uniform scale only — never stretched
+          tree.position.set(
+            -170 + (340 * (n + 0.5)) / 36 + (treeRand() - 0.5) * 8,
+            -box.min.y * s,
+            (treeRand() - 0.5) * 44
+          );
+          tree.rotation.y = treeRand() * Math.PI * 2;
+          setTreeLine(tree);
+          treesPlanted++;
+        });
+        if (window.__level2) {
+          window.__level2.slots.treeLine.filled = true;
+          window.__level2.slots.treeLine.asset = 'flow-tree-a/b/c-acacia.glb';
+          window.__level2.groups.treeLineSlot = treeLineSlot.children.length;
+          window.__level2.treesPlanted = treesPlanted;
+        }
+        console.log('[level2] Flow trees planted:', spec.file, spec.heights.length);
+      }, undefined, (err) => fail('Flow tree load failed (' + spec.file + '): ' + (err && err.message || err)));
+    });
+
+    // --- Cliff slot (EMPTY — no cliff invented) --------------------------------
+    // The cliff stands at the back of the beach (south). The rock-cave
+    // GLB is the candidate (1.88M faces as-is — needs decimation, and
+    // Meshopt handling) — it lands here when she says so.
+    const cliffSlot = new THREE.Group();
+    cliffSlot.name = 'cliffSlot';
+    cliffSlot.userData.assetSlot = 'cliff-glb';
+    cliffSlot.position.set(0, 0, 280);
+    scene.add(cliffSlot);
+    function setCliff(model) {
+      cliffSlot.add(model);
+      console.log('[level2] cliff asset mounted in cliffSlot');
+    }
+
+    // --- Ruin stand-in: f1_ruin reference ONLY --------------------------------
+    // Grounded STRICTLY on the f1_ruin Flow reference as described in the
+    // inventory: overgrown ruined concrete structure, ferns, pink
+    // flowering plants, pink mist, teal neon floor strips. Mid-ground,
+    // small (~14 m across), at (60, 0, -58). This is a STAND-IN, not a
+    // canon location — one named group, removable. Nothing else from Flow
+    // is used here: no bridge interiors, no ocean/ship silhouette.
+    const ruinStandIn = new THREE.Group();
+    ruinStandIn.name = 'ruinStandIn';
+    ruinStandIn.userData.standIn = 'f1_ruin reference only — not a canon location';
+    ruinStandIn.position.set(60, 0, -58);
+    const concreteMat = new THREE.MeshStandardMaterial({ color: 0x55565a, metalness: 0.05, roughness: 0.95 });
+    const concreteDark = new THREE.MeshStandardMaterial({ color: 0x3a3b3f, metalness: 0.05, roughness: 0.95 });
+    const fernMat = new THREE.MeshStandardMaterial({ color: 0x2e4d2a, metalness: 0, roughness: 0.9 });
+    const fernLight = new THREE.MeshStandardMaterial({ color: 0x3f6b35, metalness: 0, roughness: 0.9 });
+    const flowerMat = new THREE.MeshStandardMaterial({ color: 0xff7fb0, emissive: 0xd13a7a, emissiveIntensity: 0.4 });
+    const stemMat = new THREE.MeshStandardMaterial({ color: 0x2e4d2a, roughness: 0.9 });
+    const tealStripMat = new THREE.MeshStandardMaterial({ color: CYAN, emissive: CYAN, emissiveIntensity: 1.0 });
+    const mistMat = new THREE.MeshBasicMaterial({ color: 0xff9ec4, transparent: true, opacity: 0.06, depthWrite: false });
+    let ruinMeshes = 0;
+    function rAdd(mesh) { ruinStandIn.add(mesh); ruinMeshes++; return mesh; }
+    // Broken concrete slabs: two standing walls (one leaning), one fallen.
+    const slab1 = rAdd(new THREE.Mesh(new THREE.BoxGeometry(6, 5.5, 0.8), concreteMat));
+    slab1.position.set(-4, 2.75, -2);
+    const slab2 = rAdd(new THREE.Mesh(new THREE.BoxGeometry(5, 4, 0.8), concreteDark));
+    slab2.position.set(3.5, 2, -3);
+    slab2.rotation.z = 0.16; // leaning, broken
+    const slab3 = rAdd(new THREE.Mesh(new THREE.BoxGeometry(5.5, 0.7, 3), concreteMat));
+    slab3.position.set(0.5, 0.35, 2.5);
+    slab3.rotation.y = 0.4; // fallen slab
+    // Ferns: small tufts at the slab bases (cones, muted greens).
+    const fernSpots = [[-6.5, -0.5], [-3, 1.5], [1, -4.5], [5.5, 0.5], [6.5, -2], [-1.5, 3.5], [4, 3.5], [-5.5, 3]];
+    for (const [fx, fz] of fernSpots) {
+      const fern = rAdd(new THREE.Mesh(new THREE.ConeGeometry(0.55, 1.4, 8), Math.random() < 0.5 ? fernMat : fernLight));
+      fern.position.set(fx, 0.7, fz);
+    }
+    // Pink flowering plants: thin stems with small pink blooms.
+    const flowerSpots = [[-5, 1], [-2, -3.5], [0, 4], [2.5, -1.5], [5, -3.5], [6, 2.5], [-4, -3], [3, 4.5]];
+    for (const [fx, fz] of flowerSpots) {
+      const stem = rAdd(new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.7, 6), stemMat));
+      stem.position.set(fx, 0.35, fz);
+      const bloom = rAdd(new THREE.Mesh(new THREE.SphereGeometry(0.18, 10, 8), flowerMat));
+      bloom.position.set(fx, 0.78, fz);
+    }
+    // Pink mist: low flattened translucent puffs around the slabs.
+    for (const [mx, mz, r] of [[-2, 0, 3.2], [3, 1, 2.6], [0.5, -2, 2.2]]) {
+      const puff = rAdd(new THREE.Mesh(new THREE.SphereGeometry(r, 14, 10), mistMat));
+      puff.scale.y = 0.18;
+      puff.position.set(mx, 0.5, mz);
+    }
+    // Teal neon floor strips: thin emissive strips on the ground, front.
+    for (const [sx, sz, len] of [[-2, 5.5, 4], [2.5, 6, 3], [0, 7, 5]]) {
+      const strip = rAdd(new THREE.Mesh(new THREE.BoxGeometry(len, 0.08, 0.18), tealStripMat));
+      strip.position.set(sx, 0.06, sz);
+    }
+    scene.add(ruinStandIn);
+    meshCount += ruinMeshes;
+
+    // --- Camera / spawn --------------------------------------------------------
+    const cams = {
+      orbit:  { pos: [180, 120, 220], tgt: [0, 10, 0] },
+      ground: { pos: [-130, 6, 60],   tgt: [0, 30, -380] },
+      hull:   { pos: [60, 18, 55],    tgt: [0, 12, 0] },
+      sky:    { pos: [-90, 6, 60],    tgt: [0, 95, -700] },
+      ruin:   { pos: [42, 6, -30],    tgt: [62, 3, -58] },
+      trees:  { pos: [40, 9, -150],   tgt: [40, 12, -230] },
+    };
+    const camName = (new URLSearchParams(location.search).get('cam') || 'orbit');
+    const cam = cams[camName] || cams.orbit;
+    // ?cam=sky looks up at the sun wherever it currently is (the sun moves).
+    if (camName === 'sky') cam.tgt = skysphere.sunPosition().toArray();
+    camera.position.set(...cam.pos);
+    controls.target.set(...cam.tgt);
+    controls.update();
+
+    addEventListener('resize', () => {
+      camera.aspect = innerWidth / innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth, innerHeight);
+    });
+
+    // Expose a small handle for verification tooling.
+    const slots = {
+      ground: { slot: 'groundSlot', asset: 'sickle-coast-glb', filled: false },
+      treeLine: { slot: 'treeLineSlot', asset: 'tree-line-glb', filled: false },
+      cliff: { slot: 'cliffSlot', asset: 'cliff-glb', filled: false },
+      hull: { slot: 'hullSlot', asset: 'infinity-6-glb', filled: false },
+    };
+    // Weather (locked work, carried in Nov 23, 2026 from the AI Studio
+    // prototype's weather.ts — see nv-weather.js): GPU particle rain
+    // (default) / snow, EXTERIOR only. Level 2 is all exterior.
+    const weather = createWeatherRig();
+
+    // Player walk rig (Nov 23, 2026): joystick + drag look, WASD, JUMP —
+    // same rig as Level 1 (nv-player.js). Ground = garden floor y=0.
+    // ?walk=1 starts in walk mode; orbit dev cameras otherwise.
+    const player = createPlayerRig({
+      camera, dom: renderer.domElement, start: [0, 0, 55], yaw: 0,
+      groundY: () => 0,
+    });
+    const setWalk = (on) => { player.setEnabled(on); controls.enabled = !on; };
+    if (new URLSearchParams(location.search).get('walk') === '1') setWalk(true);
+    scene.add(weather.group);
+    const weatherStatus = { mode: weather.getMode(), counts: weather.counts, exteriorOnly: true };
+    window.__level2 = {
+      scene, camera, renderer, ready: false, meshCount,
+      slots, skysphere, weather: weatherStatus, setWeather: (m) => { weather.setMode(m); weatherStatus.mode = weather.getMode(); }, player, setWalk,
+      sky: { radius: SKY_RADIUS, worldRadius: skysphere.WORLD_RADIUS, timeOfDay: skysphere.getTimeOfDay() },
+      groups: {
+        terrainBase: terrainBase.children.length,
+        groundSlot: groundSlot.children.length,
+        hullGroup: hullGroup.children.length,
+        treeLineSlot: treeLineSlot.children.length,
+        cliffSlot: cliffSlot.children.length,
+        ruinStandIn: ruinMeshes,
+        pinkSun: skysphere.sunGroup.children.length,
+      },
+      setGroundAsset, setTreeLine, setCliff, setHull,
+    };
+
+    const clock = new THREE.Clock();
+    let frames = 0;
+    function tick() {
+      requestAnimationFrame(tick);
+      const dt = clock.getDelta();
+      skysphere.update(dt);
+      weather.update(dt, camera.position, true);
+      player.update(dt);
+      controls.update();
+      renderer.render(scene, camera);
+      if (++frames === 5) {
+        window.__level2.ready = true;
+        console.log('LEVEL-2 SHELL READY', JSON.stringify({
+          cam: camName, meshes: meshCount,
+          level: 'Level 2 — Gigas Garden (empty shell)',
+          hull: 'Infinity 6 crashed, 110 x 45 x 20-30 m',
+          sky: 'nv-skysphere: gradient dome 10x world + moving striped sun + drifting clouds',
+          skyRadius: SKY_RADIUS, timeOfDay: skysphere.getTimeOfDay(),
+          slots,
+          notBuilt: ['glass beach', 'cliff', 'Sutro Baths', 'First Water', 'characters', 'Praxia'],
+        }));
+      }
+    }
+    tick();
+  </script>
+  <!-- Level mini-dock (Nov 13, 2026): 24px, labels only, fades when idle. Also the level selector. -->
+  <nav id="level-dock" aria-label="Level select">
+    <a href="../">LEVEL 1 · INFINITY 6</a>
+    <span class="dock-current" aria-current="page">⬡ LEVEL 2 · GIGAS GARDEN</span>
+    <a href="../level-3/">LEVEL 3 · THE RUINS</a>
+  </nav>
+  <script>
+    /* Compact UI (Nov 13, 2026): diagnostics collapse toggle (button + G key)
+       and the level mini-dock idle fade (30% after 3s idle). */
+    (function () {
+      var body = document.getElementById('hud-body');
+      var btn = document.getElementById('hud-toggle');
+      function toggle() {
+        if (!body || !btn) return;
+        body.hidden = !body.hidden;
+        btn.setAttribute('aria-expanded', body.hidden ? 'false' : 'true');
+      }
+      if (btn) btn.addEventListener('click', toggle);
+      window.addEventListener('keydown', function (e) {
+        var t = e.target;
+        if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
+        if (e.code === 'KeyG' && !e.metaKey && !e.ctrlKey && !e.altKey) toggle();
+      });
+      var dock = document.getElementById('level-dock');
+      if (dock) {
+        var timer = null;
+        var wake = function () {
+          dock.classList.remove('idle');
+          if (timer) clearTimeout(timer);
+          timer = setTimeout(function () { dock.classList.add('idle'); }, 3000);
+        };
+        ['pointermove', 'pointerdown', 'touchstart', 'keydown'].forEach(function (ev) {
+          window.addEventListener(ev, wake, { passive: true });
+        });
+        wake();
+      }
+    })();
+  </script>
+</body>
+</html>
