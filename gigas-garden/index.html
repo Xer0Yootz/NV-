@@ -1,46 +1,3631 @@
-<!doctype html>
-<html lang="en" data-nv-no-ticker>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>iKG://GigasGarden.Construct — Infinity6 Terminal</title>
-  <link rel="stylesheet" href="../nv-terminal-tokens.css">
-  <link rel="stylesheet" href="../nv-commands.css"> <link rel="stylesheet" href="../nv-symbiont-theme.css"> <script src="../nv-symbiont-theme.js"></script>
+  <!-- Neon Vigil sign-in gate. Keep this tag when copying this file to gh-pages; the build and backend set data-mode. -->
+  <!-- PREVIEW FOLD: auth-gate tag dropped for the neonvigil.app preview (hub sign-in covers it). The working copy keeps the tag. Nov 23, 2026. -->
+  <!-- My Room test link: ?stage=room opens the Infinity 6 room page straight away (same sign-in session). -->
+  <script>
+    (function () {
+      try {
+        if (new URLSearchParams(location.search).get('stage') === 'room') location.replace('../Infinity_6-rooms/');
+      } catch (e) { /* stay on the game */ }
+    })();
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Neon Vigil: Gigas Garden</title>
+  <!--
+    ===========================================================================
+    NEON VIGIL: GIGAS GARDEN — REMIX.GG SINGLE-FILE ENGINE (DEEP TIME 5150)
+    Creator: Jasmine Infiniti (Address strictly as "User")
+    gameId: d9a532a8-456a-4ddb-b323-5b7a5cd46f72
+    ---------------------------------------------------------------------------
+    GROK BOT VISUAL & FLOW STUDIO RE-PROMPT HOOKS:
+    1. FLOW_STUDIO_MANIFEST: Probes hosted Autodesk Flow Studio GLBs first
+       (neon-ultra.glb, praxia.glb, val17.glb, each with a -lite LOD), then falls
+       back to the A-pose Niji-6 procedural cel build. Creatures: CC0 bee GLBs
+       tinted per caste, octahedron fallback (assets/CREDITS.md).
+    2. DRIVE_BACKDROP_MANIFEST: Wires the 5 Shared Drive plates (flat files in
+       the assets folder) into zone sky-planes, SIDE parallax & viewport frames.
+    3. THEME_AUDIO_PATH: External theme file (neon-vigil-theme.mp3) with
+       dialogue/Sync ducking, HUD mute toggle and host mute.
+    Remix hosting rule: every media path is a LITERAL flat string of the form
+    assets/<file> (no sub-folders) so publish can rewrite it to the CDN.
+    4. STRICT TWO-VIEW ENGINE: Toggles seamlessly between GARDEN (3D 3rd-person)
+       and SIDE (2D Sega X-Men style side-scrolling lane) on the same state.
+    ===========================================================================
+  -->
+  <script src="https://cdn.jsdelivr.net/npm/@remix-gg/sdk@latest/dist/index.min.js"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
   <style>
-    /* Shell-wrapped game page (audit fix, Nov 8, 2026): the Gigas Garden
-       game loads in a full-viewport frame INSIDE the app shell (header,
-       dock, Cmd+K) instead of navigating out to GitHub Pages.
-       The frame is deliberately unsandboxed so the game behaves exactly
-       as it does standalone; sandboxing is a later hardening call.
-       Phase 1 (Nov 13, 2026): NO ticker on the game — data-nv-no-ticker
-       on <html>, the nv-ticker.css link and nv-ticker.js script are
-       removed below, nv-shell.js refuses to reload the ticker module,
-       and nv-ticker.js itself refuses to render on this route. The
-       element is never created; there is no replacement strip. */
-    html, body { height: 100%; }
-    body.nv-shell-page { padding-top: 8px; } /* no ticker to clear on this page */
-    body { background:#050508; color:#f5f0ff; font-family:ui-monospace, Menlo, monospace; font-size:18px; margin:0; display:flex; flex-direction:column; }
-    .nv-shell-head { max-width:none; margin:0 12px 12px; }
-    .nv-frame-wrap { flex:1; min-height:0; margin:0 12px; }
-    .nv-frame-wrap iframe { width:100%; height:100%; border:1px solid var(--nv-accent); display:block; box-sizing:border-box; background:#050508; }
-    .nv-frame-fallback { text-align:center; font-size:14px; color:var(--nv-accent-soft); margin:10px 0 0; }
-    .nv-frame-fallback a { color:var(--nv-accent-soft); }
+    :root {
+      --bg-black: #050208;
+      --panel-black: rgba(7, 3, 12, 0.92);
+      --cyan: #00f0ff;
+      --magenta: #ff1e8a;
+      --amethyst: #9d4edd;
+      --silver: #e2e8f0;
+      --acid: #b8ff00;
+      --purple-bomber: #4c1d95;
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      font-family: "Courier New", Courier, monospace;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: var(--bg-black);
+      color: var(--silver);
+      touch-action: none;
+    }
+
+    #viewport-container {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+    }
+
+    /* Niji-6 Razor-Sharp Cel Frame & Brutalist HUD */
+    #hud-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border: 3px solid var(--bg-black);
+      box-shadow: inset 0 0 0 1px var(--cyan);
+    }
+
+    .top-bar {
+      pointer-events: auto;
+      background: var(--panel-black);
+      border-bottom: 2px solid var(--magenta);
+      padding: 6px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+
+    /* Compact UI (Nov 13, 2026, User's order): the scrolling status line is
+       REMOVED from the game entirely — no scrolling text in the HUD or on the
+       title screen. Its ONLINE / date / weather data now lives as static text
+       in the diagnostics strip below, collapsed by default behind a one-line
+       summary and expanded with the G key or a tap on the summary. */
+    #diagnostics { font-size: 10px; color: var(--silver); letter-spacing: 0.4px; }
+    #diag-summary {
+      pointer-events: auto; display: flex; justify-content: space-between; gap: 8px;
+      width: 100%; background: none; border: none; padding: 0; cursor: pointer;
+      color: var(--cyan); font: inherit; font-weight: bold; text-align: left; text-transform: uppercase;
+    }
+    #diag-summary .diag-key { color: var(--magenta); }
+    #diag-body { padding-top: 4px; display: flex; flex-direction: column; gap: 2px; }
+    #diag-body[hidden] { display: none; }
+    #diag-body .diag-note { opacity: 0.7; }
+
+    /* Level mini-dock (Nov 13, 2026): 24px tall, labels only, bottom-center of
+       the stage; fades to 30% opacity after 3s idle, back on hover / focus /
+       touch / key activity. This is also the level selector. */
+    #level-dock {
+      pointer-events: auto; position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%);
+      height: 24px; display: flex; align-items: center; gap: 12px; padding: 0 12px;
+      background: rgba(7, 3, 12, 0.78); border: 1px solid var(--cyan);
+      font-size: 10px; font-weight: bold; letter-spacing: 1px; white-space: nowrap; z-index: 15;
+      transition: opacity 0.6s ease;
+    }
+    #level-dock.idle { opacity: 0.3; }
+    #level-dock .dock-current { color: var(--silver); }
+    #level-dock a { color: var(--cyan); text-decoration: none; }
+    #level-dock a:hover, #level-dock a:focus-visible { color: #ffffff; text-decoration: underline; }
+    @media (prefers-reduced-motion: reduce) { #level-dock { transition: none; } }
+
+    /* Task 3: Hexa Sigil start control (inline SVG, no text inside the symbol) */
+    .sigil-btn {
+      --sigil-a: var(--cyan);
+      --sigil-b: var(--amethyst);
+      align-self: center;
+      width: 112px; height: 112px; min-width: 64px; min-height: 64px;
+      padding: 0; margin: 4px auto 0; border: 0; border-radius: 50%;
+      background: radial-gradient(circle, rgba(0, 240, 255, 0.10) 0%, rgba(157, 78, 221, 0.10) 45%, transparent 70%);
+      cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .sigil-btn svg {
+      width: 100%; height: 100%; overflow: visible;
+      filter: drop-shadow(0 0 3px var(--sigil-a)) drop-shadow(0 0 9px var(--sigil-b));
+      animation: nv-sigil 4.2s ease-in-out infinite;
+    }
+    .sigil-btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 4px; }
+    .sigil-btn:active svg { transform: scale(0.94); }
+    .sigil-hint { font-size: 10px; letter-spacing: 2px; color: var(--cyan); text-align: center; opacity: 0.75; }
+    @keyframes nv-sigil {
+      0%, 100% { transform: scale(1); opacity: 0.88; filter: drop-shadow(0 0 3px var(--sigil-a)) drop-shadow(0 0 8px var(--sigil-b)); }
+      50%      { transform: scale(1.045); opacity: 1; filter: drop-shadow(0 0 5px var(--sigil-a)) drop-shadow(0 0 16px var(--sigil-b)); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .sigil-btn svg { animation: none !important; }
+    }
+
+    /* Lite-tier color grade (used only when the WebGL post stack is off) */
+    #grade-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      display: none;
+      background:
+        radial-gradient(ellipse at 50% 45%, rgba(0,0,0,0) 55%, rgba(18,2,30,0.5) 100%),
+        linear-gradient(180deg, rgba(110,40,170,0.10) 0%, rgba(255,70,170,0.07) 100%);
+    }
+    body.gfx-lite #grade-overlay { display: block; }
+
+    /* Screen-space rolling mist (procedural noise tile set from JS; outside the ship only) */
+    #mist-overlay {
+      position: fixed;
+      top: -1040px; left: -1040px; right: -1040px; bottom: -1040px;
+      z-index: 2;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 1.2s ease;
+      background-size: 520px 520px, 1040px 1040px;
+      will-change: transform;
+      animation: nv-mist-roll 140s linear infinite;
+    }
+    body.nv-outside #mist-overlay { opacity: 0.1; }
+    body.nv-outside.gfx-lite #mist-overlay { opacity: 0.08; animation: none; }
+    @keyframes nv-mist-roll {
+      from { transform: translate3d(0, 0, 0); }
+      to   { transform: translate3d(1040px, 0, 0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #mist-overlay { animation: none !important; }
+    }
+
+    /* HUD icon buttons: same 24-grid stroke icons as the 5150 app Icon component */
+    .hud-btn.icon-btn { display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
+    .hud-btn .nv-ico { display: block; flex: none; }
+
+
+    /* ---- Wired-era UI layer (CSS only): CRT scanlines, faint static, power-line motif,
+            muted glitch flicker on modal/dialogue transitions. Off for reduced motion. ---- */
+    #crt-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      pointer-events: none;
+      background:
+        repeating-linear-gradient(0deg, rgba(0,0,0,0.16) 0px, rgba(0,0,0,0.16) 1px, rgba(0,0,0,0) 1px, rgba(0,0,0,0) 3px);
+      mix-blend-mode: multiply;
+      opacity: 0.55;
+    }
+    #crt-overlay::after {           /* static: fine dot field nudged in steps */
+      content: "";
+      position: absolute;
+      inset: -8px;
+      background:
+        repeating-radial-gradient(circle at 17% 31%, rgba(255,255,255,0.05) 0 1px, rgba(255,255,255,0) 1px 4px),
+        repeating-radial-gradient(circle at 71% 63%, rgba(255,140,210,0.04) 0 1px, rgba(255,140,210,0) 1px 5px);
+      mix-blend-mode: screen;
+      animation: nv-static 0.9s steps(4) infinite;
+    }
+    @keyframes nv-static {
+      0% { transform: translate(0, 0); }
+      25% { transform: translate(-3px, 2px); }
+      50% { transform: translate(2px, -3px); }
+      75% { transform: translate(-1px, 3px); }
+      100% { transform: translate(0, 0); }
+    }
+    .top-bar { position: relative; }
+    .top-bar::after {               /* power lines sagging under the status bar */
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 100%;
+      height: 22px;
+      pointer-events: none;
+      background:
+        radial-gradient(140% 40px at 50% -22px, rgba(0,0,0,0) 97%, rgba(0,240,255,0.38) 98%, rgba(0,0,0,0) 100%),
+        radial-gradient(160% 52px at 40% -34px, rgba(0,0,0,0) 97.5%, rgba(255,30,138,0.30) 98.5%, rgba(0,0,0,0) 100%),
+        linear-gradient(90deg, rgba(0,0,0,0) 0 14%, rgba(226,232,240,0.45) 14% calc(14% + 2px), rgba(0,0,0,0) 0) 0 0 / 100% 7px no-repeat,
+        linear-gradient(90deg, rgba(0,0,0,0) 0 86%, rgba(226,232,240,0.45) 86% calc(86% + 2px), rgba(0,0,0,0) 0) 0 0 / 100% 7px no-repeat;
+    }
+    .modal-card.visible, #dialogue-box {
+      animation: nv-glitch-in 280ms steps(2, end) 1;
+    }
+    @keyframes nv-glitch-in {
+      0%   { opacity: 0.0; transform: translateX(-3px); filter: hue-rotate(-18deg) contrast(1.3); clip-path: inset(0 0 62% 0); }
+      30%  { opacity: 0.8; transform: translateX(2px); clip-path: inset(38% 0 18% 0); }
+      60%  { opacity: 0.6; transform: translateX(-1px); filter: hue-rotate(10deg); clip-path: inset(0 0 0 0); }
+      100% { opacity: 1;   transform: none; filter: none; clip-path: inset(0 0 0 0); }
+    }
+    .hud-btn:active { animation: nv-flick 120ms steps(2) 1; }
+    @keyframes nv-flick { 0% { opacity: 0.55; } 50% { opacity: 1; } 100% { opacity: 0.8; } }
+    @media (prefers-reduced-motion: reduce) {
+      #crt-overlay::after, .modal-card.visible, #dialogue-box, .hud-btn:active { animation: none !important; }
+    }
+
+    .hud-stats-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 10px;
+    }
+
+    .pill {
+      background: #10061c;
+      border: 1px solid var(--cyan);
+      padding: 2px 7px;
+      color: var(--silver);
+      font-weight: bold;
+    }
+
+    .pill.magenta {
+      border-color: var(--magenta);
+      color: var(--magenta);
+    }
+
+    .hud-btn {
+      pointer-events: auto;
+      background: #120722;
+      color: var(--cyan);
+      border: 1px solid var(--cyan);
+      box-shadow: 2px 2px 0 var(--magenta);
+      padding: 4px 8px;
+      font-size: 11px;
+      font-weight: bold;
+      cursor: pointer;
+      text-transform: uppercase;
+    }
+
+    .hud-btn:active {
+      transform: translate(1px, 1px);
+      box-shadow: 1px 1px 0 var(--magenta);
+    }
+
+    .hud-btn.active-tool {
+      background: var(--magenta);
+      color: #fff;
+      border-color: var(--silver);
+    }
+
+    /* Center Overlays: Title, Dialogue, GRID LOG, Battle/Sync Canvas */
+    #center-stage {
+      position: relative;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      pointer-events: none;
+    }
+
+    .modal-card {
+      pointer-events: auto;
+      background: var(--panel-black);
+      border: 2px solid var(--cyan);
+      box-shadow: 6px 6px 0 var(--magenta);
+      max-width: 440px;
+      width: 100%;
+      padding: 16px;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .modal-card.visible {
+      display: flex;
+    }
+
+    /* Bridge Console menu (Bridge / My Room): big tap targets for phone and desktop */
+    #console-modal { max-width: 320px; }
+    #console-modal .console-choices { display: flex; gap: 8px; }
+    #console-modal .console-choices .hud-btn {
+      flex: 1; min-height: 48px; display: inline-flex; align-items: center; justify-content: center;
+      font-size: 13px; letter-spacing: 1px; text-decoration: none; text-align: center;
+    }
+
+    .modal-title {
+      font-size: 16px;
+      font-weight: bold;
+      color: var(--cyan);
+      border-bottom: 1px solid var(--amethyst);
+      padding-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Cyphr / Hexa Dialogue Strip */
+    #dialogue-box {
+      pointer-events: auto;
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      right: auto;
+      width: min(560px, calc(100% - 24px));
+      max-width: 40vw;
+      margin: 0;
+      background: var(--panel-black);
+      border: 2px solid var(--speaker-accent, var(--cyan));
+      box-shadow: 4px 4px 0 var(--amethyst);
+      padding: 10px 12px;
+      display: none;
+      flex-direction: row;
+      align-items: stretch;
+      gap: 10px;
+    }
+    #dialogue-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+
+    /* Speaker portrait: flat 2D side profile beside every spoken line */
+    #dialogue-portrait {
+      flex: none;
+      width: 84px;
+      height: 84px;
+      align-self: flex-start;
+      position: relative;
+      background: #000;
+      border: 2px solid var(--speaker-accent, var(--cyan));
+      box-shadow: 2px 2px 0 var(--magenta);
+      overflow: hidden;
+      display: none;
+    }
+    #dialogue-box.has-portrait #dialogue-portrait { display: block; }
+    #dialogue-portrait img {
+      width: 100%; height: 100%; display: block; object-fit: cover;
+      image-rendering: auto;
+    }
+    #dialogue-portrait::after {     /* scanline sheen so the portrait sits in the CRT layer */
+      content: ""; position: absolute; inset: 0; pointer-events: none;
+      background: repeating-linear-gradient(0deg, rgba(0,0,0,0.18) 0 1px, rgba(0,0,0,0) 1px 3px);
+    }
+    /* Portrait stays still while a line types out (User's word, Nov 11, 2026) — no bob, no drift. The holograms (Hexa, Cyphr) speak with a live waveform that grows and shrinks; the glow pulse stays (box-shadow only, no movement). */
+    #dialogue-box.speaking.anim-bob #dialogue-portrait img { animation: none; }
+    #dialogue-box.speaking.anim-glow #dialogue-portrait { animation: nv-speak-glow 0.9s ease-in-out infinite alternate; }
+    #dialogue-box.speaking.anim-glow #dialogue-portrait img { animation: none; }
+    @keyframes nv-speak-glow {
+      from { box-shadow: 2px 2px 0 var(--magenta), 0 0 0 rgba(0,240,255,0); }
+      to   { box-shadow: 2px 2px 0 var(--magenta), 0 0 14px var(--speaker-accent, var(--cyan)); }
+    }
+    /* Live waveform for Hexa + Cyphr while speaking: bars grow and shrink like real sound. Hidden when idle. */
+    #dialogue-portrait { position: relative; }
+    #dialogue-portrait .nv-wave { display: none; position: absolute; left: 50%; bottom: 16%; transform: translateX(-50%); align-items: flex-end; gap: 2px; height: 16px; pointer-events: none; }
+    #dialogue-box.speaking.has-wave #dialogue-portrait .nv-wave { display: flex; }
+    #dialogue-portrait .nv-wave i { display: block; width: 3px; border-radius: 2px; background: var(--speaker-accent, #00f0ff); box-shadow: 0 0 6px var(--speaker-accent, #00f0ff); transform-origin: bottom; animation: nv-wave-grow 0.45s ease-in-out infinite alternate; }
+    #dialogue-portrait .nv-wave i:nth-child(1) { height: 35%; animation-delay: 0s; }
+    #dialogue-portrait .nv-wave i:nth-child(2) { height: 70%; animation-delay: 0.08s; }
+    #dialogue-portrait .nv-wave i:nth-child(3) { height: 100%; animation-delay: 0.16s; }
+    #dialogue-portrait .nv-wave i:nth-child(4) { height: 65%; animation-delay: 0.24s; }
+    #dialogue-portrait .nv-wave i:nth-child(5) { height: 40%; animation-delay: 0.32s; }
+    @keyframes nv-wave-grow { from { transform: scaleY(0.35); } to { transform: scaleY(1); } }
+    @keyframes nv-speak-glow {
+      from { box-shadow: 2px 2px 0 var(--magenta), 0 0 0 rgba(0,240,255,0); }
+      to   { box-shadow: 2px 2px 0 var(--magenta), 0 0 14px var(--speaker-accent, var(--cyan)); }
+    }
+    #dialogue-text.typing::after { content: "\258C"; color: var(--speaker-accent, var(--cyan)); animation: nv-caret 0.6s steps(1) infinite; }
+    @keyframes nv-caret { 50% { opacity: 0; } }
+    @media (max-width: 420px) { #dialogue-portrait { width: 64px; height: 64px; } }
+    @media (max-width: 700px) { #dialogue-box { max-width: calc(100vw - 24px); } }
+    @media (prefers-reduced-motion: reduce) {
+      #dialogue-portrait, #dialogue-portrait img, #dialogue-text.typing::after { animation: none !important; }
+    }
+
+    /* Hexa inline icons: HUD glyphs at text size inside dialogue + subtitle labels */
+    .nv-inline-ico { width: 1.25em; height: 1.25em; vertical-align: -0.28em; margin: 0 0.12em; display: inline-block; }
+    .nv-inline-ico.tone-cyan { color: var(--cyan); filter: drop-shadow(0 0 3px rgba(0,240,255,0.55)); }
+    .nv-inline-ico.tone-magenta { color: var(--magenta); filter: drop-shadow(0 0 3px rgba(255,30,138,0.55)); }
+    .nv-inline-ico.tone-lime { color: #b8ff00; filter: drop-shadow(0 0 3px rgba(184,255,0,0.5)); }
+    /* TOOL button: hammer glyph + equipped tool name */
+    #tool-btn .tool-glyph { display: inline-flex; }
+    /* INTERACT button: glyph + short label follow what is nearby (interact / cut / gather) */
+    #interact-btn .act-name { font-size: 10px; letter-spacing: 0.5px; }
+    #interact-btn[data-action="cut"] { border-color: var(--magenta); color: var(--magenta); }
+    #interact-btn[data-action="gather"] { border-color: #b8ff00; color: #b8ff00; }
+    @media (max-width: 420px) { #interact-btn .act-name { display: none; } }
+
+    #dialogue-speaker {
+      font-size: 11px;
+      font-weight: bold;
+      color: var(--speaker-name, var(--magenta));
+      text-transform: uppercase;
+    }
+
+    #dialogue-sys {
+      font-size: 11px;
+      color: var(--cyan);
+      font-weight: bold;
+    }
+
+    #dialogue-text {
+      font-size: 12px;
+      line-height: 1.45;
+      color: var(--silver);
+    }
+
+    /* 2D Strike / Guard / Sync Timing Overlay */
+    #encounter-canvas {
+      width: 100%;
+      height: 170px;
+      background: #08020f;
+      border: 1px solid var(--magenta);
+    }
+
+    /* Bottom Touch & Action Controls */
+    .bottom-bar {
+      pointer-events: auto;
+      background: var(--panel-black);
+      border-top: 2px solid var(--cyan);
+      padding: 8px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dpad {
+      display: grid;
+      grid-template-columns: repeat(3, 36px);
+      grid-template-rows: repeat(2, 34px);
+      gap: 4px;
+    }
+
+    .pad-btn {
+      background: #140824;
+      border: 1px solid var(--cyan);
+      color: var(--silver);
+      font-weight: bold;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .pad-btn:active {
+      background: var(--magenta);
+      color: #fff;
+    }
+
+    .action-cluster {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: flex-end;
+    }
+
+    /* Touch controls (coarse pointers only): always-visible move stick lower-left,
+       one-finger drag orbits the camera, pinch zooms (in to first person),
+       two-finger swipe detaches the camera, reset button returns it behind Neon. */
+    #nv-touch { display: none; }
+    html.nv-touch-ui #nv-touch { display: block; }
+    html.nv-touch-ui .dpad { display: none; }
+    html.nv-touch-ui #objective-banner { flex: 1; }
+    #nv-touch.nv-hidden { display: none !important; }
+    #nv-stick {
+      position: fixed; z-index: 12; left: calc(16px + env(safe-area-inset-left, 0px));
+      bottom: var(--nv-stick-bottom, 96px);
+      width: 116px; height: 116px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,240,255,0.10) 0%, rgba(7,3,12,0.55) 70%);
+      border: 2px solid var(--cyan); box-shadow: 0 0 12px rgba(0,240,255,0.35), inset 0 0 10px rgba(255,30,138,0.25);
+      touch-action: none; pointer-events: auto; opacity: 0.85;
+    }
+    #nv-stick.engaged { opacity: 1; border-color: var(--magenta); }
+    @media (orientation: landscape) and (max-height: 500px) { #nv-stick { width: 104px; height: 104px; } }
+    #nv-stick-knob {
+      position: absolute; left: 50%; top: 50%; width: 50px; height: 50px; margin: -25px 0 0 -25px;
+      border-radius: 50%; background: rgba(20,8,36,0.9); border: 2px solid var(--magenta);
+      box-shadow: 0 0 10px rgba(255,30,138,0.6); pointer-events: none; will-change: transform;
+    }
+    #nv-cam-reset {
+      position: fixed; z-index: 12; right: calc(16px + env(safe-area-inset-right, 0px));
+      bottom: var(--nv-reset-bottom, 96px);
+      width: 44px; height: 44px; border-radius: 50%; padding: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(7,3,12,0.8); border: 2px solid var(--cyan); color: var(--cyan);
+      pointer-events: auto; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+    }
+    #nv-cam-reset.detached { border-color: var(--magenta); color: var(--magenta); box-shadow: 0 0 10px rgba(255,30,138,0.6); }
   </style>
-  <script src="../config.js"></script>
 </head>
-<body class="nv-shell-page">
-  <header class="nv-shell-head">
-    <a class="nv-shell-head-title" href="/hub.html">Infinity6 Terminal</a>
-    <span class="nv-shell-head-page">iKG://GigasGarden.Construct</span>
-    <span class="nv-shell-head-hint" data-nv-commands>Press ⌘K for commands</span>
-  </header>
-  <div class="nv-frame-wrap">
-    <iframe src="https://xer0yootz.github.io/gigas-garden-game/gigas-garden/" title="iKG://GigasGarden.Construct" allowfullscreen></iframe>
+<body>
+
+  <!-- 3D / 2D Shared Three.js World Viewport -->
+  <div id="viewport-container"></div>
+  <div id="grade-overlay"></div>
+  <div id="mist-overlay" aria-hidden="true"></div>
+  <div id="crt-overlay" aria-hidden="true"></div>
+
+  <!-- Touch controls (shown on touch / coarse-pointer devices only) -->
+  <div id="nv-touch" aria-hidden="false">
+    <div id="nv-stick" role="application" aria-label="Move"><div id="nv-stick-knob"></div></div>
+    <button id="nv-cam-reset" type="button" aria-label="Reset camera" title="Reset camera"><svg class="nv-ico" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg></button>
   </div>
-  <p class="nv-frame-fallback">If the game does not load in this frame, <a href="https://xer0yootz.github.io/gigas-garden-game/gigas-garden/" target="_blank" rel="noopener">open the Gigas Garden directly</a>.</p>
-  <script src="../auth.js"></script>
-  <!-- Phase 1 (Nov 13, 2026): nv-ticker.js intentionally NOT included — no ticker on the game. -->
-  <script src="../nv-commands.js"></script>
-  <script src="../nv-shell.js"></script>
+
+  <!-- DOM HUD & Overlays -->
+  <div id="hud-layer">
+    <!-- Top Bar with Exact Locked Status Line -->
+    <header class="top-bar">
+      <div class="hud-stats-row">
+        <div style="display:flex; gap:4px; flex-wrap:wrap;">
+          <span class="pill" id="zone-pill">ZONE: INFINITY 6 DECK</span>
+          <span class="pill" id="hp-pill">INTEGRITY: 100%</span>
+          <span class="pill" id="carry-pill">CARRY: 0/10</span>
+          <span class="pill" id="pet-pill">PET: BABY PIGEK · FOLLOW · STAGE 1/3</span>
+          <span class="pill magenta" id="colony-pill">COLONY: 0</span>
+          <span class="pill" id="materials-pill">FIBER 0 · CRYSTAL 0 · SCRAP 0</span>
+        </div>
+        <div style="display:flex; gap:4px; flex-wrap:wrap;">
+          <button class="hud-btn icon-btn" id="view-toggle-btn" onclick="window.NVGame.toggleView()" aria-label="Toggle view" aria-pressed="false" title="View: GARDEN (3D)"><svg class="nv-ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          <button class="hud-btn icon-btn active-tool" id="tool-btn" onclick="window.NVGame.cycleTool()" aria-label="Tool: Fists (press Q to cycle)" title="Tool: FISTS (Q to cycle)"><svg class="nv-ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 12-8.4 8.4a2.1 2.1 0 0 1-3-3L12 9"/><path d="m18 15 4-4"/><path d="m21.5 11.5-1.9-1.9a2 2 0 0 1-.6-1.4V7l-2.3-2.3a6 6 0 0 0-4.2-1.7H9l.9.8A6.2 6.2 0 0 1 12 8.4V10l2 2h1.2a2 2 0 0 1 1.4.6l1.9 1.9"/></svg><span class="tool-glyph"><svg class="nv-ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9a2 2 0 0 1 4 0"/><path d="M8 8a2 2 0 0 1 4 0"/><path d="M12 8a2 2 0 0 1 4 0"/><path d="M16 9a2 2 0 0 1 4 0"/><path d="M4 9v5a7 7 0 0 0 7 7h2a7 7 0 0 0 7-7V9"/><path d="M8 8v3"/><path d="M12 8v3"/><path d="M16 9v2"/><path d="M4 14h7a2 2 0 0 0 2-2"/></svg></span></button>
+          <button class="hud-btn icon-btn" onclick="window.NVGame.toggleGridLog()" aria-label="Grid log" title="Grid log"><svg class="nv-ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></button>
+          <button class="hud-btn icon-btn" id="audio-btn" onclick="window.NVGame.toggleAudio()" aria-label="Sound" title="Sound: on" aria-pressed="true"><svg class="nv-ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg></button>
+          <input id="theme-vol" type="range" min="0" max="1" step="0.05" value="0.8" aria-label="Music volume" title="Music volume" style="width:90px; accent-color:#00f0ff;">
+        </div>
+      </div>
+      <!-- Diagnostics strip (Nov 13, 2026): collapsed by default; G key or tap expands.
+           Carries the date/time + weather the removed scrolling status line used to show. -->
+      <div id="diagnostics">
+        <button id="diag-summary" type="button" aria-expanded="false" aria-controls="diag-body" title="Diagnostics (G)"><span id="diag-summary-text">ONLINE</span><span class="diag-key" aria-hidden="true">DIAGNOSTICS · G</span></button>
+        <div id="diag-body" hidden>
+          <div>DATE / TIME: <span id="diag-date">—</span></div>
+          <div>WEATHER: <span id="diag-weather">WEATHER STANDBY</span></div>
+          <div>POSITION: <span id="diag-coords">POSITION NOT SHARED</span></div>
+          <div class="diag-note">Static diagnostics — no scrolling status line in game.</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Center Stage Modals -->
+    <main id="center-stage">
+      <!-- 1. Title & Boot Modal -->
+      <section id="title-modal" class="modal-card visible">
+        <div class="modal-title">NEON VIGIL // GIGAS GARDEN</div>
+        <p style="font-size:12px; line-height:1.5; margin:0;">
+          Stranded in the Gigas Garden, Earth 5150.
+          Wake aboard the bridge, cut the airlock vines, step into the Garden, sync with creatures, and build a refuge around the hull.
+        </p>
+        <div style="font-size:11px; color:var(--cyan); border-left:2px solid var(--amethyst); padding-left:8px;">
+          "Hexa Sigil Online."
+        </div>
+        <button class="sigil-btn" id="sigil-btn" type="button" aria-label="Tap the Hexa Sigil to begin" onclick="window.NVGame.startBootSequence()">
+          <svg viewBox="0 0 120 120" aria-hidden="true" focusable="false" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="60,6 106.8,33 106.8,87 60,114 13.2,87 13.2,33" stroke="var(--sigil-a)" stroke-width="2.6"/>
+            <polygon points="60,16 98.1,38 98.1,82 60,104 21.9,82 21.9,38" stroke="var(--sigil-b)" stroke-width="1.2" opacity="0.8"/>
+            <polygon points="60,24 91.2,78 28.8,78" stroke="var(--sigil-a)" stroke-width="1.6" opacity="0.9"/>
+            <polygon points="60,96 28.8,42 91.2,42" stroke="var(--sigil-b)" stroke-width="1.6" opacity="0.9"/>
+            <polygon points="60,44 73.9,52 73.9,68 60,76 46.1,68 46.1,52" stroke="var(--sigil-a)" stroke-width="2"/>
+            <g stroke="var(--sigil-a)" stroke-width="1.4" opacity="0.85">
+              <line x1="60" y1="6" x2="60" y2="16"/><line x1="106.8" y1="33" x2="98.1" y2="38"/><line x1="106.8" y1="87" x2="98.1" y2="82"/>
+              <line x1="60" y1="114" x2="60" y2="104"/><line x1="13.2" y1="87" x2="21.9" y2="82"/><line x1="13.2" y1="33" x2="21.9" y2="38"/>
+            </g>
+            <circle cx="60" cy="60" r="4.2" fill="var(--sigil-a)" stroke="none"/>
+            <g fill="var(--sigil-b)" stroke="none">
+              <circle cx="60" cy="16" r="2"/><circle cx="98.1" cy="38" r="2"/><circle cx="98.1" cy="82" r="2"/>
+              <circle cx="60" cy="104" r="2"/><circle cx="21.9" cy="82" r="2"/><circle cx="21.9" cy="38" r="2"/>
+            </g>
+          </svg>
+        </button>
+        <div class="sigil-hint" aria-hidden="true">TAP THE SIGIL</div>
+      </section>
+
+      <!-- 2. 2D Canvas Strike / Guard / Sync Overlay -->
+      <section id="encounter-modal" class="modal-card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div class="modal-title" id="enc-title" style="border:none; padding:0;">ENCOUNTER</div>
+          <span class="pill magenta" id="enc-caste-tag">WARDEN</span>
+        </div>
+        <canvas id="encounter-canvas" width="380" height="170"></canvas>
+        <div id="enc-status-text" style="font-size:11px; color:var(--silver);">
+          Time your Strike, Guard, or Sync pulse when the cyan marker crosses the harmonic window.
+        </div>
+        <div style="display:flex; gap:6px; justify-content:space-between;">
+          <button class="hud-btn" style="flex:1;" onclick="window.NVGame.encounterAction('STRIKE')">⚔ STRIKE</button>
+          <button class="hud-btn" style="flex:1;" onclick="window.NVGame.encounterAction('GUARD')">🛡 GUARD</button>
+          <button class="hud-btn icon-btn" style="flex:1; border-color:var(--magenta); color:var(--magenta);" onclick="window.NVGame.encounterAction('SYNC')" aria-label="Sync" title="Sync"><svg class="nv-ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 2L22 7V17L12 22L2 17V7Z"/><path d="M12 8L16 10.5V15.5L12 18L8 15.5V10.5Z"/></svg>SYNC</button>
+        </div>
+      </section>
+
+      <!-- 3. GRID LOG Modal (canon name: GRID LOG) -->
+      <section id="gridlog-modal" class="modal-card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div class="modal-title" style="border:none; padding:0;">GRID LOG // COLONY & DISCOVERIES</div>
+          <button class="hud-btn" onclick="window.NVGame.toggleGridLog()">CLOSE</button>
+        </div>
+        <div id="gridlog-content" style="max-height:260px; overflow-y:auto; font-size:11px; display:flex; flex-direction:column; gap:8px;"></div>
+      </section>
+
+      <!-- 3b. BRIDGE CONSOLE menu: carry on at the Bridge, or go to My Room (Infinity_6-rooms) -->
+      <section id="console-modal" class="modal-card" role="dialog" aria-modal="false" aria-labelledby="console-title">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div class="modal-title" id="console-title" style="border:none; padding:0;">BRIDGE CONSOLE</div>
+          <button class="hud-btn" type="button" onclick="window.NVGame.closeConsoleMenu()" aria-label="Close">CLOSE</button>
+        </div>
+        <div class="console-choices">
+          <button class="hud-btn" type="button" id="console-bridge" onclick="window.NVGame.consoleBridge()">BRIDGE</button>
+          <a class="hud-btn" id="console-room" href="../Infinity_6-rooms/">MY ROOM</a>
+        </div>
+      </section>
+
+      <!-- 4. BUILD Modal (container units & structures) -->
+      <section id="build-modal" class="modal-card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div class="modal-title" style="border:none; padding:0;">BUILD // CONTAINER UNITS & STRUCTURES</div>
+          <button class="hud-btn" onclick="window.NVGame.toggleBuildMenu()">CLOSE</button>
+        </div>
+        <div id="build-materials-line" style="font-size:11px; color:var(--cyan); margin-bottom:6px;"></div>
+        <div id="build-list" style="max-height:260px; overflow-y:auto; font-size:11px; display:flex; flex-direction:column; gap:8px;"></div>
+      </section>
+
+      <!-- 5. CHAT Modal (Neon Vigil room, Supabase) -->
+      <section id="chat-modal" class="modal-card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div class="modal-title" style="border:none; padding:0;">CHAT // NEON VIGIL ROOM</div>
+          <button class="hud-btn" onclick="window.NVGame.toggleChat()">CLOSE</button>
+        </div>
+        <div id="chat-messages" style="max-height:260px; overflow-y:auto; font-size:11px; display:flex; flex-direction:column; gap:8px;"></div>
+        <div style="font-size:11px; color:var(--silver);">Posting needs sign-in — the game has no sign-in flow yet, so sending is off for now. Reading is live.</div>
+        <div style="display:flex; gap:6px;">
+          <input id="chat-input" type="text" maxlength="2000" disabled placeholder="Sign in to send…" style="flex:1; background:#0b0414; border:1px solid var(--cyan); color:#fff; padding:8px; font-size:11px;">
+          <button class="hud-btn" disabled>SEND</button>
+        </div>
+      </section>
+
+      <!-- Dialogue Overlay -->
+      <aside id="dialogue-box" aria-live="polite">
+        <figure id="dialogue-portrait" style="margin:0;"><img id="dialogue-portrait-img" alt="" width="84" height="84" decoding="async"><span class="nv-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></figure>
+        <div id="dialogue-body">
+          <div id="dialogue-speaker">HEXA SIGIL</div>
+          <div id="dialogue-sys"></div>
+          <div id="dialogue-text">Hexa Sigil Online.</div>
+          <div style="display:flex; justify-content:flex-end;">
+            <button class="hud-btn" onclick="window.NVGame.advanceDialogue()">CONTINUE ➔</button>
+          </div>
+        </div>
+      </aside>
+      <!-- Level mini-dock (Nov 13, 2026): 24px, labels only, fades when idle. Also the level selector. -->
+      <nav id="level-dock" aria-label="Level select">
+        <span class="dock-current" aria-current="page">⬡ LEVEL 1 · INFINITY 6</span>
+        <a href="level-2/">LEVEL 2 · GIGAS GARDEN</a>
+        <a href="level-3/">LEVEL 3 · THE RUINS</a>
+      </nav>
+    </main>
+
+    <!-- Bottom Controls: Touch D-Pad + Contextual Actions -->
+    <footer class="bottom-bar">
+      <div class="dpad">
+        <div></div>
+        <button class="pad-btn" onpointerdown="window.NVGame.setMove(0, -1)" onpointerup="window.NVGame.setMove(0, 0)">▲</button>
+        <div></div>
+        <button class="pad-btn" onpointerdown="window.NVGame.setMove(-1, 0)" onpointerup="window.NVGame.setMove(0, 0)">◀</button>
+        <button class="pad-btn" onpointerdown="window.NVGame.setMove(0, 1)" onpointerup="window.NVGame.setMove(0, 0)">▼</button>
+        <button class="pad-btn" onpointerdown="window.NVGame.setMove(1, 0)" onpointerup="window.NVGame.setMove(0, 0)">▶</button>
+      </div>
+
+      <div style="font-size:11px; text-align:center; color:var(--cyan); max-width:220px;" id="objective-banner">
+        OBJECTIVE: Reach the bridge console.
+      </div>
+
+      <div class="action-cluster">
+        <button class="hud-btn icon-btn" id="interact-btn" data-action="interact" onclick="window.NVGame.interactNearest()" aria-label="Interact (E or Space)" title="Interact (E / Space)"><svg class="nv-ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 14a8 8 0 0 1-8 8"/><path d="M18 11v-1a2 2 0 0 0-4 0"/><path d="M14 10V9a2 2 0 0 0-4 0v1"/><path d="M10 9.5V4a2 2 0 0 0-4 0v10"/><path d="M18 11a2 2 0 1 1 4 0v3a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-6-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg><span class="act-name">INTERACT</span></button>
+        <button class="hud-btn" id="sync-form-btn" onclick="window.NVGame.cycleSyncForm()" title="Sync: NEON (cycle synced forms)">SYNC: NEON</button>
+        <button class="hud-btn" id="build-btn" onclick="window.NVGame.toggleBuildMenu()" title="Build (B)">BUILD</button>
+        <button class="hud-btn" id="chat-btn" onclick="window.NVGame.toggleChat()" title="Chat (C)">CHAT</button>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    /* Diagnostics status (compact UI, Nov 13, 2026): the scrolling status line
+       that used to run across the HUD and the title screen is removed. Its
+       ONLINE / date / weather data lives on as static text in the diagnostics
+       strip in the top bar — collapsed behind a one-line summary, expanded
+       with the G key or by tapping the summary. Weather is requested only
+       after the sigil tap (user gesture). Every failure path is silent and
+       falls back to WEATHER OFFLINE; nothing here can block the game start. */
+    (function () {
+      var WEATHER_REFRESH_MS = 15 * 60 * 1000;
+      var GEO_TIMEOUT_MS = 8000, GEO_HARD_MS = 10000, FETCH_TIMEOUT_MS = 8000;
+      var weatherText = 'WEATHER STANDBY';
+      var coords = null, weatherTimer = null, requested = false;
+
+      function locale() { return (navigator.languages && navigator.languages[0]) || navigator.language || 'en-US'; }
+      function useFahrenheit() {
+        var region = '';
+        try { region = new Intl.Locale(locale()).maximize().region || ''; } catch (e) { region = (locale().split('-')[1] || '').toUpperCase(); }
+        return ['US', 'LR', 'MM', 'BS', 'BZ', 'KY', 'PW', 'FM', 'MH'].indexOf(region) !== -1;
+      }
+      function dateText() {
+        var d = new Date(), loc = locale();
+        try {
+          var wd = d.toLocaleDateString(loc, { weekday: 'short' }).replace(/\./g, '');
+          var day = d.toLocaleDateString(loc, { day: 'numeric' });
+          var mon = d.toLocaleDateString(loc, { month: 'short' }).replace(/\./g, '');
+          var tm = d.toLocaleTimeString(loc, { hour: 'numeric', minute: '2-digit' });
+          return (wd + ' ' + day + ' ' + mon + ' ' + tm).toUpperCase();
+        } catch (e) { return d.toString().slice(0, 21).toUpperCase(); }
+      }
+      var WMO = [[0, 'CLEAR'], [1, 'MOSTLY CLEAR'], [2, 'PARTLY CLOUDY'], [3, 'OVERCAST'], [48, 'FOG'], [57, 'DRIZZLE'],
+                 [67, 'RAIN'], [77, 'SNOW'], [82, 'SHOWERS'], [86, 'SNOW SHOWERS'], [99, 'THUNDERSTORM']];
+      function condition(code) {
+        for (var i = 0; i < WMO.length; i++) if (code <= WMO[i][0]) return WMO[i][1];
+        return 'SKY UNKNOWN';
+      }
+      function el(id) { return document.getElementById(id); }
+      function render() {
+        var now = dateText();
+        var sum = el('diag-summary-text'); if (sum) sum.textContent = 'ONLINE · ' + now + ' · ' + weatherText;
+        var dEl = el('diag-date'); if (dEl) dEl.textContent = now;
+        var wEl = el('diag-weather'); if (wEl) wEl.textContent = weatherText;
+        var cEl = el('diag-coords');
+        if (cEl) cEl.textContent = coords ? ('LAT ' + coords.latitude.toFixed(3) + ' · LON ' + coords.longitude.toFixed(3)) : 'POSITION NOT SHARED';
+      }
+      function scheduleClock() {
+        var now = new Date();
+        setTimeout(function () { render(); scheduleClock(); }, (60 - now.getSeconds()) * 1000 - now.getMilliseconds() + 50);
+      }
+      function setOpen(open) {
+        var body = el('diag-body'), btn = el('diag-summary');
+        if (!body || !btn) return;
+        body.hidden = !open;
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      }
+      function toggleDiagnostics() {
+        var body = el('diag-body');
+        if (body) setOpen(body.hidden);
+      }
+      function timedFetchJson(url) {
+        var ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+        var t = setTimeout(function () { if (ctl) ctl.abort(); }, FETCH_TIMEOUT_MS);
+        return fetch(url, ctl ? { signal: ctl.signal } : {}).then(function (r) {
+          clearTimeout(t); if (!r.ok) throw new Error('http ' + r.status); return r.json();
+        }, function (e) { clearTimeout(t); throw e; });
+      }
+      function offline() { weatherText = 'WEATHER OFFLINE'; render(); }
+      function fetchWeather() {
+        if (!coords) return offline();
+        var f = useFahrenheit();
+        var lat = coords.latitude.toFixed(3), lon = coords.longitude.toFixed(3);
+        var wx = timedFetchJson('https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon +
+          '&current=temperature_2m,weather_code&temperature_unit=' + (f ? 'fahrenheit' : 'celsius'));
+        var place = timedFetchJson('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=' + lat + '&longitude=' + lon +
+          '&localityLanguage=' + encodeURIComponent(locale().split('-')[0] || 'en'))
+          .then(function (g) { return g.city || g.locality || g.principalSubdivision || ''; }, function () { return ''; });
+        Promise.all([wx, place]).then(function (res) {
+          var cur = res[0] && res[0].current;
+          if (!cur || typeof cur.temperature_2m !== 'number') throw new Error('no data');
+          var txt = Math.round(cur.temperature_2m) + '°' + (f ? 'F' : 'C') + ' ' + condition(cur.weather_code);
+          if (res[1]) txt += ' · ' + String(res[1]).toUpperCase();
+          weatherText = txt; render();
+        }).catch(offline);
+      }
+      function requestWeather() {
+        if (requested) return; requested = true;
+        try {
+          if (!navigator.geolocation || !window.fetch) return offline();
+          var done = false;
+          var hard = setTimeout(function () { if (!done) { done = true; offline(); } }, GEO_HARD_MS);
+          navigator.geolocation.getCurrentPosition(function (pos) {
+            if (done) return; done = true; clearTimeout(hard);
+            coords = pos.coords; fetchWeather();
+            weatherTimer = setInterval(fetchWeather, WEATHER_REFRESH_MS);
+          }, function () {
+            if (done) return; done = true; clearTimeout(hard); offline();
+          }, { enableHighAccuracy: false, timeout: GEO_TIMEOUT_MS, maximumAge: WEATHER_REFRESH_MS });
+        } catch (e) { offline(); }
+      }
+      window.NVDiag = { requestWeather: requestWeather, toggleDiagnostics: toggleDiagnostics, state: function () { return { weatherText: weatherText, coords: coords }; } };
+      var btn = el('diag-summary');
+      if (btn) btn.addEventListener('click', toggleDiagnostics);
+      window.addEventListener('keydown', function (e) {
+        var t = e.target;
+        if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
+        if (e.code === 'KeyG' && !e.metaKey && !e.ctrlKey && !e.altKey) toggleDiagnostics();
+      });
+      render(); scheduleClock();
+    })();
+  </script>
+  <script>
+    /* Level mini-dock idle fade (Nov 13, 2026): the dock drops to 30% opacity
+       after 3s without pointer / touch / key activity; any activity wakes it. */
+    (function () {
+      var dock = document.getElementById('level-dock');
+      if (!dock) return;
+      var timer = null;
+      function wake() {
+        dock.classList.remove('idle');
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(function () { dock.classList.add('idle'); }, 3000);
+      }
+      ['pointermove', 'pointerdown', 'touchstart', 'keydown'].forEach(function (ev) {
+        window.addEventListener(ev, wake, { passive: true });
+      });
+      wake();
+    })();
+  </script>
+  <script type="module">
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+    import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+    import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+    import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+    import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+    import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
+    import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
+    import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+    import { createSkysphere } from './nv-skysphere.js';
+
+    /* =========================================================================
+       1. ASSET MANIFESTS FOR GROK BOT & FLOW STUDIO PIPELINE
+       ========================================================================= */
+    const FLOW_STUDIO_MANIFEST = {
+      // Flow Studio exports, web-optimized (meshopt + quantized mesh, WebP textures, Y-up, facing +z, feet at y = 0).
+      // The -lite copies are lower LOD (fewer triangles, 1024 px base color, no normal map) for the lite tier.
+      neonUltraPrimary: 'assets/neon-ultra.glb',      // Neon Ultra, 6'3"
+      neonUltraLite: 'assets/neon-ultra-lite.glb',
+      praxiaGLB: 'assets/praxia.glb',                 // Praxia, 6'3" — Tripo model (Nov 11, 2026)
+      // praxiaLite = the SAME Tripo file: there is no separate -lite LOD.
+      // The old Flow Studio praxia-lite.glb was removed with the swap.
+      // A lite LOD would need geometry edits, and her eyes are NEVER edited,
+      // so lite tier loads the same Tripo model; the procedural stand-in
+      // remains the slow-device fallback (watchModelCost, below).
+      praxiaLite: 'assets/praxia.glb',
+      valGLB: 'assets/val18.glb',                     // VAL 18 — player body (User's Nov 13, 2026: rigged Val is Val 18, renamed)
+      valLite: 'assets/val18.glb',                    // same file as hi tier (no separate lite build)
+      // Creature slots: CC0 Quaternius bees until Flow Studio chitin bugs land (credits in assets/CREDITS.md)
+      creatureGLB: {
+        hauler: 'assets/bug-armabee.glb', // "Armabee Evolved", cyan, biggest
+        warden: 'assets/bug-armabee.glb', // "Armabee Evolved", magenta
+        lumen: 'assets/bug-bee.glb',      // "Bee", violet glow
+        diver: 'assets/bug-bee.glb'       // "Bee", acid lime, smallest
+      }
+    };
+
+    // Shared Drive plates, web-optimized copies stored flat in the assets folder (external files, never inlined)
+    const DRIVE_BACKDROP_MANIFEST = {
+      bridgeInterior: 'assets/Ships_Bridge_Viewport_01.jpg',
+      gardenMain: 'assets/Gigas_Garden_Backdrop.jpg',
+      glowForest: 'assets/Gigas_Garden_Glow_Forest_01.webp',
+      biolumeCoast: 'assets/Gigas_Garden_Biolume_Coast_01.jpg',
+      stripedSunCoast: 'assets/Gigas_Garden_Striped_Sun_Coast_01.jpg',
+      sickleCoast: 'assets/Sickle_Coast_Canopy_01.jpg',
+      megaCityFloodStreet: 'assets/Mega_City_Ruins_Flood_Street_01.jpg',
+      megaCityGardenRing: 'assets/Mega_City_Ruins_Garden_Ring_01.jpg',
+      sutroDrowned: 'assets/Sutro_Baths_Drowned_01.jpg'
+    };
+
+    const THEME_AUDIO_PATH = 'assets/neon-vigil-theme.mp3';
+
+    /* =========================================================================
+       2. HOST SDK GUARD (Resolves window.RemixSDK or window.FarcadeSDK)
+       ========================================================================= */
+    const HostSDK = {
+      gameoverSent: false,
+      readySent: false,
+      getSDK() {
+        return window.RemixSDK || window.FarcadeSDK || null;
+      },
+      ready() {
+        // Remix SDK: ready() returns a promise; older hosts expose singlePlayer.actions.ready
+        if (this.readySent) return;
+        const sdk = this.getSDK();
+        if (!sdk) return;
+        this.readySent = true;
+        try {
+          if (typeof sdk.ready === 'function') {
+            const p = sdk.ready();
+            if (p && p.catch) p.catch(() => {});
+          } else if (sdk.singlePlayer?.actions?.ready) {
+            sdk.singlePlayer.actions.ready();
+          }
+        } catch (_) {}
+      },
+      unlockAchievement(id) {
+        // Locked schema ids: first_sync, first_harvest, colony_grows, patrol_repelled
+        const sdk = this.getSDK();
+        try {
+          if (sdk?.achievements?.unlock) {
+            const p = sdk.achievements.unlock(id);
+            if (p && p.catch) p.catch(() => {});
+          } else if (sdk?.singlePlayer?.actions?.unlockAchievement) {
+            sdk.singlePlayer.actions.unlockAchievement(id);
+          }
+        } catch (_) {}
+      },
+      reportGameOver(score = 5150) {
+        if (this.gameoverSent) return;
+        this.gameoverSent = true;
+        if (typeof stopThemeForGameOver === 'function') stopThemeForGameOver();
+        const sdk = this.getSDK();
+        if (sdk?.singlePlayer?.actions?.gameOver) {
+          try { sdk.singlePlayer.actions.gameOver({ score }); } catch (_) {}
+        }
+      }
+    };
+
+    /* =========================================================================
+       3. CANON DIALOGUE & GRID LOG DATA
+       ========================================================================= */
+    /* Speaker registry: every spoken line names a speaker id and gets that speaker's flat 2D
+       side-profile portrait (assets/portraits/<id>.png, 256 px) beside the text.
+       anim: 'bob' = slight bob while the line types; 'glow' = glow pulse (holograms, no mouth flaps). */
+    const SPEAKERS = {
+      hexa:    { name: 'HEXA SIGIL',  spoken: 'Hexa Sigil', portrait: 'assets/portraits/hexa-idle.png',   accent: '#00f0ff', nameColor: '#00f0ff', anim: 'glow' },
+      cyphr:   { name: 'CYPHR',       spoken: 'Cyphr',      portrait: 'assets/portraits/cyphr-idle.png',  accent: '#9d4edd', nameColor: '#c9a6ff', anim: 'glow' },
+      neon:    { name: 'NEON ULTRA',  portrait: 'assets/portraits/neon.png',   accent: '#ff1e8a', nameColor: '#ff1e8a', anim: 'bob' },
+      val17:   { name: 'VAL 18',      portrait: 'assets/portraits/val17.png',  accent: '#ff6ec7', nameColor: '#ff6ec7', anim: 'bob' },
+      praxia:  { name: 'PRAXIA',      portrait: 'assets/portraits/praxia.png', accent: '#ff1e8a', nameColor: '#ffb3dd', anim: 'glow' },
+      gridlog: { name: 'GRID LOG',    portrait: null,                          accent: '#00f0ff', nameColor: '#00f0ff', anim: 'none' }
+    };
+    // In-game instructor. Swap this one value to 'cyphr' and every guide line moves to Cyphr.
+    const GUIDE_ID = 'hexa';
+    const guideName = () => SPEAKERS[GUIDE_ID].spoken || SPEAKERS[GUIDE_ID].name;
+
+    // Lines use who: 'guide' (resolves to GUIDE_ID) or a SPEAKERS id. Optional label/portrait overrides.
+    const BOOT_DIALOGUE = [
+      { who: 'guide', sys: '', text: `${guideName()} Online.` },
+      { who: 'guide', sys: '[FUEL CELL: 4% — HOUSING CRACKED]', text: 'Power containment is cracked, User. Reserve power is holding the bridge.' },
+      { who: 'guide', sys: '[HULL BREACH: DECK 2 | AIRLOCK: OVERGROWN | O2 SCRUBBERS: 61%]', text: 'Garden vines forced the lower airlock. Reach the bridge console first.' },
+      { who: 'guide', sys: '[CONTROLS: {icon:move} MOVE | {icon:interact} INTERACT]', text: 'Move {icon:move} with WASD, the arrows or the pad. E, Space or INTERACT {icon:interact} to use things.' },
+      { who: 'guide', sys: '[ACTION: {icon:interact} {icon:cut} {icon:gather}]', text: 'That button reads INTERACT {icon:interact}, CUT {icon:cut} or GATHER {icon:gather} for whatever is near you.' },
+      { who: 'guide', sys: '[VIEW: {icon:eye} EYE ICON]', text: 'Tap the eye {icon:eye}, or press V, to switch between Garden and Side view.' },
+      { who: 'guide', sys: '[TOOLS: {icon:hammer} TOOL ICON]', text: 'Tap the hammer {icon:hammer}, or press Q, to cycle your tools. {icon:fist} for now.' },
+      { who: 'guide', sys: '[SOUND: {icon:sound} SPEAKER ICON]', text: 'The speaker icon {icon:sound} mutes or restores sound.' }
+    ];
+
+    const GRID_CREATURES = {
+      hauler: {
+        id: 'hauler',
+        name: 'BALT-SHELL CARRIER',
+        caste: 'HAULER',
+        powerSet: '+2 Carry Capacity per synced Hauler · Sync: DIG',
+        desc: 'Biological chitin carapace, 4% readable face, immune to acidic First Water. Moves fallen stone and salvage around the Infinity 6 hull.',
+        canSync: true
+      },
+      warden: {
+        id: 'warden',
+        name: 'THORN-MANTID WATCHER',
+        caste: 'WARDEN',
+        powerSet: '-1 Battle Damage per synced Warden · Sync: CLIMB',
+        desc: 'Dense pearlescent chitin, 7% readable face, zero plasma or shell sigils. Wards the hull perimeter against Republic patrols.',
+        canSync: true
+      },
+      lumen: {
+        id: 'lumen',
+        name: 'MOTH-LANTERN DRIFTER',
+        caste: 'LUMEN',
+        powerSet: '+Light Radius & Reveals Hidden Finds · Sync: GLIDE',
+        desc: 'Bioluminescent wing membranes moving in ethereal drift through the fog. Reveals hidden Golden Era relics and survivor caches.',
+        canSync: true
+      },
+      diver: {
+        id: 'diver',
+        name: 'PELAGIC CHITIN SKIMMER',
+        caste: 'DIVER',
+        powerSet: 'First Water Immunity & Pool Gathering · Sync: HOVER',
+        desc: 'Sealed biological chitin body with 6% readable face. Harvests crystal samples directly inside metal-dissolving First Water pools.',
+        canSync: true
+      },
+      praxia: {
+        id: 'praxia',
+        name: 'PRAXIA',
+        caste: 'CANNOT SYNC',
+        powerSet: 'Pure Will of the Gigas Garden (Unsyncable)',
+        desc: '6\'3", mantis head, compound pink eyes, no mouth, two tiny antennae, pearlescent chitin, dragonfly wings.',
+        canSync: false
+      }
+    };
+
+    /* =========================================================================
+       4. GAME STATE & AUDIO CONTROLLER
+       ========================================================================= */
+    const state = {
+      viewMode: 'GARDEN', // Strictly 'GARDEN' (3D) or 'SIDE' (2D side-scrolling lane)
+      phaseStep: 0,       // 0: Wake -> 1: Console -> 2: Locker -> 3: Airlock Vines (3 cuts) -> 4: Garden Open
+      vineCutsRemaining: 0, // Nov 13, 2026 strip: gate open, vines node removed,
+      pinkNamedOnce: false,
+      integrity: 100,
+      toolsUnlocked: ['FISTS'],
+      equippedToolIdx: 0,
+      inventoryCount: 0,
+      baseCarry: 10,
+      syncedCounts: { HAULER: 0, WARDEN: 0, LUMEN: 0, DIVER: 0 },
+      gridLogUnlocked: { praxia: true },
+      discoveries: [],
+      activeSyncForm: 'NEON', // NEON, GLIDE, DIG, CLIMB, HOVER
+      moveInput: { x: 0, z: 0 },
+      dialogueQueue: [],
+      activeEncounter: null,
+      // BUILD SYSTEM v1: material labels are PLACEHOLDERS the user will rename.
+      materials: { fiber: 0, crystal: 0, scrap: 0 },
+      builds: [] // placed structures: { kind, x, z }
+    };
+    const INITIAL_STATE = JSON.stringify(state);
+
+    // Theme Song Controller (Neon Vigil Theme: "Atmospheric Haze"; external asset only, never inlined)
+    const AUDIO_LEVEL_FULL = 0.75;  // GARDEN / SIDE exploration
+    const AUDIO_LEVEL_DUCK = 0.35;  // Hexa Sigil / Cyphr dialogue and Sync timing
+    const AUDIO_FADE_MS = 450;
+
+    const themeAudio = new Audio();
+    themeAudio.src = THEME_AUDIO_PATH;
+    themeAudio.loop = true;
+    themeAudio.preload = 'auto';
+    themeAudio.volume = 0;
+    themeAudio.load();
+
+    let audioEnabled = true;
+    let hostMuted = false;              // host mute (Remix onToggleMute) wins over the HUD toggle
+    let audioUnlocked = false;
+    let audioStopped = false;           // true after game_over until play_again
+    const duckReasons = new Set();      // 'dialogue' | 'sync'
+    let fadeRaf = 0;
+
+    // Music volume (Oct 28, 2026): user slider, 0-1, saved in this
+    // browser. It scales the full and ducked theme levels, so ducking
+    // still works at any volume, and 0 is effectively muted.
+    let themeVolume = 0.8;
+    try {
+      const savedVol = Number(localStorage.getItem('nv-theme-volume'));
+      if (Number.isFinite(savedVol)) themeVolume = Math.min(1, Math.max(0, savedVol));
+    } catch { /* storage unavailable: keep default */ }
+    function audioTargetLevel() {
+      if (!audioEnabled || audioStopped || hostMuted) return 0;
+      return (duckReasons.size ? AUDIO_LEVEL_DUCK : AUDIO_LEVEL_FULL) * themeVolume;
+    }
+    function setThemeVolume(v) {
+      themeVolume = Math.min(1, Math.max(0, Number(v) || 0));
+      try { localStorage.setItem('nv-theme-volume', String(themeVolume)); } catch { /* ignore */ }
+      const slider = document.getElementById('theme-vol');
+      if (slider) slider.value = String(themeVolume);
+      if (audioUnlocked && audioEnabled && !audioStopped && !hostMuted) fadeThemeTo(audioTargetLevel());
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+      const slider = document.getElementById('theme-vol');
+      if (slider) {
+        slider.value = String(themeVolume);
+        slider.addEventListener('input', (e) => setThemeVolume(e.target.value));
+      }
+    });
+
+    function fadeThemeTo(target, onDone) {
+      cancelAnimationFrame(fadeRaf);
+      const from = themeAudio.volume;
+      const t0 = performance.now();
+      const step = (now) => {
+        const k = Math.min(1, (now - t0) / AUDIO_FADE_MS);
+        themeAudio.volume = Math.max(0, Math.min(1, from + (target - from) * k));
+        if (k < 1) fadeRaf = requestAnimationFrame(step);
+        else if (onDone) onDone();
+      };
+      fadeRaf = requestAnimationFrame(step);
+    }
+
+    function unlockAndPlayAudio() {
+      if (!audioEnabled || audioStopped || hostMuted) return;
+      const p = themeAudio.play();
+      const ok = () => { audioUnlocked = true; fadeThemeTo(audioTargetLevel()); };
+      if (p && p.then) p.then(ok).catch(() => { /* blocked or file missing: retry on next gesture */ });
+      else ok();
+    }
+
+    // Smooth duck: dialogue (Hexa Sigil / Cyphr) and Sync timing; restores when both clear
+    function duckAudio(ducked, reason = 'dialogue') {
+      if (ducked) duckReasons.add(reason); else duckReasons.delete(reason);
+      if (audioUnlocked && audioEnabled && !audioStopped && !hostMuted) fadeThemeTo(audioTargetLevel());
+    }
+
+    const SOUND_ON_SVG = '<svg class="nv-ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>';
+    const SOUND_OFF_SVG = '<svg class="nv-ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="m22 9-6 6"/><path d="m16 9 6 6"/></svg>';
+    function refreshAudioButton() {
+      const btn = document.getElementById('audio-btn');
+      if (!btn) return;
+      btn.innerHTML = audioEnabled ? SOUND_ON_SVG : SOUND_OFF_SVG;
+      btn.title = audioEnabled ? 'Sound: on' : 'Sound: muted';
+      btn.setAttribute('aria-pressed', audioEnabled ? 'true' : 'false');
+      btn.classList.toggle('active-tool', !audioEnabled);
+    }
+
+    function setAudioEnabled(on) {
+      audioEnabled = on;
+      refreshAudioButton();
+      if (on) unlockAndPlayAudio();
+      else fadeThemeTo(0, () => themeAudio.pause());
+    }
+
+    function setHostMuted(muted) {
+      hostMuted = !!muted;
+      if (hostMuted) fadeThemeTo(0, () => themeAudio.pause());
+      else unlockAndPlayAudio();
+    }
+
+    function stopThemeForGameOver() {
+      audioStopped = true;
+      duckReasons.clear();
+      fadeThemeTo(0, () => { themeAudio.pause(); themeAudio.currentTime = 0; });
+    }
+
+    function restartThemeForPlayAgain() {
+      audioStopped = false;
+      duckReasons.clear();
+      cancelAnimationFrame(fadeRaf);
+      themeAudio.pause();
+      themeAudio.currentTime = 0;
+      themeAudio.volume = 0;
+      unlockAndPlayAudio();
+    }
+
+    // First-gesture unlock (mobile portrait WebViews + desktop): any tap/key while the
+    // title / "Hexa Sigil Online." boot screen is up starts the theme. Retries until it plays.
+    function firstGestureUnlock() {
+      if (audioUnlocked) {
+        window.removeEventListener('pointerdown', firstGestureUnlock, true);
+        window.removeEventListener('keydown', firstGestureUnlock, true);
+        window.removeEventListener('touchend', firstGestureUnlock, true);
+        return;
+      }
+      unlockAndPlayAudio();
+    }
+    window.addEventListener('pointerdown', firstGestureUnlock, true);
+    window.addEventListener('keydown', firstGestureUnlock, true);
+    window.addEventListener('touchend', firstGestureUnlock, true);
+
+    // Pause when the WebView/tab is hidden; resume at the right level when shown again
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) themeAudio.pause();
+      else if (audioUnlocked) unlockAndPlayAudio();
+    });
+
+    /* =========================================================================
+       5. THREE.JS WORLD: INFINITY 6 + GIGAS GARDEN + BACKDROP PLATES
+       ========================================================================= */
+    const container = document.getElementById('viewport-container');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x07030d);
+    // Exterior violet-pink fog (kept off when inside Infinity 6 deck). Lighter density;
+    // the Drive plates ignore fog and use their own haze gradient instead.
+    const gardenFog = new THREE.FogExp2(0xc23d8f, 0.012);
+
+    // Graphics tier: 'hi' = bloom + grade/grain post stack, 'lite' = direct render + CSS grade.
+    // ?gfx=hi / ?gfx=lite forces a tier (and disables the automatic FPS drop).
+    const GFX_FORCED = new URLSearchParams(window.location.search).get('gfx');
+    let gfxTier = (GFX_FORCED === 'hi' || GFX_FORCED === 'lite') ? GFX_FORCED
+      : (((navigator.deviceMemory || 8) <= 3 || (navigator.hardwareConcurrency || 8) <= 4) ? 'lite' : 'hi');
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.05;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); // mobile fill-rate guard
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    container.appendChild(renderer.domElement);
+
+    // Camera far raised Nov 11, 2026 for the NV Skysphere port: the dome is
+    // 10x the main-game world (worldRadius 120 m -> dome 1,200 m), so the
+    // far plane must clear it (was 260, which clipped the Level 2 sky).
+    const camera = new THREE.PerspectiveCamera(48, window.innerWidth / window.innerHeight, 0.1, 2600);
+
+    // Camera-inside auto-hide: hide any mesh whose bounding sphere contains the camera,
+    // so walking through an object never turns the view inside-out. Meshes flagged
+    // userData.noAutoHide are never hidden (ground planes live here).
+    const _frustum = new THREE.Frustum();
+    const _projScreenMatrix = new THREE.Matrix4();
+
+    function updateCameraCulling() {
+      _projScreenMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+      _frustum.setFromProjectionMatrix(_projScreenMatrix);
+
+      scene.traverse((obj) => {
+        if (!obj.isMesh || obj.userData.noAutoHide) return;
+
+        // Flat-plate test: hide only when the camera is actually on the plate's surface
+        // (within half a unit of it, inside its rectangle) — never for merely being nearby.
+        if (obj.userData.preciseHide) {
+          if (!obj.geometry.boundingBox) obj.geometry.computeBoundingBox();
+          const box = obj.geometry.boundingBox;
+          const p = obj.worldToLocal(camera.position.clone());
+          const near = Math.abs(p.z) < 0.5 && p.x >= box.min.x && p.x <= box.max.x && p.y >= box.min.y && p.y <= box.max.y;
+          if (near) {
+            obj.visible = false;
+            obj.userData.wasHiddenByCamera = true;
+          } else if (obj.userData.wasHiddenByCamera) {
+            obj.visible = true;
+            obj.userData.wasHiddenByCamera = false;
+          }
+          return;
+        }
+
+        // Sphere that roughly covers the mesh
+        if (!obj.geometry.boundingSphere) obj.geometry.computeBoundingSphere();
+        const sphere = obj.geometry.boundingSphere.clone();
+        sphere.applyMatrix4(obj.matrixWorld);
+
+        // Camera inside the mesh volume
+        if (sphere.containsPoint(camera.position)) {
+          obj.visible = false;
+          obj.userData.wasHiddenByCamera = true;
+        } else if (obj.userData.wasHiddenByCamera) {
+          obj.visible = true;
+          obj.userData.wasHiddenByCamera = false;
+        }
+      });
+    }
+    const gltfLoader = new GLTFLoader();
+    gltfLoader.setMeshoptDecoder(MeshoptDecoder);
+    const texLoader = new THREE.TextureLoader();
+
+    // Post stack: soft bloom on neon only (threshold sits above every lit surface and plate;
+    // only the HDR neon wires, eyes and glows cross it), then violet/pink grade + light grain.
+    const GradeShader = {
+      uniforms: { tDiffuse: { value: null }, uTime: { value: 0 }, uGrain: { value: 0.035 } },
+      vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+      fragmentShader: `
+        uniform sampler2D tDiffuse; uniform float uTime; uniform float uGrain; varying vec2 vUv;
+        float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+        void main() {
+          vec4 c = texture2D(tDiffuse, vUv);
+          float l = dot(c.rgb, vec3(0.2126, 0.7152, 0.0722));
+          c.rgb += vec3(0.035, 0.0, 0.055) * (1.0 - l);                                   // violet shadow lift
+          c.rgb = mix(c.rgb, c.rgb * vec3(1.06, 0.94, 1.04), smoothstep(0.45, 1.0, l));    // pink highlight roll
+          vec2 d = vUv - 0.5; c.rgb *= 1.0 - dot(d, d) * 0.55;                            // vignette
+          c.rgb += (hash(vUv * vec2(1013.0, 1789.0) + fract(uTime)) - 0.5) * uGrain;       // grain
+          gl_FragColor = c;
+        }`
+    };
+    let composer = null, bloomPass = null, gradePass = null;
+    function buildComposer() {
+      composer = new EffectComposer(renderer);
+      composer.addPass(new RenderPass(scene, camera));
+      bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth / 2, window.innerHeight / 2), 0.6, 0.45, 0.82);
+      composer.addPass(bloomPass);
+      composer.addPass(new OutputPass());
+      gradePass = new ShaderPass(GradeShader);
+      composer.addPass(gradePass);
+      composer.setSize(window.innerWidth, window.innerHeight);
+    }
+    function applyGfxTier(tier) {
+      gfxTier = tier;
+      if (tier === 'hi' && !composer) buildComposer();
+      if (tier === 'lite' && composer) { composer.dispose(); composer = null; bloomPass = null; gradePass = null; }
+      document.body.classList.toggle('gfx-lite', tier === 'lite');
+    }
+    applyGfxTier(gfxTier);
+
+    // Lighting: hemisphere sky/ground + cyan key + magenta rim + striped-sun backlight + biolume glows
+    const hemiLight = new THREE.HemisphereLight(0xff6fb5, 0x06141a, 0.6);
+    const deckFill = new THREE.AmbientLight(0x241038, 0.45); // keeps the deck readable without washing darks
+    const cyanKey = new THREE.DirectionalLight(0x00f0ff, 1.3);
+    cyanKey.position.set(12, 24, 14);
+    const magentaRim = new THREE.DirectionalLight(0xff1e8a, 1.2);
+    magentaRim.position.set(-15, 14, -12);
+    const sunBack = new THREE.DirectionalLight(0xff8fa3, 1.1); // striped sun, behind the garden
+    sunBack.position.set(0, 9, 95);
+    sunBack.target.position.set(0, 0, 30);
+    scene.add(hemiLight, deckFill, cyanKey, magentaRim, sunBack, sunBack.target);
+
+    // --- Sky: NV Skysphere port (Nov 11, 2026, dome + sun in EVERY level) ----
+    // Same module as Level 2 (./nv-skysphere.js), rescaled for the main
+    // game's smaller world: zones span z -18 to 68, x -16 to 16, so the
+    // world extent is ~120 m (dome 10x = 1,200 m) instead of Level 2's
+    // 2 mi. Sun distance 300 m keeps its ~0.1 rad angular size, beyond
+    // the striped-sun backdrop plate at z = 72. azimuthOffset -PI turns
+    // midday toward +Z (the garden / plate side), matching the existing
+    // sunBack light at (0, 9, 95) — Level 2's midday is toward -Z.
+    // Pink-to-purple gradient, moving striped sun, NO cyan in the sky.
+    // sunBack + hemiLight are driven by the sun (position/colour/strength
+    // follow its elevation); cyanKey / magentaRim / deckFill are untouched.
+    // scene.background stays as the dark fallback behind the dome.
+    const skysphere = createSkysphere(THREE, {
+      worldRadius: 120,
+      sunDistance: 300,
+      azimuthOffset: -Math.PI,
+      timeOfDay: 0.5,
+      sunLight: sunBack,
+      hemiLight,
+    });
+    scene.add(skysphere.group);
+    window.__skysphere = skysphere; // verification handle
+    const poolGlow = new THREE.PointLight(0xb8ff00, 22, 14, 2);
+    poolGlow.position.set(8, 1.2, 38);
+    const biolumeA = new THREE.PointLight(0x22f5ff, 26, 18, 2);
+    biolumeA.position.set(-12, 2.2, 20);
+    const biolumeB = new THREE.PointLight(0x22f5ff, 26, 18, 2);
+    biolumeB.position.set(13, 2.2, 46);
+    scene.add(poolGlow, biolumeA, biolumeB);
+
+    // World Root & Zones
+    const worldGroup = new THREE.Group();
+    scene.add(worldGroup);
+
+    // Zone 1: Infinity 6 Interior Deck & Ramp (z: -18 to 0) — Zero pink fog inside
+    const deckFloor = new THREE.Mesh(
+      new THREE.BoxGeometry(14, 0.5, 20),
+      new THREE.MeshStandardMaterial({ color: 0x120c1f, metalness: 0.7, roughness: 0.3 })
+    );
+    deckFloor.position.set(0, -0.25, -10);
+    deckFloor.userData.noAutoHide = true; // ground plane: its bounding sphere always contains the camera
+    worldGroup.add(deckFloor);
+
+    // Garden Ground (z: 0 to 100): tileable jungle floor painted once on a canvas at boot (no image file):
+    // dark soil, moss beds, roots and leaf litter in the Neon Vigil palette. A low-frequency noise pass in the
+    // shader varies tone and moss across the field so the 8 m tile never reads as a repeat.
+    function makeJungleFloorCanvas(size = 512) {
+      let seed = 4177;
+      const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+      const cv = document.createElement('canvas');
+      cv.width = cv.height = size;
+      const g = cv.getContext('2d');
+      // wrap-aware draw: repeats a shape across the tile edges so the texture tiles seamlessly
+      const wrap = (fn) => { for (const ox of [-size, 0, size]) for (const oy of [-size, 0, size]) { g.save(); g.translate(ox, oy); fn(); g.restore(); } };
+      // 1) damp soil base + soft value noise (reuses the tileable mist noise generator)
+      g.fillStyle = '#2b1f2a';
+      g.fillRect(0, 0, size, size);
+      g.globalAlpha = 0.8;
+      g.globalCompositeOperation = 'multiply';
+      g.drawImage(makeNoiseCanvas(size), 0, 0);
+      g.globalCompositeOperation = 'source-over';
+      g.globalAlpha = 1;
+      // 2) moss beds: broad teal-green patches built from overlapping soft blobs
+      for (let i = 0; i < 9; i++) {
+        const cx = rnd() * size, cy = rnd() * size;
+        for (let k = 0; k < 7; k++) {
+          const x = cx + (rnd() - 0.5) * 90, y = cy + (rnd() - 0.5) * 90, r = 26 + rnd() * 40;
+          wrap(() => {
+            const grd = g.createRadialGradient(x, y, 0, x, y, r);
+            grd.addColorStop(0, 'rgba(34,92,70,0.6)');
+            grd.addColorStop(0.6, 'rgba(26,70,58,0.35)');
+            grd.addColorStop(1, 'rgba(20,56,50,0)');
+            g.fillStyle = grd;
+            g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
+          });
+        }
+        for (let k = 0; k < 160; k++) { // moss tufts
+          const x = cx + (rnd() - 0.5) * 120, y = cy + (rnd() - 0.5) * 120;
+          wrap(() => { g.fillStyle = rnd() < 0.5 ? 'rgba(70,140,104,0.5)' : 'rgba(40,104,90,0.5)'; g.fillRect(x, y, 2, 2); });
+        }
+      }
+      // 3) roots: thick violet-brown runners with a lit ridge, tapering branches
+      const root = (x, y, a, w, segs) => {
+        const pts = [[x, y]];
+        for (let s = 0; s < segs; s++) { a += (rnd() - 0.5) * 0.7; x += Math.cos(a) * 20; y += Math.sin(a) * 20; pts.push([x, y]); }
+        wrap(() => {
+          g.lineCap = 'round'; g.lineJoin = 'round';
+          for (const [lw, col] of [[w + 3, 'rgba(10,6,10,0.8)'], [w, 'rgba(66,40,52,1)'], [Math.max(1, w * 0.35), 'rgba(120,82,104,0.7)']]) {
+            g.lineWidth = lw; g.strokeStyle = col;
+            g.beginPath(); g.moveTo(pts[0][0], pts[0][1]);
+            for (let p = 1; p < pts.length; p++) g.lineTo(pts[p][0], pts[p][1]);
+            g.stroke();
+          }
+        });
+        return pts;
+      };
+      for (let i = 0; i < 5; i++) {
+        const pts = root(rnd() * size, rnd() * size, rnd() * Math.PI * 2, 7 + rnd() * 5, 14 + Math.floor(rnd() * 8));
+        for (let k = 0; k < 3; k++) { const q = pts[2 + Math.floor(rnd() * (pts.length - 3))]; root(q[0], q[1], rnd() * Math.PI * 2, 3 + rnd() * 2, 4 + Math.floor(rnd() * 4)); }
+      }
+      // 4) leaf litter in drifts: pointed leaves with a midrib, muted magenta, violet, teal and dead-leaf umber
+      const leafCols = ['#5a2648', '#46285e', '#24504c', '#4a3226', '#6e3058', '#3a2a40'];
+      const leaf = (x, y, l, rot, col) => wrap(() => {
+        g.save(); g.translate(x, y); g.rotate(rot);
+        g.fillStyle = col;
+        g.beginPath(); g.moveTo(-l, 0); g.quadraticCurveTo(0, -l * 0.8, l, 0); g.quadraticCurveTo(0, l * 0.8, -l, 0); g.fill();
+        g.strokeStyle = 'rgba(12,6,12,0.55)'; g.lineWidth = 1;
+        g.beginPath(); g.moveTo(-l, 0); g.lineTo(l * 0.9, 0); g.stroke();
+        g.restore();
+      });
+      for (let d = 0; d < 7; d++) {
+        const cx = rnd() * size, cy = rnd() * size, n = 26 + Math.floor(rnd() * 22);
+        for (let k = 0; k < n; k++) leaf(cx + (rnd() - 0.5) * 110, cy + (rnd() - 0.5) * 110, 7 + rnd() * 9, rnd() * Math.PI * 2, leafCols[Math.floor(rnd() * leafCols.length)]);
+      }
+      for (let k = 0; k < 60; k++) leaf(rnd() * size, rnd() * size, 6 + rnd() * 8, rnd() * Math.PI * 2, leafCols[Math.floor(rnd() * leafCols.length)]);
+      // 5) a few faint biolume spores
+      for (let i = 0; i < 30; i++) {
+        const x = rnd() * size, y = rnd() * size;
+        g.fillStyle = rnd() < 0.5 ? 'rgba(34,245,255,0.45)' : 'rgba(192,132,252,0.45)';
+        g.beginPath(); g.arc(x, y, 1.4, 0, Math.PI * 2); g.fill();
+      }
+      return cv;
+    }
+    const floorTex = new THREE.CanvasTexture(makeJungleFloorCanvas(512));
+    floorTex.colorSpace = THREE.SRGBColorSpace;
+    floorTex.wrapS = floorTex.wrapT = THREE.RepeatWrapping;
+    floorTex.repeat.set(13, 18); // ~6 m tiles across the 80 x 110 floor
+    floorTex.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+    const floorMacroTex = new THREE.CanvasTexture(makeNoiseCanvas(128));
+    floorMacroTex.wrapS = floorMacroTex.wrapT = THREE.RepeatWrapping;
+    // emissiveMap lets the moss / litter keep their own hues under the strong sky-tinted hemisphere light
+    const floorMat = new THREE.MeshStandardMaterial({ map: floorTex, bumpMap: floorTex, bumpScale: 0.6, roughness: 0.95, metalness: 0, emissive: 0xffffff, emissiveMap: floorTex, emissiveIntensity: 0.42 });
+    floorMat.onBeforeCompile = (sh) => {
+      sh.uniforms.uMacro = { value: floorMacroTex };
+      sh.fragmentShader = sh.fragmentShader
+        .replace('void main() {', 'uniform sampler2D uMacro;\nvoid main() {')
+        .replace('#include <map_fragment>', `#include <map_fragment>
+          #ifdef USE_MAP
+            float mA = texture2D(uMacro, vMapUv * 0.071).r;
+            float mB = texture2D(uMacro, vMapUv * 0.023 + 0.37).r;
+            diffuseColor.rgb *= 0.72 + 0.6 * mA;                                        // tone drift
+            diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(0.7, 1.25, 1.1), smoothstep(0.45, 0.7, mB)); // mossy zones
+          #endif`);
+    };
+    const gardenFloor = new THREE.Mesh(new THREE.PlaneGeometry(80, 110), floorMat);
+    gardenFloor.userData.noAutoHide = true; // ground plane: its bounding sphere always contains the camera
+    gardenFloor.rotation.x = -Math.PI / 2;
+    gardenFloor.position.set(0, -0.05, 45);
+    worldGroup.add(gardenFloor);
+
+    // Acidic First Water Pool (z: 32 to 46): dark glassy water with a soft acid-lime rim, no hard rectangle
+    function makePoolCanvas(size = 256) {
+      const cv = document.createElement('canvas');
+      cv.width = cv.height = size;
+      const g = cv.getContext('2d');
+      const c = size / 2;
+      const grd = g.createRadialGradient(c, c, 0, c, c, c);
+      grd.addColorStop(0.0, 'rgba(6,40,40,0.92)');
+      grd.addColorStop(0.62, 'rgba(10,58,48,0.9)');
+      grd.addColorStop(0.82, 'rgba(110,160,20,0.75)');
+      grd.addColorStop(0.9, 'rgba(60,90,20,0.45)');
+      grd.addColorStop(1.0, 'rgba(0,0,0,0)');
+      g.fillStyle = grd;
+      g.fillRect(0, 0, size, size);
+      return cv;
+    }
+    const poolTex = new THREE.CanvasTexture(makePoolCanvas(256));
+    poolTex.colorSpace = THREE.SRGBColorSpace;
+    const firstWaterPool = new THREE.Mesh(
+      new THREE.CircleGeometry(6, 48),
+      new THREE.MeshBasicMaterial({ map: poolTex, transparent: true, depthWrite: false })
+    );
+    firstWaterPool.rotation.x = -Math.PI / 2;
+    firstWaterPool.scale.set(1.45, 1, 1); // ~17 x 12 oval
+    firstWaterPool.position.set(8, 0.02, 38);
+    worldGroup.add(firstWaterPool);
+
+    // Drive backdrop plates: fog off, own vertical haze gradient (violet top -> pink horizon)
+    const HAZE_TOP = new THREE.Color(0x3b1458);
+    const HAZE_BOTTOM = new THREE.Color(0xd2479a);
+    const plateTextures = {};
+    function plateMaterial(url, fallbackHex, hazeAmt, edgeFade = 0) {
+      const mat = new THREE.MeshBasicMaterial({ color: fallbackHex, side: THREE.FrontSide, fog: false, transparent: edgeFade > 0, depthWrite: edgeFade === 0 });
+      mat.onBeforeCompile = (sh) => {
+        sh.uniforms.uHazeTop = { value: HAZE_TOP };
+        sh.uniforms.uHazeBottom = { value: HAZE_BOTTOM };
+        sh.uniforms.uHazeAmt = { value: hazeAmt };
+        sh.uniforms.uEdge = { value: edgeFade };
+        sh.fragmentShader = sh.fragmentShader
+          .replace('void main() {', 'uniform vec3 uHazeTop; uniform vec3 uHazeBottom; uniform float uHazeAmt; uniform float uEdge;\nvoid main() {')
+          .replace('#include <map_fragment>', `#include <map_fragment>
+          #ifdef USE_MAP
+            float hz = clamp(1.0 - vMapUv.y, 0.0, 1.0);
+            diffuseColor.rgb = mix(diffuseColor.rgb, mix(uHazeTop, uHazeBottom, hz), uHazeAmt * (0.25 + 0.75 * hz));
+            if (uEdge > 0.0) diffuseColor.a *= smoothstep(0.0, uEdge, vMapUv.x) * smoothstep(1.0, 1.0 - uEdge, vMapUv.x);
+          #endif`);
+      };
+      const apply = (tex) => {
+        mat.map = tex;
+        mat.color.setHex(0xdddddd); // keeps plates under the bloom threshold
+        mat.needsUpdate = true;
+      };
+      if (!plateTextures[url]) {
+        plateTextures[url] = new Promise((resolve) => {
+          texLoader.load(url, (tex) => {
+            tex.colorSpace = THREE.SRGBColorSpace; // keep Drive plate colors true (no washed-out pinks)
+            resolve(tex);
+          }, undefined, () => resolve(null));
+        });
+      }
+      plateTextures[url].then((tex) => { if (tex) apply(tex); });
+      return mat;
+    }
+
+    // GARDEN view plates (3D billboards along the walk)
+    const gardenPlates = new THREE.Group();
+    worldGroup.add(gardenPlates);
+    function mountBackdropPlate(url, x, y, z, w, h, fallbackHex, hazeAmt = 0.32, edgeFade = 0) {
+      const plane = new THREE.Mesh(new THREE.PlaneGeometry(w, h), plateMaterial(url, fallbackHex, hazeAmt, edgeFade));
+      plane.position.set(x, y, z);
+      plane.rotation.y = Math.PI; // face the play area: garden camera looks +z, so plates must face -z to stay visible single-sided
+      plane.userData.preciseHide = true; // backdrop plate: hide only when the camera is actually on its surface
+      gardenPlates.add(plane);
+      return plane;
+    }
+
+    // Far coast + Mega-City ruins on the horizon (soft edges so they sit inside the mist)
+
+    // ROCK FORMATIONS (procedural, garden view only; no files to download).
+    // Everything stays outside the walk corridor (|x| <= 18, z -2..70) and off the follow-camera path.
+    const gardenScenery = new THREE.Group();
+    gardenPlates.add(gardenScenery);
+    const sceneryRand = (() => { let s = 90210; return () => { s = (s * 16807) % 2147483647; return s / 2147483647; }; })();
+
+    // Basalt column clusters: one instanced hex prism (base at y = 0), scaled per column
+    const basaltGeo = new THREE.CylinderGeometry(0.82, 1, 1, 6, 1);
+    basaltGeo.translate(0, 0.5, 0);
+    function makeBasaltCanvas() {
+      const cv = document.createElement('canvas');
+      cv.width = 128; cv.height = 256;
+      const g = cv.getContext('2d');
+      g.fillStyle = '#3a3046';
+      g.fillRect(0, 0, 128, 256);
+      g.globalCompositeOperation = 'multiply';
+      g.drawImage(makeNoiseCanvas(128), 0, 0, 128, 256);
+      g.globalCompositeOperation = 'source-over';
+      for (let i = 0; i < 9; i++) { // horizontal fracture bands
+        const y = sceneryRand() * 256;
+        g.fillStyle = 'rgba(12,8,16,0.7)'; g.fillRect(0, y, 128, 1.5 + sceneryRand() * 2);
+        g.fillStyle = 'rgba(120,104,140,0.25)'; g.fillRect(0, y + 2, 128, 1);
+      }
+      for (let i = 0; i < 3; i++) { // faint violet crystal veins
+        let x = sceneryRand() * 128, y = 0;
+        g.strokeStyle = 'rgba(176,120,255,0.55)'; g.lineWidth = 1.2;
+        g.beginPath(); g.moveTo(x, y);
+        while (y < 256) { x += (sceneryRand() - 0.5) * 18; y += 10 + sceneryRand() * 16; g.lineTo(x, y); }
+        g.stroke();
+      }
+      return cv;
+    }
+    const basaltTex = new THREE.CanvasTexture(makeBasaltCanvas());
+    basaltTex.colorSpace = THREE.SRGBColorSpace;
+    basaltTex.wrapS = basaltTex.wrapT = THREE.RepeatWrapping;
+    const basaltMat = new THREE.MeshStandardMaterial({ map: basaltTex, color: 0x9890a8, roughness: 0.9, metalness: 0.05, flatShading: true });
+    basaltMat.onBeforeCompile = (sh) => {
+      sh.vertexShader = sh.vertexShader
+        .replace('void main() {', 'varying float vRockY;\nvoid main() {')
+        .replace('#include <worldpos_vertex>', `#include <worldpos_vertex>
+          #ifdef USE_INSTANCING
+            vRockY = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).y;
+          #else
+            vRockY = (modelMatrix * vec4(transformed, 1.0)).y;
+          #endif`);
+      sh.fragmentShader = sh.fragmentShader
+        .replace('void main() {', 'varying float vRockY;\nvoid main() {')
+        .replace('#include <map_fragment>', `
+          vec4 rockTexel = texture2D(map, vec2(vMapUv.x * 3.0, vRockY / 9.0));
+          diffuseColor *= rockTexel;
+          totalEmissiveRadiance += rockTexel.rgb * 0.22; // strata + violet veins stay readable under the sky-tinted light
+          diffuseColor.rgb = mix(vec3(0.05, 0.16, 0.13), diffuseColor.rgb, smoothstep(0.0, 2.2, vRockY)); // mossy foot`);
+    };
+    const crystalGeo = new THREE.ConeGeometry(1, 1, 5, 1);
+    crystalGeo.translate(0, 0.5, 0);
+    const crystalMat = new THREE.MeshStandardMaterial({ color: 0x2a1450, emissive: 0x6b2fd6, emissiveIntensity: 0.55, roughness: 0.25, metalness: 0.1, flatShading: true });
+    const spireClusters = [
+      // [x, z, height, spread]
+      [-30, 10, 14, 4], [30, 6, 12, 4], [23, 22, 16, 3], [-22, 34, 20, 3], [24, 44, 24, 4],
+      [-24, 52, 28, 4], [22, 62, 30, 4], [-22, 70, 32, 4],
+      [-14, 80, 36, 6], [12, 80, 30, 5], [36, 86, 40, 7], [-40, 90, 36, 7]
+    ];
+    const basaltPlacements = [];
+    const crystalPlacements = [];
+    for (const [cx, cz, hMax, spread] of spireClusters) {
+      const cols = 5 + Math.floor(sceneryRand() * 5);
+      for (let i = 0; i < cols; i++) {
+        const a = sceneryRand() * Math.PI * 2, d = sceneryRand() * spread;
+        const h = hMax * (0.35 + 0.65 * sceneryRand()) * (i === 0 ? 1.0 : 0.85);
+        const r = 0.9 + sceneryRand() * 1.4;
+        basaltPlacements.push([cx + Math.cos(a) * d, cz + Math.sin(a) * d, r, i === 0 ? hMax : h, (sceneryRand() - 0.5) * 0.08]);
+      }
+      const shards = 2 + Math.floor(sceneryRand() * 3);
+      for (let i = 0; i < shards; i++) {
+        const a = sceneryRand() * Math.PI * 2, d = spread * (0.6 + sceneryRand() * 0.6);
+        crystalPlacements.push([cx + Math.cos(a) * d, cz + Math.sin(a) * d, 0.5 + sceneryRand() * 0.7, 3 + sceneryRand() * hMax * 0.35, (sceneryRand() - 0.5) * 0.5]);
+      }
+    }
+    // keep every piece beside the walk corridor and follow camera (player and camera stay within |x| <= 16)
+    const clearOfPath = (p) => {
+      if (p[1] > -4 && p[1] < 74 && Math.abs(p[0]) - p[2] < 19.5) p[0] = Math.sign(p[0] || 1) * (19.5 + p[2]);
+      return p;
+    };
+    basaltPlacements.forEach(clearOfPath);
+    crystalPlacements.forEach(clearOfPath);
+    function instanceSet(geo, mat, list) {
+      const im = new THREE.InstancedMesh(geo, mat, list.length);
+      const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler();
+      list.forEach(([x, z, r, h, tilt], i) => {
+        e.set(tilt, sceneryRand() * Math.PI, tilt * 0.6);
+        q.setFromEuler(e);
+        m4.compose(new THREE.Vector3(x, -0.2, z), q, new THREE.Vector3(r, h, r));
+        im.setMatrixAt(i, m4);
+      });
+      im.instanceMatrix.needsUpdate = true;
+      gardenScenery.add(im);
+      return im;
+    }
+    instanceSet(basaltGeo, basaltMat, basaltPlacements);
+    instanceSet(crystalGeo, crystalMat, crystalPlacements);
+
+    // SIDE view: three-layer parallax from real depth (camera at x = -26 looking +x).
+    // Screen speed vs the lane: near strip ~2.2x, mid plates ~0.45x, far plate ~0.27x.
+    const sideLayers = new THREE.Group();
+    sideLayers.visible = false;
+    worldGroup.add(sideLayers);
+    function mountSidePlate(url, x, y, z, w, h, fallbackHex, hazeAmt, edgeFade = 0) {
+      const plane = new THREE.Mesh(new THREE.PlaneGeometry(w, h), plateMaterial(url, fallbackHex, hazeAmt, edgeFade));
+      plane.rotation.y = -Math.PI / 2; // faces the SIDE camera; texture reads left-to-right with +z
+      plane.position.set(x, y, z);
+      plane.userData.preciseHide = true; // backdrop plate: hide only when the camera is actually on its surface
+      sideLayers.add(plane);
+      return plane;
+    }
+    // mid row (soft edges, overlapping): forest > Sickle Coast > biolume coast > drowned Sutro > Mega-City ruins
+
+    // Near layer: black rock / vine silhouette strip between the SIDE camera and the lane
+    function makeSilhouetteTexture() {
+      const c = document.createElement('canvas');
+      c.width = 1024; c.height = 128;
+      const g = c.getContext('2d');
+      g.fillStyle = '#ffffff';
+      g.beginPath();
+      g.moveTo(0, 128);
+      let x = 0;
+      while (x <= 1024) {
+        const peak = 30 + Math.random() * 55;
+        g.lineTo(x, 128 - peak);
+        x += 18 + Math.random() * 46;
+      }
+      g.lineTo(1024, 128);
+      g.closePath();
+      g.fill();
+      g.strokeStyle = '#ffffff';
+      g.lineWidth = 5;
+      for (let i = 0; i < 9; i++) { // vine tendrils
+        const vx = Math.random() * 1024;
+        g.beginPath();
+        g.moveTo(vx, 128);
+        g.bezierCurveTo(vx + 30, 70, vx - 25, 40, vx + 12, 6 + Math.random() * 20);
+        g.stroke();
+      }
+      const t = new THREE.CanvasTexture(c);
+      t.wrapS = THREE.RepeatWrapping;
+      t.repeat.set(4, 1);
+      return t;
+    }
+    const nearStrip = new THREE.Mesh(
+      new THREE.PlaneGeometry(160, 3.2),
+      new THREE.MeshBasicMaterial({ color: 0x07030c, alphaMap: makeSilhouetteTexture(), transparent: true, alphaTest: 0.5, fog: false })
+    );
+    nearStrip.rotation.y = -Math.PI / 2;
+    nearStrip.position.set(-14, -0.4, 25);
+    sideLayers.add(nearStrip);
+
+    // Ground mist: cheap camera-facing sprites drifting over the garden floor
+    function makeRadialTexture() {
+      const c = document.createElement('canvas');
+      c.width = c.height = 64;
+      const g = c.getContext('2d');
+      const grd = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+      grd.addColorStop(0, 'rgba(255,255,255,1)');
+      grd.addColorStop(1, 'rgba(255,255,255,0)');
+      g.fillStyle = grd;
+      g.fillRect(0, 0, 64, 64);
+      const t = new THREE.CanvasTexture(c);
+      t.colorSpace = THREE.SRGBColorSpace;
+      return t;
+    }
+    const mistGroup = new THREE.Group();
+    const mistMat = new THREE.SpriteMaterial({ map: makeRadialTexture(), color: 0xff7ac8, transparent: true, opacity: 0.16, depthWrite: false, fog: false });
+    const MIST_COUNT = gfxTier === 'hi' ? 22 : 12;
+    for (let i = 0; i < MIST_COUNT; i++) {
+      const m = new THREE.Sprite(mistMat);
+      m.scale.set(9 + Math.random() * 7, 2.2 + Math.random(), 1);
+      m.position.set(-22 + Math.random() * 36, 0.6 + Math.random() * 0.6, 2 + Math.random() * 66);
+      m.userData.baseX = m.position.x;
+      m.userData.phase = Math.random() * Math.PI * 2;
+      mistGroup.add(m);
+    }
+    worldGroup.add(mistGroup);
+
+    // Rolling fog: procedural tileable noise scrolled in two octaves on a few large transparent
+    // planes (ground sheets + curtains). hiOnly layers drop out on the lite tier; reduced motion
+    // slows the drift to a near-still haze. Same violet-pink tints as the scene fog.
+    const NV_REDUCED_MOTION = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    const MIST_MOTION = NV_REDUCED_MOTION ? 0.12 : 1;
+    function makeNoiseCanvas(size = 128) {
+      const lat = (n, seed) => { const a = new Float32Array(n * n); let s = seed; for (let i = 0; i < a.length; i++) { s = (s * 16807) % 2147483647; a[i] = s / 2147483647; } return a; };
+      const val = new Float32Array(size * size);
+      let amp = 0.5, total = 0;
+      for (const cells of [4, 8, 16, 32]) {
+        const g = lat(cells, 1234 + cells * 7);
+        for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+          const fx = x / size * cells, fy = y / size * cells;
+          const x0 = Math.floor(fx), y0 = Math.floor(fy);
+          let tx = fx - x0, ty = fy - y0; tx = tx * tx * (3 - 2 * tx); ty = ty * ty * (3 - 2 * ty);
+          const x1 = (x0 + 1) % cells, y1 = (y0 + 1) % cells; // wraps -> tileable
+          const a = g[y0 * cells + x0], b = g[y0 * cells + x1], c = g[y1 * cells + x0], d = g[y1 * cells + x1];
+          val[y * size + x] += amp * ((a + (b - a) * tx) * (1 - ty) + (c + (d - c) * tx) * ty);
+        }
+        total += amp; amp *= 0.5;
+      }
+      const cv = document.createElement('canvas');
+      cv.width = cv.height = size;
+      const ctx = cv.getContext('2d');
+      const img = ctx.createImageData(size, size);
+      for (let i = 0; i < val.length; i++) { const v = Math.round(val[i] / total * 255); img.data[i * 4] = img.data[i * 4 + 1] = img.data[i * 4 + 2] = v; img.data[i * 4 + 3] = 255; }
+      ctx.putImageData(img, 0, 0);
+      return cv;
+    }
+    const mistNoiseCanvas = makeNoiseCanvas(128);
+    const mistNoiseTex = new THREE.CanvasTexture(mistNoiseCanvas);
+    mistNoiseTex.wrapS = mistNoiseTex.wrapT = THREE.RepeatWrapping;
+    const mistTime = { value: 0 };
+    const FOG_TINT_PINK = new THREE.Color(0xd2479a);
+    const FOG_TINT_VIOLET = new THREE.Color(0x8a45d0);
+    function makeRollingMistMaterial(opacity, speed, repX, repY, tint) {
+      return new THREE.ShaderMaterial({
+        uniforms: {
+          uNoise: { value: mistNoiseTex }, uTime: mistTime, uSpeed: { value: speed },
+          uRep: { value: new THREE.Vector2(repX, repY) }, uColor: { value: tint }, uOpacity: { value: opacity }
+        },
+        vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+        fragmentShader: `
+          uniform sampler2D uNoise; uniform float uTime; uniform float uSpeed; uniform float uOpacity;
+          uniform vec2 uRep; uniform vec3 uColor; varying vec2 vUv;
+          void main() {
+            float t = uTime * uSpeed;
+            vec2 p = vUv * uRep;
+            float a = texture2D(uNoise, p + vec2(t, t * 0.13)).r;
+            float b = texture2D(uNoise, p * 0.47 + vec2(-t * 0.55, 0.37)).r;
+            float n = smoothstep(0.32, 0.78, a * 0.55 + b * 0.55);
+            float edge = smoothstep(0.0, 0.15, vUv.x) * smoothstep(1.0, 0.85, vUv.x)
+                       * smoothstep(0.0, 0.22, vUv.y) * smoothstep(1.0, 0.55, vUv.y);
+            gl_FragColor = vec4(uColor, n * edge * uOpacity);
+            #include <colorspace_fragment>
+          }`,
+        transparent: true, depthWrite: false, side: THREE.DoubleSide, fog: false
+      });
+    }
+    const rollingMistLayers = [];
+    function addMistLayer(group, w, h, pos, rot, opacity, speed, repX, repY, tint, hiOnly) {
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), makeRollingMistMaterial(opacity, speed, repX, repY, tint));
+      m.position.set(pos[0], pos[1], pos[2]);
+      m.rotation.set(rot[0], rot[1], 0);
+      m.renderOrder = 2;
+      m.userData.hiOnly = hiOnly;
+      m.raycast = () => {};
+      group.add(m);
+      rollingMistLayers.push(m);
+      return m;
+    }
+    const gardenFogGroup = new THREE.Group();
+    const sideFogGroup = new THREE.Group();
+    gardenFogGroup.visible = sideFogGroup.visible = false;
+    worldGroup.add(gardenFogGroup, sideFogGroup);
+    // GARDEN: two ground sheets + three mid-distance curtains (camera looks down +z).
+    // Lite keeps only the two far curtains (the full-floor ground sheets are the big fill-rate cost).
+    addMistLayer(gardenFogGroup, 70, 92, [0, 0.35, 36], [-Math.PI / 2, 0], 0.12, 0.018, 3, 4, FOG_TINT_PINK, true);
+    addMistLayer(gardenFogGroup, 70, 92, [0, 1.1, 38], [-Math.PI / 2, 0], 0.08, -0.012, 2, 2.6, FOG_TINT_VIOLET, true);
+    addMistLayer(gardenFogGroup, 84, 9, [0, 3.2, 40], [0, 0], 0.2, 0.02, 4, 1, FOG_TINT_PINK, true);
+    addMistLayer(gardenFogGroup, 90, 12, [0, 4.0, 52], [0, 0], 0.24, 0.014, 4, 1, FOG_TINT_VIOLET, false);
+    addMistLayer(gardenFogGroup, 100, 16, [0, 5.0, 70], [0, 0], 0.26, 0.01, 4, 1, FOG_TINT_PINK, false);
+    // SIDE: three curtains between the lane and the plates (camera at x = -26 looking +x)
+    addMistLayer(sideFogGroup, 170, 4.5, [-4, 1.0, 25], [0, -Math.PI / 2], 0.3, 0.03, 9, 1, FOG_TINT_PINK, false);
+    addMistLayer(sideFogGroup, 170, 10, [9, 3.0, 25], [0, -Math.PI / 2], 0.24, 0.02, 7, 1, FOG_TINT_VIOLET, true);
+    addMistLayer(sideFogGroup, 170, 16, [24, 5.0, 25], [0, -Math.PI / 2], 0.32, 0.012, 6, 1, FOG_TINT_PINK, false);
+    // Screen-space haze tile: the same noise, tinted, as a CSS background (two scales)
+    (function initMistOverlay() {
+      const c = document.createElement('canvas');
+      c.width = c.height = 128;
+      const g = c.getContext('2d');
+      const src = mistNoiseCanvas.getContext('2d').getImageData(0, 0, 128, 128);
+      const out = g.createImageData(128, 128);
+      for (let i = 0; i < 128 * 128; i++) {
+        const v = src.data[i * 4] / 255;
+        const a = Math.max(0, Math.min(1, (v - 0.42) * 2.6));
+        out.data[i * 4] = 236; out.data[i * 4 + 1] = 120; out.data[i * 4 + 2] = 210; out.data[i * 4 + 3] = Math.round(a * 255);
+      }
+      g.putImageData(out, 0, 0);
+      const url = c.toDataURL('image/png');
+      const el = document.getElementById('mist-overlay');
+      if (el) el.style.backgroundImage = `url(${url}), url(${url})`;
+    })();
+
+    // Toon / cel pipeline: 3-step ramp + inverted-hull outlines (smooth-normal push, shared width)
+    const toonGradient = (() => {
+      const t = new THREE.DataTexture(new Uint8Array([60, 150, 255]), 3, 1, THREE.RedFormat);
+      t.minFilter = t.magFilter = THREE.NearestFilter;
+      t.needsUpdate = true;
+      return t;
+    })();
+    const OUTLINE_GARDEN = 0.03;
+    const OUTLINE_SIDE = 0.05;
+    const outlineWidth = { value: OUTLINE_GARDEN };
+    const outlineMats = new Map();
+    function getOutlineMat(worldScale) {
+      const key = Math.max(0.0001, Math.round(worldScale * 1000) / 1000);
+      if (outlineMats.has(key)) return outlineMats.get(key);
+      const mat = new THREE.MeshBasicMaterial({ color: 0x05020a, side: THREE.BackSide });
+      mat.onBeforeCompile = (sh) => {
+        sh.uniforms.uOutline = outlineWidth;
+        sh.uniforms.uInvScale = { value: 1 / key };
+        sh.vertexShader = sh.vertexShader
+          .replace('void main() {', 'uniform float uOutline; uniform float uInvScale;\nvoid main() {')
+          .replace('#include <begin_vertex>', '#include <begin_vertex>\n  transformed += normalize(normal) * uOutline * uInvScale;');
+      };
+      mat.customProgramCacheKey = () => 'nv-outline';
+      outlineMats.set(key, mat);
+      return mat;
+    }
+    const outlineGeoCache = new WeakMap();
+    function outlineGeometry(geo) {
+      if (outlineGeoCache.has(geo)) return outlineGeoCache.get(geo);
+      let g = geo.clone();
+      for (const k of Object.keys(g.attributes)) if (k !== 'position') g.deleteAttribute(k);
+      g = mergeVertices(g, 1e-4);
+      g.computeVertexNormals();
+      outlineGeoCache.set(geo, g);
+      return g;
+    }
+    function toonify(root, outline = true) {
+      const meshes = [];
+      root.updateMatrixWorld(true);
+      root.traverse((o) => { if (o.isMesh && !o.userData.isOutline) meshes.push(o); });
+      for (const m of meshes) {
+        const src = Array.isArray(m.material) ? m.material : [m.material];
+        const conv = src.map((mt) => {
+          if (!mt || mt.wireframe || mt.isMeshBasicMaterial || mt.isMeshToonMaterial) return mt; // neon wires / eyes stay emissive
+          return new THREE.MeshToonMaterial({
+            color: mt.color ? mt.color.clone() : new THREE.Color(0xffffff),
+            map: mt.map || null,
+            gradientMap: toonGradient,
+            emissive: mt.emissive ? mt.emissive.clone() : new THREE.Color(0x000000),
+            emissiveMap: mt.emissiveMap || null,
+            emissiveIntensity: mt.emissiveIntensity ?? 1,
+            normalMap: mt.normalMap || null,
+            transparent: !!mt.transparent,
+            opacity: mt.opacity ?? 1,
+            alphaTest: mt.alphaTest || 0,
+            side: mt.side
+          });
+        });
+        m.material = Array.isArray(m.material) ? conv : conv[0];
+        const solid = src.some((mt) => mt && !mt.wireframe && !mt.isMeshBasicMaterial);
+        if (outline && solid && !m.isSkinnedMesh && !m.morphTargetInfluences) {
+          const ws = new THREE.Vector3();
+          m.getWorldScale(ws);
+          const hull = new THREE.Mesh(outlineGeometry(m.geometry), getOutlineMat((Math.abs(ws.x) + Math.abs(ws.y) + Math.abs(ws.z)) / 3));
+          hull.userData.isOutline = true;
+          hull.raycast = () => {};
+          m.add(hull);
+        }
+      }
+    }
+    // Scale a loaded model to a target height, feet on y = 0, centered on its group
+    function fitModel(obj, targetH) {
+      obj.updateMatrixWorld(true);
+      const box = new THREE.Box3().setFromObject(obj);
+      const size = box.getSize(new THREE.Vector3());
+      if (size.y > 0) {
+        obj.scale.multiplyScalar(targetH / size.y);
+        obj.updateMatrixWorld(true);
+        const b2 = new THREE.Box3().setFromObject(obj);
+        const c = b2.getCenter(new THREE.Vector3());
+        obj.position.x -= c.x;
+        obj.position.z -= c.z;
+        obj.position.y -= b2.min.y;
+      }
+      return obj;
+    }
+    const NEON_HDR = (hex, k) => new THREE.Color(hex).multiplyScalar(k); // HDR color for bloom-only neon
+
+    /* =========================================================================
+       6. INTERACTIVE PROPS, HEXA SIGIL, PRAXIA & CREATURE NODES
+       ========================================================================= */
+    const interactables = [];
+
+    function createNode(id, label, x, z, color, radius = 1.1) {
+      const group = new THREE.Group();
+      group.position.set(x, 0, z);
+      const mesh = new THREE.Mesh(
+        new THREE.OctahedronGeometry(radius, 1),
+        new THREE.MeshStandardMaterial({ color, wireframe: false, roughness: 0.25 })
+      );
+      mesh.position.y = radius + 0.3;
+      const wire = new THREE.Mesh(
+        new THREE.OctahedronGeometry(radius * 1.12, 1),
+        new THREE.MeshBasicMaterial({ color: NEON_HDR(0x00f0ff, 1.8), wireframe: true })
+      );
+      wire.position.y = radius + 0.3;
+      group.add(mesh, wire);
+      worldGroup.add(group);
+      const node = { id, label, group, mesh, wire, x, z, active: true };
+      interactables.push(node);
+      return node;
+    }
+
+    // Ship Interior & Garden Progression Nodes
+    const consoleNode = createNode('console', 'Bridge Console (Cyphr)', 0, -14, 0x00f0ff, 0.8);
+    const creatureNodes = []; // Nov 13, 2026 strip: only Val + the bridge terminal remain
+
+    // Praxia Node (6'3", Mantis Head, Compound Pink Eyes, No Mouth, Dragonfly Wings, CANNOT SYNC)
+    const praxiaGroup = new THREE.Group();
+    praxiaGroup.position.set(0, 0, 50);
+    const praxiaBody = new THREE.Mesh(
+      new THREE.ConeGeometry(0.65, 2.1, 6),
+      new THREE.MeshStandardMaterial({ color: 0xf5d0fe, metalness: 0.4, roughness: 0.2 })
+    );
+    praxiaBody.position.y = 1.1;
+    const praxiaHead = new THREE.Mesh(
+      new THREE.ConeGeometry(0.42, 0.6, 5),
+      new THREE.MeshStandardMaterial({ color: 0xe879f9 })
+    );
+    praxiaHead.position.y = 2.35;
+    praxiaHead.rotation.x = Math.PI;
+    const eyeMat = new THREE.MeshBasicMaterial({ color: NEON_HDR(0xff1e8a, 2.0) });
+    const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.14, 8, 8), eyeMat);
+    const eyeR = eyeL.clone();
+    eyeL.position.set(-0.2, 2.4, 0.2);
+    eyeR.position.set(0.2, 2.4, 0.2);
+    const wingMat = new THREE.MeshBasicMaterial({ color: NEON_HDR(0x00f0ff, 1.5), wireframe: true, side: THREE.DoubleSide });
+    const wingsMesh = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 0.8, 6, 2), wingMat);
+    wingsMesh.position.set(0, 1.75, -0.2);
+    const praxiaProcedural = new THREE.Group();
+    praxiaProcedural.add(praxiaBody, praxiaHead, eyeL, eyeR, wingsMesh);
+    praxiaGroup.add(praxiaProcedural);
+    worldGroup.add(praxiaGroup);
+    toonify(praxiaProcedural);
+    // Nov 13, 2026 strip: Praxia removed from the scene (Val + bridge terminal only).
+    praxiaGroup.visible = false;
+    praxiaProcedural.visible = false;
+    // PRAXIA BUMP SCENE (placeholder, User's direction Oct 24, 2026): bumping into Praxia
+    // triggers a scene; a battle attempt makes her run away. She cannot be synced.
+    let praxiaScene = 'idle'; // idle | armed | fleeing | gone
+    let praxiaSceneStartedAt = 0;
+    let praxiaReturnAt = 0;
+
+    // VAL-18 Stasis Pod, TRANSPARENT with the model inside (User's ruling Oct 24, 2026; "Just use Val 17" for the model)
+    const podGroup = new THREE.Group();
+    podGroup.position.set(4.2, 0, -8);
+    const podBody = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.7, 0.7, 2.2, 16),
+      new THREE.MeshStandardMaterial({ color: 0xe8b4d8, metalness: 0.6, roughness: 0.25, transparent: true, opacity: 0.28 })
+    );
+    podBody.position.y = 1.5;
+    const podCapTop = new THREE.Mesh(
+      new THREE.SphereGeometry(0.7, 16, 12, 0, Math.PI * 2, 0, Math.PI / 2),
+      new THREE.MeshStandardMaterial({ color: 0xff1e8a, metalness: 0.5, roughness: 0.3 })
+    );
+    podCapTop.position.y = 2.6;
+    const podCapBottom = podCapTop.clone();
+    podCapBottom.rotation.x = Math.PI;
+    podCapBottom.position.y = 0.4;
+    const podBase = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.95, 1.05, 0.4, 16),
+      new THREE.MeshStandardMaterial({ color: 0x1a1a2e, metalness: 0.7, roughness: 0.4 })
+    );
+    podBase.position.y = 0.2;
+    const podTrim = new THREE.Mesh(
+      new THREE.TorusGeometry(0.72, 0.05, 8, 24),
+      new THREE.MeshBasicMaterial({ color: NEON_HDR(0xff1e8a, 1.8) })
+    );
+    podTrim.rotation.x = Math.PI / 2;
+    podTrim.position.y = 1.5;
+    podGroup.add(podBody, podCapTop, podCapBottom, podBase, podTrim);
+    worldGroup.add(podGroup);
+    interactables.push({ id: 'val18_pod', label: 'VAL-18 Stasis Pod', group: podGroup, x: 4.2, z: -8, active: true });
+
+    /* =========================================================================
+       7. PLAYER SLOT: NEON ULTRA (6'3", Midnight Black Skin, Open Face, No Visor,
+          Silver Only, Purple Bomber, Long Black Braids) + FLOW STUDIO GLB PROBE
+       ========================================================================= */
+    const playerGroup = new THREE.Group();
+    playerGroup.position.set(0, 0, -16);
+    scene.add(playerGroup);
+
+    /* =========================================================================
+       BABY PIGEK PET PROTOTYPE (Oct 28, 2026) — baby stage only.
+       Reverse-engineered from the ChatGPT pet sprites: chibi look translated
+       to low-poly primitives — huge round head, pink crest, giant pink cheek
+       pouches, mint-green wing fades, curled feathered tail, bare pink neck,
+       no jewelry. Follows the player, hop/waddles, perches when idle.
+       Growth stages baby -> adolescent -> rideable adult are NOT built here;
+       only stage 1 (baby) exists in this prototype.
+       ========================================================================= */
+    const petState = { enabled: false, mode: 'FOLLOW', idleMs: 0, lastPlayerX: 0, lastPlayerZ: -16 }; // Nov 13, 2026 strip: pet removed with everything else (enabled: false). Nov 23, 2026: comment moved out of the object literal — it was breaking the parse of this whole page module (the // ate the rest of the line mid-object). Behaviour unchanged: pet stays disabled.
+    const petGroup = new THREE.Group();
+    {
+      const white = new THREE.MeshStandardMaterial({ color: 0xf5f2f0, roughness: 0.9 });
+      const pink = new THREE.MeshStandardMaterial({ color: 0xff5da2, roughness: 0.8 });
+      const cheekPink = new THREE.MeshStandardMaterial({ color: 0xffb3c2, roughness: 0.8 });
+      const eyePink = new THREE.MeshStandardMaterial({ color: 0xe0218a, roughness: 0.6 });
+      const green = new THREE.MeshStandardMaterial({ color: 0x9ed8a8, roughness: 0.9 });
+      const grey = new THREE.MeshStandardMaterial({ color: 0x8a8a92, roughness: 0.9 });
+      const add = (geo, mat, x, y, z, sx = 1, sy = 1, sz = 1) => {
+        const m = new THREE.Mesh(geo, mat);
+        m.position.set(x, y, z); m.scale.set(sx, sy, sz);
+        petGroup.add(m); return m;
+      };
+      add(new THREE.SphereGeometry(0.42, 20, 16), white, 0, 0.45, 0, 1, 0.9, 0.9); // body
+      add(new THREE.SphereGeometry(0.32, 20, 16), white, 0, 0.95, 0.08); // head
+      add(new THREE.CylinderGeometry(0.12, 0.14, 0.18, 10), cheekPink, 0, 0.72, 0.05); // bare neck
+      for (let i = -2; i <= 2; i++) { // pink crest spikes
+        const c = add(new THREE.ConeGeometry(0.06, 0.24, 6), pink, i * 0.09, 1.24, 0.02);
+        c.rotation.z = -i * 0.25;
+      }
+      add(new THREE.SphereGeometry(0.12, 14, 12), cheekPink, -0.26, 0.90, 0.30); // cheek pouches
+      add(new THREE.SphereGeometry(0.12, 14, 12), cheekPink, 0.26, 0.90, 0.30);
+      add(new THREE.SphereGeometry(0.04, 10, 8), eyePink, -0.13, 1.00, 0.36); // tiny pink eyes
+      add(new THREE.SphereGeometry(0.04, 10, 8), eyePink, 0.13, 1.00, 0.36);
+      const beak = add(new THREE.ConeGeometry(0.07, 0.16, 8), grey, 0, 0.90, 0.40);
+      beak.rotation.x = Math.PI / 2;
+      for (const side of [-1, 1]) { // wings: white over mint-green fade
+        add(new THREE.SphereGeometry(0.28, 14, 10), white, side * 0.44, 0.55, 0, 1, 0.35, 0.9);
+        add(new THREE.SphereGeometry(0.24, 14, 10), green, side * 0.46, 0.50, 0, 1, 0.3, 0.85);
+      }
+      add(new THREE.SphereGeometry(0.20, 12, 10), green, 0, 0.42, -0.38); // tail base
+      add(new THREE.SphereGeometry(0.18, 12, 10), white, 0, 0.45, -0.55);
+      add(new THREE.SphereGeometry(0.14, 12, 10), white, 0, 0.58, -0.70);
+      add(new THREE.SphereGeometry(0.10, 12, 10), white, 0, 0.76, -0.78); // curled tail tip
+      for (const side of [-1, 1]) {
+        add(new THREE.CylinderGeometry(0.06, 0.06, 0.25, 8), grey, side * 0.15, 0.12, 0.05);
+        add(new THREE.SphereGeometry(0.09, 10, 8), grey, side * 0.15, 0.03, 0.08, 1, 0.5, 1.2);
+      }
+    }
+    petGroup.position.set(1.5, 0, -14);
+    scene.add(petGroup);
+    function updateBabyPigekPet(t) {
+      const pill = document.getElementById('pet-pill');
+      petGroup.visible = petState.enabled;
+      if (!petState.enabled) { if (pill) pill.textContent = 'PET: OFF'; return; }
+      const px = playerGroup.position.x, pz = playerGroup.position.z;
+      const moved = Math.hypot(px - petState.lastPlayerX, pz - petState.lastPlayerZ) > 0.001;
+      petState.idleMs = moved ? 0 : petState.idleMs + 16;
+      petState.lastPlayerX = px; petState.lastPlayerZ = pz;
+      petState.mode = petState.idleMs > 5000 ? 'PERCH' : 'FOLLOW';
+      const tx = THREE.MathUtils.clamp(px + 1.3, -16, 16);
+      const tz = THREE.MathUtils.clamp(pz - 1.3, -18, 68);
+      const dx = tx - petGroup.position.x, dz = tz - petGroup.position.z;
+      const dist = Math.hypot(dx, dz);
+      if (dist > 6) { petGroup.position.x = tx; petGroup.position.z = tz; }
+      else { petGroup.position.x += dx * 0.08; petGroup.position.z += dz * 0.08; }
+      if (dist > 0.05) petGroup.rotation.y = Math.atan2(dx, dz);
+      petGroup.position.y = petState.mode === 'PERCH' ? Math.sin(t * 2) * 0.02 : Math.abs(Math.sin(t * 6)) * 0.14;
+      petGroup.scale.setScalar(petState.mode === 'PERCH' ? 1 : 1 + Math.sin(t * 6) * 0.05);
+      if (pill) pill.textContent = 'PET: BABY PIGEK · ' + petState.mode + ' · STAGE 1/3';
+    }
+
+    function buildProceduralNeonUltra() {
+      const g = new THREE.Group();
+      // Legs & Boots
+      const legs = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.26, 0.22, 1.05, 8),
+        new THREE.MeshStandardMaterial({ color: 0x09050f })
+      );
+      legs.position.y = 0.52;
+      // Purple Bomber Jacket Torso
+      const bomber = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.42, 0.34, 0.85, 8),
+        new THREE.MeshStandardMaterial({ color: 0x4c1d95, roughness: 0.4 })
+      );
+      bomber.position.y = 1.42;
+      // Midnight Black Open Face Head (No Visor)
+      const head = new THREE.Mesh(
+        new THREE.SphereGeometry(0.24, 14, 14),
+        new THREE.MeshStandardMaterial({ color: 0x110b14, roughness: 0.35 })
+      );
+      head.position.y = 2.05;
+      // Silver-Only Accents / Jewelry Halo
+      const silverChain = new THREE.Mesh(
+        new THREE.TorusGeometry(0.32, 0.03, 8, 24),
+        new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.95, roughness: 0.1 })
+      );
+      silverChain.rotation.x = Math.PI / 2;
+      silverChain.position.y = 1.82;
+      // Pink eyes (canon), emissive so they read in every light
+      const eyeMatNeon = new THREE.MeshBasicMaterial({ color: NEON_HDR(0xff4fb8, 2.2) });
+      const eyeLN = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 8), eyeMatNeon);
+      const eyeRN = eyeLN.clone();
+      eyeLN.position.set(-0.085, 2.08, 0.222);
+      eyeRN.position.set(0.085, 2.08, 0.222);
+      g.add(legs, bomber, head, silverChain, eyeLN, eyeRN);
+      return g;
+    }
+
+    const proceduralPlayer = buildProceduralNeonUltra();
+    // Emergency fallback ONLY, not added to the scene: the player is VAL 17
+    // (User's Oct 28, 2026: the game screen should be Val, not Neon), so the
+    // scene starts empty until the Val GLB mounts — no Neon on screen first.
+
+    const MODEL_HEIGHT_TALL = 2.3;   // 6'3" in world units (matches procedural Neon)
+    const MODEL_HEIGHT_BUG = 1.5;
+    // Flow Studio character slots. glbLod picks the copy: the lite tier starts on the lower LOD;
+    // watchModelCost (below) steps hi -> lite -> procedural stand-ins if the mounted models drag the frame rate.
+    let glbLod = gfxTier === 'lite' ? 'lite' : 'hi';
+    const glbMounts = { player: null, praxia: null, val: null };
+    // Val 18 player clips (Nov 13, 2026): Idle / Walk / armatureAction(=Run) ship in val18.glb
+    let playerMixer = null;
+    const playerActions = {};
+    let playerClip = '';
+    const modelGuard = { frames: 0, acc: 0, done: false };
+    function armModelGuard() { modelGuard.frames = 0; modelGuard.acc = 0; }
+
+    function mountPlayerModel(gltf) {
+      const model = fitModel(gltf.scene, MODEL_HEIGHT_TALL);
+      // Wire Val's clips: idle by default, walk/run picked in the movement step
+      playerMixer = null;
+      for (const k in playerActions) delete playerActions[k];
+      playerClip = '';
+      if (gltf.animations && gltf.animations.length) {
+        playerMixer = new THREE.AnimationMixer(model);
+        for (const clip of gltf.animations) playerActions[clip.name] = playerMixer.clipAction(clip);
+        const start = playerActions['Idle'] || gltf.animations[0] && playerActions[gltf.animations[0].name];
+        if (start) { start.play(); playerClip = start.getClip().name; }
+      }
+      playerGroup.remove(proceduralPlayer);
+      if (glbMounts.player) playerGroup.remove(glbMounts.player);
+      glbMounts.player = model;
+      playerGroup.add(model);
+      toonify(model, glbLod === 'hi'); // lower LOD skips the outline hull (it doubles the vertex load on dense exports)
+      armModelGuard();
+    }
+
+    // Tiered load: asks for the copy matching glbLod first; any failure falls through to the other copy, then onFail
+    function loadTieredGLB(hiUrl, liteUrl, onLoad, onFail) {
+      const order = glbLod === 'lite' ? [liteUrl, hiUrl] : [hiUrl, liteUrl];
+      gltfLoader.load(order[0], onLoad, undefined, () => gltfLoader.load(order[1], onLoad, undefined, onFail));
+    }
+
+    // Probe Flow Studio GLB (tiered: hi/lite) -> Procedural
+    // PLAYER IS VAL 17 (User's Oct 28, 2026: game screen should be Val, not Neon).
+    function probePlayerModel() {
+      loadTieredGLB(
+        FLOW_STUDIO_MANIFEST.valGLB,
+        FLOW_STUDIO_MANIFEST.valLite,
+        (gltf) => { mountPlayerModel(gltf); },
+        () => {
+          // both Val copies failed: nothing mounts — no Neon fallback, the player stays empty rather than showing Neon.
+        }
+      );
+    }
+
+    // Optional Praxia slot: replaces the procedural Praxia; keeps it on any failure
+    function probePraxiaModel() {
+      loadTieredGLB(FLOW_STUDIO_MANIFEST.praxiaGLB, FLOW_STUDIO_MANIFEST.praxiaLite, (gltf) => {
+        const model = fitModel(gltf.scene, MODEL_HEIGHT_TALL);
+        const facing = new THREE.Group();
+        facing.rotation.y = Math.PI; // export faces +z; turn to face the player walking up the path
+        facing.add(model);
+        praxiaProcedural.visible = false;
+        if (glbMounts.praxia) praxiaGroup.remove(glbMounts.praxia);
+        glbMounts.praxia = facing;
+        praxiaGroup.add(facing);
+        toonify(model, glbLod === 'hi');
+        armModelGuard();
+      }, () => { /* procedural Praxia stays */ });
+    }
+
+    // VAL-17: was moved into the transparent VAL-18 pod (Oct 24, 2026 ruling).
+    // SUPERSEDED Oct 28, 2026: Val is now the PLAYER, so there is no second Val
+    // in the pod — probeValModel is defined but NOT called, and the pod stays
+    // empty until she says who/what goes there. Nothing renders if both copies fail to load.
+    function probeValModel() {
+      loadTieredGLB(FLOW_STUDIO_MANIFEST.valGLB, FLOW_STUDIO_MANIFEST.valLite, (gltf) => {
+        const model = fitModel(gltf.scene, 1.8);
+        model.position.y = 0.4;
+        model.rotation.y = Math.PI - 0.35;
+        if (glbMounts.val) podGroup.remove(glbMounts.val);
+        glbMounts.val = model;
+        podGroup.add(model);
+        toonify(model, glbLod === 'hi');
+        armModelGuard();
+      }, () => { /* no VAL stand-in */ });
+    }
+    probePlayerModel();
+    // probePraxiaModel() removed Nov 13, 2026: Praxia is out of the scene.
+    // probeValModel() NOT called: Val is the player now, no duplicate Val in the pod.
+
+    // NWD logo: local GLB converted from the Dropbox letters OBJ
+    // (assets/nwd-logo.glb). Mounted above the ship-hub walkway, facing
+    // the spawn. Letters face +z in the file, so rotate PI to face the
+    // player walking up from the deck. Nothing renders if the load fails.
+    const logoGroup = new THREE.Group();
+    logoGroup.position.set(0, 3.4, -8);
+    // Nov 13, 2026 strip: NWD logo removed (worldGroup.add(logoGroup) dropped)
+    gltfLoader.load('assets/nwd-logo.glb', (gltf) => {
+      const model = gltf.scene;
+      const box = new THREE.Box3().setFromObject(model);
+      const size = new THREE.Vector3(); box.getSize(size);
+      const center = new THREE.Vector3(); box.getCenter(center);
+      const s = 4 / size.x;
+      model.scale.setScalar(s);
+      model.position.set(-center.x * s, -center.y * s, -center.z * s);
+      const facing = new THREE.Group();
+      facing.rotation.y = Math.PI;
+      facing.add(model);
+      logoGroup.add(facing);
+    }, undefined, () => { /* logo stays unmounted on failure */ });
+
+    // Weak-device step-down for the character models (skipped when ?gfx= is forced, like the tier guard):
+    // after a mount, average 120 frames; under 28 fps on the hi LOD reloads the lite LOD. The lite LOD is kept
+    // unless the device is truly struggling (under 12 fps), only then the procedural stand-ins come back.
+    function watchModelCost(dt) {
+      if (modelGuard.done || GFX_FORCED || !(glbMounts.player || glbMounts.praxia || glbMounts.val)) return;
+      modelGuard.frames++;
+      if (modelGuard.frames <= 60 || dt > 500) return;
+      modelGuard.acc += dt;
+      if (modelGuard.frames < 180) return;
+      const avgMs = modelGuard.acc / (modelGuard.frames - 60);
+      const slow = avgMs > 1000 / (glbLod === 'hi' ? 28 : 12);
+      armModelGuard();
+      if (!slow) { modelGuard.done = true; return; }
+      if (glbLod === 'hi') {
+        glbLod = 'lite';
+        if (glbMounts.player) probePlayerModel();
+        if (glbMounts.praxia) probePraxiaModel();
+        if (glbMounts.val) probeValModel();
+        return;
+      }
+      modelGuard.done = true;
+      // Slow even on lite: keep the Val player model anyway — the player must
+      // be Val, so this no longer swaps to the procedural Neon fallback.
+      if (glbMounts.praxia) { praxiaGroup.remove(glbMounts.praxia); praxiaProcedural.visible = true; glbMounts.praxia = null; }
+      if (glbMounts.val) { podGroup.remove(glbMounts.val); glbMounts.val = null; }
+    }
+
+    // Creature slots: every caste uses a CC0 Quaternius bee (see assets/CREDITS.md), cloned per caste and tinted
+    // into the Neon Vigil palette so the four read apart at a glance. The octahedron node stays if a load fails.
+    const creatureMixers = [];
+    const BUG_LOOK = {
+      // color multiplies the model's own texture; emissive keeps the hue readable under the sky-tinted light
+      hauler: { height: 1.9, lift: 0.5, color: 0x6fd8ff, emissive: 0x0a4a6a, glow: 0.55, clip: 'Flying_Idle', speed: 0.8 },
+      warden: { height: 1.55, lift: 0.6, color: 0xff6fc2, emissive: 0x5a0a30, glow: 0.55, clip: 'Fast_Flying', speed: 1.0 },
+      lumen: { height: 1.15, lift: 1.0, color: 0xc9a2ff, emissive: 0x6b2fd6, glow: 0.7, clip: null, speed: 1 },
+      diver: { height: 0.95, lift: 0.45, color: 0xd6ff6a, emissive: 0x3d5c00, glow: 0.5, clip: null, speed: 1 }
+    };
+    const bugGltfCache = {};
+    const loadBugGltf = (url) => (bugGltfCache[url] ||= new Promise((resolve, reject) => gltfLoader.load(url, resolve, undefined, reject)));
+    function tintCreature(root, look) {
+      root.traverse((o) => {
+        if (!o.isMesh) return;
+        const conv = (mt) => {
+          const m = mt.clone(); // clones share geometry but never materials, so each caste keeps its own tint
+          m.color.setHex(look.color);
+          if (m.emissive) { m.emissive.setHex(look.emissive); m.emissiveIntensity = look.glow; }
+          return m;
+        };
+        o.material = Array.isArray(o.material) ? o.material.map(conv) : conv(o.material);
+      });
+    }
+    function mountCreature(n, model, look) {
+      fitModel(model, look.height);
+      const holder = new THREE.Group();
+      holder.position.y = look.lift;
+      holder.add(model);
+      n.mesh.visible = false;
+      n.wire.visible = false;
+      n.bugModel = holder;
+      n.group.add(holder);
+      toonify(model);
+    }
+    creatureNodes.forEach((n) => {
+      const caste = n.id.replace('bug_', '');
+      const look = BUG_LOOK[caste];
+      const url = FLOW_STUDIO_MANIFEST.creatureGLB[caste];
+      if (!url || !look) return;
+      loadBugGltf(url).then((gltf) => {
+        const model = SkeletonUtils.clone(gltf.scene);
+        tintCreature(model, look);
+        mountCreature(n, model, look);
+        const clip = look.clip && gltf.animations.find((a) => a.name.includes(look.clip));
+        if (clip) {
+          const mixer = new THREE.AnimationMixer(model);
+          const action = mixer.clipAction(clip);
+          action.timeScale = look.speed;
+          action.time = Math.random() * clip.duration; // castes sharing a clip stay out of step
+          action.play();
+          creatureMixers.push(mixer);
+        }
+      }).catch(() => { /* octahedron node stays */ });
+    });
+
+    /* =========================================================================
+       8. DIALOGUE, HUD & ENCOUNTER / SYNC ENGINE
+       ========================================================================= */
+    const encCanvas = document.getElementById('encounter-canvas');
+    const encCtx = encCanvas.getContext('2d');
+    let syncCursor = 0;
+    let syncDir = 1;
+
+    function queueDialogue(lines) {
+      state.dialogueQueue.push(...lines);
+      duckAudio(true);
+      renderNextDialogue();
+    }
+
+    // Typewriter + speaker portrait. CONTINUE while a line is typing finishes the line first.
+    const DIALOGUE_CPS = 42;
+    const DIALOGUE_REDUCED = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    let typeTimer = null;
+    let typeFull = '';
+    let typeUnits = [];
+    function resolveSpeaker(item) {
+      const id = item.who === 'guide' ? GUIDE_ID : (item.who || 'gridlog');
+      const sp = SPEAKERS[id] || SPEAKERS.gridlog;
+      const portraitId = item.portrait || id;
+      const portrait = (SPEAKERS[portraitId] && SPEAKERS[portraitId].portrait) || null;
+      return { id, portraitId, sp, label: item.label || sp.name, portrait, anim: (SPEAKERS[portraitId] || sp).anim };
+    }
+    const WAVE_SPEAKERS = new Set(['hexa', 'cyphr']); // holograms whose portrait gets the live grow/shrink waveform while speaking
+    let currentIdlePortrait = null;
+    function stopTyping() {
+      const im2 = document.getElementById('dialogue-portrait-img');
+      if (im2 && currentIdlePortrait) im2.src = currentIdlePortrait;
+      if (typeTimer) { clearInterval(typeTimer); typeTimer = null; }
+      const t = document.getElementById('dialogue-text');
+      t.innerHTML = typeUnits.join('');
+      t.classList.remove('typing');
+      document.getElementById('dialogue-box').classList.remove('speaking');
+    }
+    function renderNextDialogue() {
+      const box = document.getElementById('dialogue-box');
+      if (typeTimer) { clearInterval(typeTimer); typeTimer = null; }
+      if (state.dialogueQueue.length === 0) {
+        const im0 = document.getElementById('dialogue-portrait-img');
+        if (im0 && currentIdlePortrait) im0.src = currentIdlePortrait;
+        box.style.display = 'none';
+        box.classList.remove('speaking');
+        duckAudio(false);
+        return;
+      }
+      const item = state.dialogueQueue[0];
+      const who = resolveSpeaker(item);
+      box.style.display = 'flex';
+      box.style.setProperty('--speaker-accent', who.sp.accent);
+      box.style.setProperty('--speaker-name', who.sp.nameColor);
+      box.dataset.speaker = who.id;
+      box.classList.remove('anim-bob', 'anim-glow');
+      if (who.anim === 'bob' || who.anim === 'glow') box.classList.add('anim-' + who.anim);
+      box.classList.toggle('has-wave', WAVE_SPEAKERS.has(who.portraitId));
+      const img = document.getElementById('dialogue-portrait-img');
+      if (who.portrait) {
+        box.classList.add('has-portrait');
+        img.onerror = () => box.classList.remove('has-portrait'); // missing art: text-only line
+        currentIdlePortrait = who.portrait;
+        img.src = who.portrait;
+        img.alt = `${who.label} portrait`;
+      } else {
+        box.classList.remove('has-portrait');
+        img.removeAttribute('src');
+        img.alt = '';
+      }
+      document.getElementById('dialogue-speaker').textContent = who.label;
+      document.getElementById('dialogue-sys').innerHTML = renderIconText(item.sys || '');
+      const textEl = document.getElementById('dialogue-text');
+      typeFull = item.text;
+      typeUnits = lineUnits(item.text);
+      if (DIALOGUE_REDUCED) { stopTyping(); return; }
+      let n = 0;
+      textEl.textContent = '';
+      textEl.classList.add('typing');
+      box.classList.add('speaking');
+      typeTimer = setInterval(() => {
+        n = Math.min(typeUnits.length, n + 1);
+        textEl.innerHTML = typeUnits.slice(0, n).join('');
+        if (n >= typeUnits.length) stopTyping();
+      }, 1000 / DIALOGUE_CPS);
+    }
+
+    // View presentation: GARDEN = tight portrait 3rd-person; SIDE = long-lens lane + parallax layers
+    const VIEW_FOV = { GARDEN: 48, SIDE: 32 };
+    function applyViewMode() {
+      const side = state.viewMode === 'SIDE';
+      gardenPlates.visible = !side;
+      sideLayers.visible = side;
+      outlineWidth.value = side ? OUTLINE_SIDE : OUTLINE_GARDEN;
+      camera.fov = VIEW_FOV[state.viewMode];
+      camera.updateProjectionMatrix();
+    }
+
+    // HUD glyphs shared by the TOOL button and Hexa's inline icons (same set as web/src/icons.jsx)
+    const HUD_ICON_PATHS = {
+      hammer: '<path d="m15 12-8.4 8.4a2.1 2.1 0 0 1-3-3L12 9"/><path d="m18 15 4-4"/><path d="m21.5 11.5-1.9-1.9a2 2 0 0 1-.6-1.4V7l-2.3-2.3a6 6 0 0 0-4.2-1.7H9l.9.8A6.2 6.2 0 0 1 12 8.4V10l2 2h1.2a2 2 0 0 1 1.4.6l1.9 1.9"/>',
+      eye: '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>',
+      sound: '<path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>',
+      log: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
+      sync: '<path d="M12 2L22 7V17L12 22L2 17V7Z"/><path d="M12 8L16 10.5V15.5L12 18L8 15.5V10.5Z"/>',
+      move: '<path d="M12 2v20"/><path d="m15 19-3 3-3-3"/><path d="m19 9 3 3-3 3"/><path d="M2 12h20"/><path d="m5 9-3 3 3 3"/><path d="m9 5 3-3 3 3"/>',
+      cargo: '<path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5"/><path d="M12 13v8"/>',
+      drop: '<path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5S5 13 5 15a7 7 0 0 0 7 7z"/>'
+    };
+    // TOOL glyphs: fist, laser-cutter, machete (used in Hexa's lines and elsewhere)
+    const TOOL_ICON_PATHS = {
+      'FISTS': '<path d="M4 9a2 2 0 0 1 4 0"/><path d="M8 8a2 2 0 0 1 4 0"/><path d="M12 8a2 2 0 0 1 4 0"/><path d="M16 9a2 2 0 0 1 4 0"/><path d="M4 9v5a7 7 0 0 0 7 7h2a7 7 0 0 0 7-7V9"/><path d="M8 8v3"/><path d="M12 8v3"/><path d="M16 9v2"/><path d="M4 14h7a2 2 0 0 0 2-2"/>',
+      'LASER CUTTER': '<rect x="2" y="8" width="11" height="6" rx="1"/><path d="M13 10h3v2h-3"/><path d="M5 14v4h3l1-4"/><path d="M18 11h1.5"/><path d="M21.5 11H22"/><path d="m19 7 1.5-1.5"/><path d="m19 15 1.5 1.5"/>',
+      'MACHETE': '<path d="M8 14 18 4c1.6-1.6 4.4-.6 3.6 2.2C20.6 10 15.5 14 11 17z"/><path d="m6 14 4 4"/><path d="m3 21 5-5"/>'
+    };
+    const TOOL_LABEL = { 'FISTS': 'Fists', 'LASER CUTTER': 'Laser Cutter', 'MACHETE': 'Machete' };
+    const TOOL_INLINE_KEY = { 'FISTS': 'fist', 'LASER CUTTER': 'laser', 'MACHETE': 'machete' };
+    // Draw a tool glyph on a 2D canvas (encounter panel) from the same 24-grid paths
+    function drawToolGlyph(ctx, tool, x, y, size, color) {
+      const src = TOOL_ICON_PATHS[tool] || TOOL_ICON_PATHS.FISTS;
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.scale(size / 24, size / 24);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2.2;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      for (const m of src.matchAll(/<path d="([^"]+)"/g)) ctx.stroke(new Path2D(m[1]));
+      for (const m of src.matchAll(/<rect x="([\d.]+)" y="([\d.]+)" width="([\d.]+)" height="([\d.]+)"/g)) ctx.strokeRect(+m[1], +m[2], +m[3], +m[4]);
+      ctx.restore();
+    }
+    let lastToolDrawn = null;
+    function refreshToolButton() {
+      const btn = document.getElementById('tool-btn');
+      if (!btn) return;
+      const tool = state.toolsUnlocked[state.equippedToolIdx];
+      if (tool === lastToolDrawn) return;
+      lastToolDrawn = tool;
+      // [hammer][equipped tool glyph]: no tool word on the button; title + aria-label name it in full
+      btn.innerHTML = '<svg class="nv-ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+        + HUD_ICON_PATHS.hammer + '</svg><span class="tool-glyph">'
+        + '<svg class="nv-ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+        + (TOOL_ICON_PATHS[tool] || TOOL_ICON_PATHS.FISTS) + '</svg></span>';
+      btn.title = `Tool: ${tool} (Q to cycle)`;
+      btn.setAttribute('aria-label', `Tool: ${TOOL_LABEL[tool] || tool} (press Q to cycle)`);
+    }
+
+    // INTERACT button: context glyph (same set as web/src/icons.jsx: interact, cut, gather)
+    const ACTION_ICON_PATHS = {
+      interact: '<path d="M22 14a8 8 0 0 1-8 8"/><path d="M18 11v-1a2 2 0 0 0-4 0"/><path d="M14 10V9a2 2 0 0 0-4 0v1"/><path d="M10 9.5V4a2 2 0 0 0-4 0v10"/><path d="M18 11a2 2 0 1 1 4 0v3a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-6-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>',
+      cut: '<path d="M20.5 2.5 22 4 10.5 15.5 8.5 13.5z"/><path d="m6.5 13 4.5 4.5"/><path d="m3 21 5-5"/><path d="M3 10c1.8-3.4 4.6-5.8 8.5-7"/><path d="M14 21c3.4-1.1 5.8-3.4 7-6.5"/>',
+      gather: '<path d="M18 11V6a2 2 0 0 0-4 0"/><path d="M14 10V4a2 2 0 0 0-4 0v2"/><path d="M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-6-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>'
+    };
+    // Same nearest-in-range rule interactNearest() uses (3.4 units, active nodes only)
+    function findNearestInteractable() {
+      let nearest = null;
+      let minDist = 3.4;
+      for (const n of interactables) {
+        if (!n.active) continue;
+        const d = Math.hypot(playerGroup.position.x - n.x, playerGroup.position.z - n.z);
+        if (d < minDist) { minDist = d; nearest = n; }
+      }
+      return nearest;
+    }
+    function contextActionFor(n) {
+      const name = n ? String(n.label || n.id).replace(/\s*[\(\[].*$/, '') : '';
+      if (!n) return { action: 'interact', label: 'INTERACT', title: 'Interact (E / Space)' };
+      if (n.id === 'vines') return { action: 'cut', label: 'CUT', title: `Cut: ${name} (Laser Cutter)` };
+      if (n.id === 'relic' || n.id === 'pool_sample' || n.id === 'plinth') {
+        return { action: 'gather', label: 'GATHER', title: `Gather: ${n.id === 'plinth' ? 'Ruins Machete' : name}` };
+      }
+      if (n.id === 'praxia') return { action: 'interact', label: 'INTERACT', title: `Talk: ${name}` };
+      if (n.id.startsWith('bug_') || n.id === 'patrol') return { action: 'interact', label: 'INTERACT', title: `Engage: ${name}` };
+      return { action: 'interact', label: 'INTERACT', title: `Interact: ${name}` };
+    }
+    // Inline icon tokens for dialogue: "{icon:eye}" renders the HUD glyph at text size, in HUD colours.
+    // Each token is typed as a single unit by the typewriter.
+    const INLINE_ICONS = {
+      eye:      { paths: () => HUD_ICON_PATHS.eye,              tone: 'cyan',    name: 'eye' },
+      hammer:   { paths: () => HUD_ICON_PATHS.hammer,           tone: 'magenta', name: 'tool' },
+      tool:     { paths: () => HUD_ICON_PATHS.hammer,           tone: 'magenta', name: 'tool' },
+      fist:     { paths: () => TOOL_ICON_PATHS['FISTS'],        tone: 'magenta', name: 'fists' },
+      laser:    { paths: () => TOOL_ICON_PATHS['LASER CUTTER'], tone: 'magenta', name: 'laser cutter' },
+      machete:  { paths: () => TOOL_ICON_PATHS['MACHETE'],      tone: 'magenta', name: 'machete' },
+      sound:    { paths: () => HUD_ICON_PATHS.sound,            tone: 'cyan',    name: 'sound' },
+      log:      { paths: () => HUD_ICON_PATHS.log,              tone: 'cyan',    name: 'grid log' },
+      sync:     { paths: () => HUD_ICON_PATHS.sync,             tone: 'cyan',    name: 'sync', thin: true },
+      move:     { paths: () => HUD_ICON_PATHS.move,             tone: 'cyan',    name: 'move' },
+      cargo:    { paths: () => HUD_ICON_PATHS.cargo,            tone: 'cyan',    name: 'cargo' },
+      drop:     { paths: () => HUD_ICON_PATHS.drop,             tone: 'lime',    name: 'First Water' },
+      interact: { paths: () => ACTION_ICON_PATHS.interact,      tone: 'cyan',    name: 'interact' },
+      cut:      { paths: () => ACTION_ICON_PATHS.cut,           tone: 'magenta', name: 'cut' },
+      gather:   { paths: () => ACTION_ICON_PATHS.gather,        tone: 'lime',    name: 'gather' }
+    };
+    function escHtml(t) { return String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+    function inlineIconHtml(key) {
+      const ic = INLINE_ICONS[key];
+      if (!ic) return '';
+      return `<svg class="nv-inline-ico tone-${ic.tone}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${ic.thin ? 1.6 : 2.1}" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="${ic.name} icon">${ic.paths()}</svg>`;
+    }
+    // Split a line into typing units: one per character, one per {icon:key} token
+    function lineUnits(str) {
+      const units = [];
+      const re = /\{icon:([a-z-]+)\}/g;
+      let last = 0, m;
+      str = String(str || '');
+      while ((m = re.exec(str))) {
+        for (const ch of Array.from(str.slice(last, m.index))) units.push(escHtml(ch));
+        if (INLINE_ICONS[m[1]]) units.push(inlineIconHtml(m[1]));
+        last = re.lastIndex;
+      }
+      for (const ch of Array.from(str.slice(last))) units.push(escHtml(ch));
+      return units;
+    }
+    function renderIconText(str) { return lineUnits(str).join(''); }
+
+    let lastActionKey = null;
+    function refreshInteractButton() {
+      const btn = document.getElementById('interact-btn');
+      if (!btn) return;
+      const ctx = contextActionFor(findNearestInteractable());
+      const key = ctx.action + '|' + ctx.label + '|' + ctx.title;
+      if (key === lastActionKey) return;
+      lastActionKey = key;
+      btn.dataset.action = ctx.action;
+      btn.innerHTML = '<svg class="nv-ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+        + ACTION_ICON_PATHS[ctx.action] + '</svg><span class="act-name">' + ctx.label + '</span>';
+      btn.title = ctx.title + (ctx.title.indexOf('E / Space') < 0 ? ' (E / Space)' : '');
+      btn.setAttribute('aria-label', ctx.title.replace(' (E / Space)', '') + ' (E or Space)');
+    }
+
+    function updateHUD() {
+      const insideShip = playerGroup.position.z < 0;
+      scene.fog = insideShip ? null : gardenFog;
+      mistGroup.visible = !insideShip;
+      const sideView = state.viewMode === 'SIDE';
+      gardenFogGroup.visible = !insideShip && !sideView;
+      sideFogGroup.visible = !insideShip && sideView;
+      for (const m of rollingMistLayers) if (m.userData.hiOnly) m.visible = gfxTier === 'hi';
+      document.body.classList.toggle('nv-outside', !insideShip);
+      document.getElementById('zone-pill').textContent = insideShip
+        ? 'ZONE: INFINITY 6 DECK'
+        : (playerGroup.position.z > 52 ? 'ZONE: SUTRO BATHS' : 'ZONE: GIGAS GARDEN');
+
+      const carryMax = state.baseCarry + state.syncedCounts.HAULER * 2 + state.builds.filter(b => b.kind === 'crate').length * 2;
+      const totalColony = Object.values(state.syncedCounts).reduce((a, b) => a + b, 0);
+      document.getElementById('hp-pill').textContent = `INTEGRITY: ${state.integrity}%`;
+      document.getElementById('carry-pill').textContent = `CARRY: ${state.inventoryCount}/${carryMax}`;
+      document.getElementById('colony-pill').textContent = `COLONY: ${totalColony}`;
+      document.getElementById('materials-pill').textContent = `FIBER ${state.materials.fiber} · CRYSTAL ${state.materials.crystal} · SCRAP ${state.materials.scrap}`;
+      refreshToolButton();
+      refreshInteractButton();
+      const viewBtn = document.getElementById('view-toggle-btn');
+      viewBtn.title = `View: ${state.viewMode} (${state.viewMode === 'GARDEN' ? '3D' : '2D'})`;
+      viewBtn.setAttribute('aria-pressed', String(state.viewMode === 'SIDE'));
+      const syncBtn = document.getElementById('sync-form-btn');
+      syncBtn.textContent = `SYNC: ${state.activeSyncForm}`;
+      syncBtn.title = `Sync: ${state.activeSyncForm} (cycle synced forms)`;
+    }
+
+    function openEncounter(creatureKey, isPatrol = false) {
+      const data = isPatrol
+        ? { id: 'patrol', name: 'REPUBLIC VANGUARD PATROL', caste: 'HOSTILE', hp: 60, maxHp: 60, isPatrol: true }
+        : { ...GRID_CREATURES[creatureKey], hp: 45, maxHp: 45, isPatrol: false };
+      state.activeEncounter = data;
+      document.getElementById('enc-title').textContent = data.name;
+      document.getElementById('enc-caste-tag').textContent = data.caste;
+      const statusEl = document.getElementById('enc-status-text'); // fresh fight: clear the last fight's result line
+      statusEl.textContent = 'Time your Strike, Guard, or Sync pulse when the cyan marker crosses the harmonic window.';
+      statusEl.title = '';
+      document.getElementById('encounter-modal').classList.add('visible');
+      duckAudio(true, 'sync');
+    }
+
+    function renderEncounterCanvas() {
+      if (!state.activeEncounter) return;
+      syncCursor += 0.022 * syncDir;
+      if (syncCursor >= 1) { syncCursor = 1; syncDir = -1; }
+      if (syncCursor <= 0) { syncCursor = 0; syncDir = 1; }
+
+      encCtx.fillStyle = '#07020d';
+      encCtx.fillRect(0, 0, 380, 170);
+
+      // Target Silhouette
+      encCtx.strokeStyle = '#ff1e8a';
+      encCtx.lineWidth = 2;
+      encCtx.strokeRect(24, 22, 332, 72);
+      encCtx.fillStyle = '#00f0ff';
+      encCtx.font = 'bold 12px Courier New';
+      encCtx.fillText(`${state.activeEncounter.name} [HP: ${state.activeEncounter.hp}/${state.activeEncounter.maxHp}]`, 36, 48);
+
+      const activeTool = state.toolsUnlocked[state.equippedToolIdx];
+      encCtx.fillStyle = '#e2e8f0';
+      encCtx.font = '11px Courier New';
+      // EQUIPPED: [tool glyph] (no tool word)
+      const eqLabel = 'EQUIPPED: ';
+      encCtx.fillText(eqLabel, 36, 74);
+      const glyphX = 36 + encCtx.measureText(eqLabel).width;
+      drawToolGlyph(encCtx, activeTool, glyphX, 62, 15, '#ff1e8a');
+      encCtx.fillStyle = '#e2e8f0';
+      encCtx.fillText(` | WARDEN MITIGATION: -${state.syncedCounts.WARDEN}`, glyphX + 17, 74);
+
+      // Timing Bar
+      encCtx.fillStyle = '#190a2e';
+      encCtx.fillRect(24, 118, 332, 24);
+      // Sweet spot window (0.38 to 0.62)
+      encCtx.fillStyle = 'rgba(0, 240, 255, 0.32)';
+      encCtx.fillRect(24 + 332 * 0.38, 118, 332 * 0.24, 24);
+      // Moving Cursor
+      const cx = 24 + syncCursor * 332;
+      encCtx.fillStyle = '#ff1e8a';
+      encCtx.fillRect(cx - 3, 114, 6, 32);
+    }
+
+    /* =========================================================================
+       9. PUBLIC CONTROLLER API (Exposed to HUD & Grok Bot Inspection)
+       ========================================================================= */
+    /* =========================================================================
+       9b. BUILD SYSTEM v1 (container units & structures)
+       Material labels are PLACEHOLDERS the user will rename. Placed structures
+       are procedural meshes recorded in state.builds. No dialogue, encounter,
+       sync, or view logic is touched here. Dedicated interior-grid decor
+       placement is OUT of v1; placing lamps/crates anywhere (including beside
+       units) is the v1 decor layer.
+       ========================================================================= */
+    const BUILDABLES = [
+      { kind: 'unit', name: 'CONTAINER UNIT', cost: { fiber: 6, scrap: 4 }, desc: 'A decoratable container unit parked where you stand.' },
+      { kind: 'crate', name: 'STORAGE CRATE', cost: { scrap: 2 }, desc: 'Small cargo crate. Each crate adds +2 to carry capacity.' },
+      { kind: 'lamp', name: 'LUMEN LAMP', cost: { crystal: 2 }, desc: 'A small glowing post. Light for the refuge.' },
+      { kind: 'post', name: 'WARDEN POST', cost: { scrap: 4, fiber: 2 }, desc: 'A post with a barrier frame. Visual only in v1.' }
+    ];
+
+    function buildCostText(cost) {
+      return Object.entries(cost).map(([m, n]) => `${n} ${m.toUpperCase()}`).join(' + ');
+    }
+
+    function buildAffordable(cost) {
+      return Object.entries(cost).every(([m, n]) => state.materials[m] >= n);
+    }
+
+    function buildMeshFor(kind) {
+      const group = new THREE.Group();
+      if (kind === 'unit') {
+        // Shipping-container-sized box: dark brutalist body, magenta/cyan rim trim, door end.
+        const body = new THREE.Mesh(
+          new THREE.BoxGeometry(2.6, 2.6, 6),
+          new THREE.MeshStandardMaterial({ color: 0x15111e, roughness: 0.85, metalness: 0.25, flatShading: true })
+        );
+        body.position.y = 1.3;
+        group.add(body);
+        const topTrim = new THREE.Mesh(new THREE.BoxGeometry(2.7, 0.12, 6.1), new THREE.MeshBasicMaterial({ color: 0xff1e8a }));
+        topTrim.position.y = 2.66;
+        group.add(topTrim);
+        const door = new THREE.Mesh(
+          new THREE.BoxGeometry(2.2, 2.2, 0.12),
+          new THREE.MeshStandardMaterial({ color: 0x241c30, roughness: 0.7, metalness: 0.5, flatShading: true })
+        );
+        door.position.set(0, 1.3, 3.02);
+        group.add(door);
+        const doorTrim = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.1, 0.14), new THREE.MeshBasicMaterial({ color: 0x00f0ff }));
+        doorTrim.position.set(0, 2.45, 3.03);
+        group.add(doorTrim);
+      } else if (kind === 'crate') {
+        const box = new THREE.Mesh(
+          new THREE.BoxGeometry(1.1, 1.1, 1.1),
+          new THREE.MeshStandardMaterial({ color: 0x241c30, roughness: 0.7, metalness: 0.5, flatShading: true })
+        );
+        box.position.y = 0.55;
+        group.add(box);
+        const lid = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.12, 1.2), new THREE.MeshBasicMaterial({ color: 0xff1e8a }));
+        lid.position.y = 1.16;
+        group.add(lid);
+      } else if (kind === 'lamp') {
+        const post = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.09, 0.12, 1.8, 8),
+          new THREE.MeshStandardMaterial({ color: 0x15111e, roughness: 0.85, metalness: 0.25, flatShading: true })
+        );
+        post.position.y = 0.9;
+        group.add(post);
+        const glow = new THREE.Mesh(
+          new THREE.SphereGeometry(0.32, 12, 10),
+          new THREE.MeshBasicMaterial({ color: 0x00f0ff })
+        );
+        glow.position.y = 1.95;
+        group.add(glow);
+      } else if (kind === 'post') {
+        const post = new THREE.Mesh(
+          new THREE.BoxGeometry(0.28, 2.4, 0.28),
+          new THREE.MeshStandardMaterial({ color: 0x15111e, roughness: 0.85, metalness: 0.25, flatShading: true })
+        );
+        post.position.y = 1.2;
+        group.add(post);
+        const frame = new THREE.Mesh(
+          new THREE.BoxGeometry(2.2, 1.1, 0.14),
+          new THREE.MeshStandardMaterial({ color: 0x241c30, roughness: 0.7, metalness: 0.5, flatShading: true })
+        );
+        frame.position.set(0, 1.5, 0.2);
+        group.add(frame);
+        const strip = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.1, 0.16), new THREE.MeshBasicMaterial({ color: 0xff1e8a }));
+        strip.position.set(0, 2.1, 0.2);
+        group.add(strip);
+      }
+      return group;
+    }
+
+    function renderBuildList() {
+      const matLine = document.getElementById('build-materials-line');
+      if (matLine) matLine.textContent = `MATERIALS: FIBER ${state.materials.fiber} · CRYSTAL ${state.materials.crystal} · SCRAP ${state.materials.scrap}`;
+      const box = document.getElementById('build-list');
+      if (!box) return;
+      box.innerHTML = BUILDABLES.map(b => {
+        const ok = buildAffordable(b.cost);
+        return `
+          <div style="border:1px solid var(--cyan); padding:8px; background:#0b0414;">
+            <div style="display:flex; justify-content:space-between; color:var(--magenta); font-weight:bold;">
+              <span>${b.name}</span>
+              <span>${buildCostText(b.cost)}</span>
+            </div>
+            <div style="color:var(--silver); margin-top:3px;">${b.desc}</div>
+            <div style="display:flex; justify-content:flex-end; margin-top:6px;">
+              <button class="hud-btn" ${ok ? '' : 'disabled'} onclick="window.NVGame.placeBuild('${b.kind}')">${ok ? 'BUILD' : 'NEED MATERIALS'}</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.NVGame = {
+      FLOW_STUDIO_MANIFEST,
+      DRIVE_BACKDROP_MANIFEST,
+
+      startBootSequence() {
+        document.getElementById('title-modal').classList.remove('visible');
+        unlockAndPlayAudio();
+        HostSDK.ready();
+        queueDialogue(BOOT_DIALOGUE);
+        // Weather lookup rides this tap (user gesture) but is fully async and never blocks the start.
+        try { if (window.NVDiag) window.NVDiag.requestWeather(); } catch (e) { /* diagnostics stay on WEATHER OFFLINE */ }
+      },
+
+      advanceDialogue() {
+        if (typeTimer) { stopTyping(); return; } // first tap finishes the line
+        state.dialogueQueue.shift();
+        renderNextDialogue();
+      },
+
+      toggleView() {
+        // Strictly toggles between GARDEN (3D) and SIDE (2D side-scrolling lane)
+        state.viewMode = state.viewMode === 'GARDEN' ? 'SIDE' : 'GARDEN';
+        applyViewMode();
+        updateHUD();
+      },
+
+      togglePet() {
+        petState.enabled = !petState.enabled;
+        updateHUD();
+      },
+
+      cycleTool() {
+        state.equippedToolIdx = (state.equippedToolIdx + 1) % state.toolsUnlocked.length;
+        updateHUD();
+      },
+
+      cycleSyncForm() {
+        const forms = ['NEON'];
+        if (state.syncedCounts.LUMEN > 0) forms.push('GLIDE');
+        if (state.syncedCounts.HAULER > 0) forms.push('DIG');
+        if (state.syncedCounts.WARDEN > 0) forms.push('CLIMB');
+        if (state.syncedCounts.DIVER > 0) forms.push('HOVER');
+        const idx = (forms.indexOf(state.activeSyncForm) + 1) % forms.length;
+        state.activeSyncForm = forms[idx];
+        updateHUD();
+      },
+
+      toggleAudio() {
+        setAudioEnabled(!audioEnabled);
+      },
+
+      setThemeVolume(v) {
+        setThemeVolume(v);
+      },
+
+      setMove(x, z) {
+        state.moveInput.x = x;
+        state.moveInput.z = z;
+      },
+
+      openConsoleMenu() {
+        document.getElementById('console-modal').classList.add('visible');
+        const first = document.getElementById('console-bridge');
+        if (first) first.focus({ preventScroll: true });
+      },
+
+      closeConsoleMenu() {
+        document.getElementById('console-modal').classList.remove('visible');
+      },
+
+      // BRIDGE: the console's original behaviour (objective + Cyphr line), unchanged.
+      consoleBridge() {
+        this.closeConsoleMenu();
+        state.phaseStep = Math.max(state.phaseStep, 1);
+        document.getElementById('objective-banner').textContent = 'OBJECTIVE: Retrieve Laser Cutter from locker.';
+        queueDialogue([{
+          who: 'guide',
+          sys: '[CONSOLE LINK: DIRECT ADDRESS]',
+          text: 'Telemetry is on your HUD, User. Grab the {icon:laser} from the port locker.'
+        }]);
+      },
+
+      interactNearest() {
+        // While the Bridge Console menu is open, E / Space go to its buttons, not the world.
+        if (document.getElementById('console-modal').classList.contains('visible')) return;
+        const nearest = findNearestInteractable();
+        if (!nearest) return;
+
+        const tool = state.toolsUnlocked[state.equippedToolIdx];
+
+        if (nearest.id === 'console') {
+          this.openConsoleMenu();
+        } else if (nearest.id === 'val18_pod') {
+          queueDialogue([{
+            who: 'guide',
+            sys: '[VAL-18 STASIS POD: SEALED]',
+            text: 'Sealed pod, User. It stays sealed.'
+          }]);
+        } else if (nearest.id === 'locker') {
+          if (!state.toolsUnlocked.includes('LASER CUTTER')) {
+            state.toolsUnlocked.push('LASER CUTTER');
+            state.equippedToolIdx = state.toolsUnlocked.indexOf('LASER CUTTER');
+          }
+          state.phaseStep = Math.max(state.phaseStep, 2);
+          document.getElementById('objective-banner').textContent = 'OBJECTIVE: Cut the airlock vines (3 cuts).';
+          updateHUD();
+          queueDialogue([{
+            who: 'guide',
+            sys: '[TOOL EQUIPPED: {icon:laser}]',
+            text: '{icon:laser} equipped. Three clean cuts {icon:cut} will clear the airlock vines.'
+          }, {
+            who: 'guide',
+            sys: '[TOOLS: {icon:hammer} TOOL ICON]',
+            text: 'Q or the hammer {icon:hammer} swaps tools. The {icon:laser} also hits Republic patrols hard.'
+          }]);
+        } else if (nearest.id === 'vines') {
+          if (tool !== 'LASER CUTTER') {
+            queueDialogue([{
+              who: 'guide',
+              sys: '[AIRLOCK BLOCKED: {icon:cut} CUT]',
+              text: state.toolsUnlocked.includes('LASER CUTTER')
+                ? 'These vines need the {icon:laser}. Press Q {icon:hammer} to switch.'
+                : 'These vines need the {icon:laser}. It is in the port locker.'
+            }]);
+            return;
+          }
+          state.vineCutsRemaining--;
+          if (state.vineCutsRemaining > 0) {
+            document.getElementById('objective-banner').textContent = `OBJECTIVE: Cut airlock vines (${state.vineCutsRemaining} left).`;
+          } else {
+            nearest.active = false;
+            nearest.group.visible = false;
+            state.phaseStep = 4;
+            document.getElementById('objective-banner').textContent = 'OBJECTIVE: Explore the Garden, gather & sync.';
+            const fogLine = !state.pinkNamedOnce
+              ? 'Airlock clear, User. Pink fog over the basin; mind the First Water {icon:drop} pools.'
+              : 'Airlock clear, User. Fog over the basin; mind the First Water {icon:drop} pools.';
+            state.pinkNamedOnce = true;
+            queueDialogue([{
+              who: 'guide',
+              sys: '[AIRLOCK SEAL: OPEN]',
+              text: fogLine
+            }]);
+          }
+        } else if (nearest.id === 'plinth') {
+          if (!state.toolsUnlocked.includes('MACHETE')) {
+            state.toolsUnlocked.push('MACHETE');
+            state.equippedToolIdx = state.toolsUnlocked.indexOf('MACHETE');
+            nearest.active = false;
+            nearest.group.visible = false;
+            updateHUD();
+            queueDialogue([{
+              who: 'guide',
+              sys: '[ARTIFACT RECOVERED: {icon:machete}]',
+              text: '{icon:machete} secured. It strikes hardest against Garden creatures.'
+            }, {
+              who: 'guide',
+              sys: '[TOOLS: {icon:machete} VS {icon:laser}]',
+              text: '{icon:machete} for creatures, {icon:laser} for patrols. Q {icon:hammer} swaps them.'
+            }]);
+          }
+        } else if (nearest.id === 'relic' || nearest.id === 'pool_sample') {
+          if (nearest.id === 'pool_sample' && state.syncedCounts.DIVER === 0 && state.activeSyncForm !== 'HOVER') {
+            state.integrity = Math.max(10, state.integrity - 12);
+            updateHUD();
+            queueDialogue([{
+              who: 'guide',
+              sys: '[HAZARD: {icon:drop} FIRST WATER ACIDITY]',
+              text: 'First Water {icon:drop} eats metal, User. Sync {icon:sync} a Diver before you gather {icon:gather} in the pool.'
+            }]);
+            return;
+          }
+          state.inventoryCount++;
+          // BUILD SYSTEM v1: every gather yields fiber, plus a type-matched material.
+          state.materials.fiber++;
+          if (nearest.id === 'pool_sample') state.materials.crystal++;
+          else state.materials.scrap++;
+          state.discoveries.push(nearest.label);
+          nearest.active = false;
+          nearest.group.visible = false;
+          HostSDK.unlockAchievement('first_harvest');
+          updateHUD();
+          queueDialogue([{
+            who: 'guide',
+            sys: '[SAMPLE LOGGED: {icon:gather} +1 RESOURCE]',
+            text: `${nearest.label} stored in hull cargo {icon:cargo}, User.`
+          }]);
+        } else if (nearest.id === 'praxia') {
+          if (praxiaScene === 'armed') {
+            // Battle attempt: she sidesteps and runs. She cannot be synced, and she cannot be fought.
+            praxiaScene = 'fleeing';
+            praxiaSceneStartedAt = performance.now();
+            queueDialogue([{
+              who: 'guide',
+              sys: '[BATTLE ATTEMPT: EVADED]',
+              text: 'Your strike meets empty air, User. Praxia sidesteps, wings flaring, and runs.'
+            }, {
+              who: 'gridlog',
+              label: 'GRID LOG // SYNC LOCK',
+              portrait: 'praxia',
+              sys: '[STATUS: CANNOT SYNC]',
+              text: 'Praxia withdrew. She cannot be synced.'
+            }]);
+          } else if (praxiaScene === 'idle') {
+            // Exact Hard Canon Approach Line
+            queueDialogue([{
+              who: 'gridlog',
+              label: 'GRID LOG // SYNC LOCK',
+              portrait: 'praxia', // GRID LOG reads out Praxia; her profile shows beside the line
+              sys: '[STATUS: CANNOT SYNC]',
+              text: 'Praxia. You cannot sync with Praxia.'
+            }]);
+          }
+          // fleeing/gone: nothing — she is already going or gone.
+        } else if (nearest.id.startsWith('bug_')) {
+          const key = nearest.id.replace('bug_', '');
+          openEncounter(key, false);
+        } else if (nearest.id === 'patrol') {
+          openEncounter('patrol', true);
+        }
+      },
+
+      encounterAction(action) {
+        const enc = state.activeEncounter;
+        if (!enc) return;
+        const inSweetSpot = syncCursor >= 0.38 && syncCursor <= 0.62;
+        const tool = state.toolsUnlocked[state.equippedToolIdx];
+        const statusEl = document.getElementById('enc-status-text');
+
+        if (action === 'STRIKE') {
+          const bonus = (tool === 'MACHETE' && !enc.isPatrol) || (tool === 'LASER CUTTER' && enc.isPatrol) ? 14 : 8;
+          const dmg = inSweetSpot ? bonus + 10 : bonus;
+          enc.hp = Math.max(0, enc.hp - dmg);
+          statusEl.innerHTML = inSweetSpot
+            ? renderIconText(`Critical strike with {icon:${TOOL_INLINE_KEY[tool] || 'fist'}}! (-${dmg} HP)`)
+            : renderIconText(`Glancing strike (-${dmg} HP).`);
+          statusEl.title = inSweetSpot ? `Critical strike with ${TOOL_LABEL[tool] || tool}` : '';
+
+          if (enc.hp === 0) {
+            document.getElementById('encounter-modal').classList.remove('visible');
+            duckAudio(false, 'sync');
+            if (enc.isPatrol) {
+              HostSDK.unlockAchievement('patrol_repelled');
+              HostSDK.reportGameOver(5150);
+              queueDialogue([{
+                who: 'guide',
+                sys: '[PERIMETER SECURE: REPUBLIC PATROL REPELLED]',
+                text: 'Republic patrol repelled, User. The colony holds the basin.'
+              }]);
+            }
+            state.activeEncounter = null;
+            return;
+          }
+        } else if (action === 'GUARD') {
+          const reduced = Math.max(1, 6 - state.syncedCounts.WARDEN);
+          state.integrity = Math.max(10, state.integrity - reduced);
+          statusEl.textContent = `Guarded impact (-${reduced}% Integrity after Warden mitigation).`;
+          updateHUD();
+        } else if (action === 'SYNC') {
+          if (enc.isPatrol) {
+            statusEl.textContent = 'Republic patrols cannot be synced! Use Strike or Guard.';
+            return;
+          }
+          if (inSweetSpot || enc.hp <= 25) {
+            state.syncedCounts[enc.caste]++;
+            state.gridLogUnlocked[enc.id] = true;
+            document.getElementById('encounter-modal').classList.remove('visible');
+            duckAudio(false, 'sync');
+            HostSDK.unlockAchievement('first_sync');
+            const totalColony = Object.values(state.syncedCounts).reduce((a, b) => a + b, 0);
+            if (totalColony >= 3) HostSDK.unlockAchievement('colony_grows');
+            updateHUD();
+            queueDialogue([{
+              who: 'guide',
+              sys: `[SYNC COMPLETE: {icon:sync} ${enc.caste} ADDED TO COLONY]`,
+              text: `${enc.name} logged in the GRID LOG {icon:log}. The colony grows.`
+            }]);
+            state.activeEncounter = null;
+          } else {
+            statusEl.textContent = 'Sync pulse missed the harmonic window! Weaken the creature or time the cyan zone.';
+          }
+        }
+      },
+
+      toggleGridLog() {
+        const modal = document.getElementById('gridlog-modal');
+        const isVis = modal.classList.toggle('visible');
+        if (!isVis) return;
+        const box = document.getElementById('gridlog-content');
+        box.innerHTML = Object.values(GRID_CREATURES).map(c => {
+          const unlocked = state.gridLogUnlocked[c.id];
+          return `
+            <div style="border:1px solid var(--cyan); padding:8px; background:#0b0414;">
+              <div style="display:flex; justify-content:space-between; color:var(--magenta); font-weight:bold;">
+                <span>${unlocked ? c.name : 'UNSYNCED SIGNAL'}</span>
+                <span>[${c.caste}]</span>
+              </div>
+              <div style="color:var(--cyan); margin-top:3px;">${unlocked ? c.powerSet : 'Sync in the Garden to log telemetry.'}</div>
+              <div style="color:var(--silver); margin-top:3px;">${unlocked ? c.desc : '---'}</div>
+            </div>
+          `;
+        }).join('');
+      },
+
+      toggleBuildMenu() {
+        const modal = document.getElementById('build-modal');
+        const isVis = modal.classList.toggle('visible');
+        if (isVis) renderBuildList();
+      },
+
+      /* Chat: Neon Vigil room via Supabase PostgREST (public read).
+         Publishable key only — safe for client-side use; RLS gates writes. */
+      toggleChat() {
+        const modal = document.getElementById('chat-modal');
+        const isVis = modal.classList.toggle('visible');
+        if (isVis) {
+          this.loadChatMessages();
+          if (!state.chatTimer) state.chatTimer = setInterval(() => this.loadChatMessages(), 5000);
+        } else if (state.chatTimer) {
+          clearInterval(state.chatTimer);
+          state.chatTimer = null;
+        }
+      },
+
+      async loadChatMessages() {
+        const box = document.getElementById('chat-messages');
+        if (!box) return;
+        const SUPABASE_URL = 'https://xlikqzdpctuayyqttdce.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_gQIlogZ4VMNf-lg-uZEntw_M_4ngnsD';
+        const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        try {
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/messages?room_id=eq.neon-vigil&order=created_at.desc&limit=50`, {
+            headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
+          });
+          if (!res.ok) throw new Error(`chat read failed: ${res.status}`);
+          const rows = await res.json();
+          rows.reverse();
+          const AVATARS = { hexa: 'assets/portraits/hexa-idle.png', 'hexa sigil': 'assets/portraits/hexa-idle.png', cyphr: 'assets/portraits/cyphr-idle.png' };
+          box.innerHTML = rows.length ? rows.map(m => {
+            const av = AVATARS[(m.user_name || '').toLowerCase()];
+            const when = m.created_at ? new Date(m.created_at).toLocaleString() : '';
+            const avHtml = av ? `<img class="chat-avatar" src="${av}" alt="" width="32" height="32" style="border-radius:50%; flex:none;">` : '';
+            const mid = m.id != null ? String(m.id) : ((m.created_at || '') + '|' + (m.user_name || '') + '|' + (m.body || ''));
+            return `<div data-chat-id="${esc(mid)}" style="display:flex; gap:8px; border:1px solid var(--cyan); padding:8px; background:#0b0414;">${avHtml}<div><div style="color:var(--magenta); font-weight:bold;">${esc(m.user_name)} <span style="color:var(--silver); font-weight:normal;">${esc(when)}</span></div><div class="chat-body" style="color:#fff; margin-top:3px; overflow-wrap:anywhere;">${esc(m.body)}</div></div></div>`;
+          }).join('') : '<div style="color:var(--silver);">No messages in the room yet.</div>';
+          box.scrollTop = box.scrollHeight;
+        } catch (e) {
+          box.innerHTML = '<div style="color:var(--magenta);">Chat could not load. Check connection and try again.</div>';
+        }
+      },
+
+      placeBuild(kind) {
+        const def = BUILDABLES.find(b => b.kind === kind);
+        if (!def) return;
+        if (!buildAffordable(def.cost)) {
+          queueDialogue([{
+            who: 'guide',
+            sys: '[BUILD: INSUFFICIENT MATERIALS]',
+            text: `Not enough materials for ${def.name}, User. Gather in the Garden first.`
+          }]);
+          renderBuildList();
+          return;
+        }
+        Object.entries(def.cost).forEach(([m, n]) => { state.materials[m] -= n; });
+        const x = THREE.MathUtils.clamp(playerGroup.position.x, -16, 16);
+        const z = THREE.MathUtils.clamp(playerGroup.position.z + 2, -18, 68);
+        const mesh = buildMeshFor(kind);
+        mesh.position.set(x, 0, z);
+        scene.add(mesh);
+        state.builds.push({ kind, x, z });
+        document.getElementById('build-modal').classList.remove('visible');
+        updateHUD();
+        queueDialogue([{
+          who: 'guide',
+          sys: `[BUILD: ${def.name} PLACED]`,
+          text: `${def.name} placed, User. Your refuge grows.`
+        }]);
+      }
+    };
+
+    /* =========================================================================
+       10. KEYBOARD BINDINGS & MAIN RENDER LOOP (GARDEN 3D vs SIDE 2D LANE)
+       ========================================================================= */
+    const keys = {};
+    window.addEventListener('keydown', (e) => {
+      keys[e.code] = true;
+      if (e.code === 'Space' || e.code === 'KeyE') window.NVGame.interactNearest();
+      if (e.code === 'KeyV') window.NVGame.toggleView();
+      if (e.code === 'KeyQ') window.NVGame.cycleTool();
+      if (e.code === 'KeyB') window.NVGame.toggleBuildMenu();
+      if (e.code === 'KeyC') window.NVGame.toggleChat();
+      if (e.code === 'Escape') window.NVGame.closeConsoleMenu();
+    });
+    window.addEventListener('keyup', (e) => { keys[e.code] = false; });
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      if (composer) composer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // FPS guard: on a slow device drop from the bloom/grade stack to the lite tier once
+    const perf = { frames: 0, acc: 0, last: performance.now(), checked: false };
+    function watchFrameRate(now) {
+      const dt = now - perf.last;
+      perf.last = now;
+      watchModelCost(dt);
+      if (perf.checked || GFX_FORCED || gfxTier !== 'hi') return;
+      perf.frames++;
+      if (perf.frames <= 60 || dt > 500) return; // warm-up; ignore tab-switch gaps
+      perf.acc += dt;
+      if (perf.frames >= 180) {
+        perf.checked = true;
+        if (perf.acc / (perf.frames - 60) > 1000 / 45) applyGfxTier('lite');
+      }
+    }
+
+    const camGoal = new THREE.Vector3();
+    function animate() {
+      requestAnimationFrame(animate);
+      watchFrameRate(performance.now());
+
+      // Process Movement (Respecting Airlock Vine Gate at z = -1.5 until cut)
+      let dx = state.moveInput.x;
+      let dz = state.moveInput.z;
+      if (keys['ArrowUp'] || keys['KeyW']) dz = -1;
+      if (keys['ArrowDown'] || keys['KeyS']) dz = 1;
+      if (keys['ArrowLeft'] || keys['KeyA']) dx = -1;
+      if (keys['ArrowRight'] || keys['KeyD']) dx = 1;
+      // Touch orbit: move relative to the camera heading (no-op at the default heading)
+      if (state.viewMode === 'GARDEN' && touchCam.yaw !== 0 && (dx || dz)) {
+        const fwd = -dz, rt = dx, sy = Math.sin(touchCam.yaw), cy = Math.cos(touchCam.yaw);
+        const vx = fwd * sy - rt * cy, vz = fwd * cy + rt * sy;
+        dx = -vx; dz = -vz;
+      }
+
+      const speed = state.activeSyncForm === 'GLIDE' ? 0.22 : 0.16;
+      if (state.viewMode === 'GARDEN') {
+        // Camera looks down +z, so screen-right is -x and screen-up is +z
+        playerGroup.position.x = THREE.MathUtils.clamp(playerGroup.position.x - dx * speed, -16, 16);
+        let nextZ = playerGroup.position.z - dz * speed;
+        if (state.vineCutsRemaining > 0 && nextZ > -1.8) nextZ = -1.8;
+        playerGroup.position.z = THREE.MathUtils.clamp(nextZ, -18, 68);
+
+        // 3D Third-Person Follow Camera: tight portrait framing, Neon in the lower third
+        if (touchCam.isDefault()) {
+          touchCam.setFirstPerson(false);
+          camera.position.lerp(camGoal.set(playerGroup.position.x, 3.9, playerGroup.position.z - 7.4), 0.12);
+          camera.lookAt(playerGroup.position.x, 1.6, playerGroup.position.z + 6);
+        } else {
+          touchCam.apply();
+        }
+      } else {
+        // SIDE View: 2D Sega X-Men style side-scrolling lane along Z axis
+        let nextZ = playerGroup.position.z + dx * speed;
+        if (state.vineCutsRemaining > 0 && nextZ > -1.8) nextZ = -1.8;
+        playerGroup.position.z = THREE.MathUtils.clamp(nextZ, -18, 68);
+        playerGroup.position.x = THREE.MathUtils.clamp(playerGroup.position.x - dz * (speed * 0.6), -6, 6);
+
+        // Camera on the -x side so screen-right = deeper into the Garden (+z)
+        touchCam.setFirstPerson(false);
+        camera.position.lerp(camGoal.set(-26, 3.6, playerGroup.position.z), 0.15);
+        camera.lookAt(0, 1.7, playerGroup.position.z);
+      }
+
+      // PRAXIA BUMP SCENE driver: contact arms the scene, a battle attempt makes her flee,
+      // and she returns to her spot after a cooldown so the placeholder scene can repeat.
+      if (praxiaGroup.visible) {
+        const pd = Math.hypot(playerGroup.position.x - praxiaGroup.position.x, playerGroup.position.z - praxiaGroup.position.z);
+        if (praxiaScene === 'idle' && pd < 2.2) {
+          praxiaScene = 'armed';
+          queueDialogue([{
+            who: 'gridlog',
+            label: 'GRID LOG // SYNC LOCK',
+            portrait: 'praxia',
+            sys: '[STATUS: CANNOT SYNC]',
+            text: 'Praxia. You cannot sync with Praxia.'
+          }, {
+            who: 'guide',
+            sys: '[PRAXIA: CONTACT]',
+            text: 'She faces you, User. INTERACT to strike — she will not sync.'
+          }]);
+        } else if (praxiaScene === 'armed' && pd > 6) {
+          praxiaScene = 'idle';
+        } else if (praxiaScene === 'fleeing') {
+          const dxp = praxiaGroup.position.x - playerGroup.position.x;
+          const dzp = praxiaGroup.position.z - playerGroup.position.z;
+          const len = Math.hypot(dxp, dzp) || 1;
+          praxiaGroup.position.x = THREE.MathUtils.clamp(praxiaGroup.position.x + (dxp / len) * 0.55, -16, 16);
+          praxiaGroup.position.z = THREE.MathUtils.clamp(praxiaGroup.position.z + (dzp / len) * 0.55, -18, 68);
+          if (pd > 28 || performance.now() - praxiaSceneStartedAt > 2600) {
+            praxiaGroup.visible = false;
+            // (praxia interactable removed Nov 13, 2026)
+            praxiaScene = 'gone';
+            praxiaReturnAt = performance.now() + 20000;
+          }
+        }
+      } else if (praxiaScene === 'gone' && performance.now() >= praxiaReturnAt) {
+        praxiaGroup.position.set(0, 0, 50);
+        praxiaGroup.visible = true;
+        // (praxia interactable removed Nov 13, 2026)
+        praxiaScene = 'idle';
+      }
+
+      // Ethereal Drift Animation on Nodes & Praxia Wings
+      const t = performance.now() * 0.002;
+      interactables.forEach((n, idx) => {
+        if (n.active && n.id !== 'praxia') {
+          n.group.position.y = Math.sin(t + idx) * 0.12;
+          n.group.rotation.y += 0.01;
+        }
+      });
+      wingsMesh.rotation.y = Math.sin(t * 3) * 0.18;
+      const nowMs = performance.now();
+      const bugDt = Math.min(0.1, (nowMs - (animate.lastBug || nowMs)) / 1000);
+      animate.lastBug = nowMs;
+      creatureMixers.forEach((m) => m.update(bugDt));
+      if (playerMixer) {
+        const moving = (typeof dx === 'number' && typeof dz === 'number') ? (dx !== 0 || dz !== 0) : false;
+        const want = !moving ? 'Idle' : (state.activeSyncForm === 'GLIDE' ? 'armatureAction' : 'Walk');
+        if (playerActions[want] && playerClip !== want) {
+          const prev = playerActions[playerClip];
+          if (prev) prev.fadeOut(0.18);
+          playerActions[want].reset().fadeIn(0.18).play();
+          playerClip = want;
+        }
+        playerMixer.update(bugDt);
+      }
+      skysphere.update(bugDt); // sun rises/sets, clouds drift (NV Skysphere)
+      updateBabyPigekPet(t);
+      mistTime.value = t * MIST_MOTION;
+      if (mistGroup.visible) {
+        for (const m of mistGroup.children) m.position.x = m.userData.baseX + Math.sin(t * 0.25 + m.userData.phase) * 2.2;
+      }
+
+      if (state.activeEncounter) renderEncounterCanvas();
+      updateHUD();
+      updateCameraCulling();
+      if (composer) {
+        gradePass.uniforms.uTime.value = t;
+        composer.render();
+      } else {
+        renderer.render(scene, camera);
+      }
+    }
+
+    // play_again: reset the run in place (no page reload) and restart the theme from the top
+    const OBJECTIVE_START = document.getElementById('objective-banner').textContent;
+    let lastResetAt = -1e9;
+    function resetRun() {
+      const now = performance.now();
+      if (now - lastResetAt < 400) return; // RemixSDK + FarcadeSDK may both deliver it
+      lastResetAt = now;
+      const fresh = JSON.parse(INITIAL_STATE);
+      fresh.viewMode = state.viewMode;
+      Object.assign(state, fresh);
+      interactables.forEach((n) => { n.active = true; n.group.visible = true; });
+      praxiaGroup.position.set(0, 0, 50);
+      praxiaScene = 'idle';
+      playerGroup.position.set(0, 0, -16);
+      ['encounter-modal', 'gridlog-modal', 'title-modal', 'console-modal'].forEach((id) => document.getElementById(id).classList.remove('visible'));
+      document.getElementById('objective-banner').textContent = OBJECTIVE_START;
+      HostSDK.gameoverSent = false;
+      restartThemeForPlayAgain();
+      applyViewMode();
+      updateHUD();
+      queueDialogue(BOOT_DIALOGUE);
+    }
+
+    // Host SDK lifecycle (Remix SDK API first, legacy .on() events as fallback).
+    // Guards both window.RemixSDK and window.FarcadeSDK; binds once per SDK object.
+    const boundSDKs = new WeakSet();
+    function bindHostLifecycle() {
+      [window.RemixSDK, window.FarcadeSDK].forEach((s) => {
+        if (!s || boundSDKs.has(s)) return;
+        boundSDKs.add(s);
+        const onMute = (data) => setHostMuted(!!(data && data.isMuted));
+        try {
+          if (typeof s.onPlayAgain === 'function') s.onPlayAgain(() => resetRun());
+          else if (typeof s.on === 'function') s.on('play_again', () => resetRun());
+        } catch (_) {}
+        try {
+          if (typeof s.onToggleMute === 'function') s.onToggleMute(onMute);
+          else if (typeof s.on === 'function') s.on('toggle_mute', onMute);
+        } catch (_) {}
+        try { if (typeof s.on === 'function') s.on('game_over', () => { stopThemeForGameOver(); }); } catch (_) {}
+      });
+      HostSDK.ready();
+    }
+    bindHostLifecycle();
+    window.addEventListener('load', bindHostLifecycle);
+
+    window.NVGame.gfx = () => gfxTier;
+    window.NVGame.resetRun = resetRun;
+
+    /* =========================================================================
+       11. TOUCH CONTROLS (coarse pointers): move stick + gesture camera
+       - Move stick lower-left, always visible, analog, camera-relative.
+       - One-finger drag on the world: orbit the camera around Neon.
+       - Pinch: zoom; zoom all the way in for a first-person view.
+       - Two-finger swipe: detach the camera and move it freely.
+       - Reset button: camera back to its default spot behind Neon.
+       - Single tap (or long press) on an object in range: interact.
+       Desktop keyboard/mouse are untouched: these handlers only act on touch.
+       ========================================================================= */
+    const CAM_BASE_EL = Math.atan2(2.3, 7.4), CAM_BASE_LEN = Math.hypot(2.3, 7.4);
+    const touchCam = {
+      yaw: 0, el: CAM_BASE_EL, zoom: 1, detached: false, firstPerson: false,
+      pivot: new THREE.Vector3(), look: new THREE.Vector3(), _hidPlayer: false,
+      isDefault() { return this.yaw === 0 && this.el === CAM_BASE_EL && this.zoom === 1 && !this.detached; },
+      reset() {
+        this.yaw = 0; this.el = CAM_BASE_EL; this.zoom = 1; this.detached = false;
+        this.setFirstPerson(false);
+        const b = document.getElementById('nv-cam-reset'); if (b) b.classList.remove('detached');
+      },
+      setFirstPerson(on) {
+        if (on === this.firstPerson) return;
+        this.firstPerson = on;
+        if (on) { if (playerGroup.visible) { playerGroup.visible = false; this._hidPlayer = true; } }
+        else if (this._hidPlayer) { playerGroup.visible = true; this._hidPlayer = false; }
+      },
+      playerPos() { return { x: playerGroup.position.x, z: playerGroup.position.z }; },
+      forward() { return [Math.sin(this.yaw), Math.cos(this.yaw)]; },
+      right() { return [-Math.cos(this.yaw), Math.sin(this.yaw)]; },
+      detach() {
+        if (this.detached) return;
+        this.detached = true;
+        this.pivot.set(playerGroup.position.x, 1.6, playerGroup.position.z);
+        const b = document.getElementById('nv-cam-reset'); if (b) b.classList.add('detached');
+      },
+      apply() {
+        const [fx, fz] = this.forward();
+        const fp = !this.detached && this.zoom <= 0.3;
+        this.setFirstPerson(fp);
+        if (fp) {
+          const pitch = THREE.MathUtils.clamp(CAM_BASE_EL - this.el, -1.1, 1.1);
+          camGoal.set(playerGroup.position.x + fx * 0.25, 1.75, playerGroup.position.z + fz * 0.25);
+          camera.position.lerp(camGoal, 0.35);
+          this.look.set(camera.position.x + fx * Math.cos(pitch) * 10, camera.position.y + Math.sin(pitch) * 10,
+                        camera.position.z + fz * Math.cos(pitch) * 10);
+          camera.lookAt(this.look);
+          return;
+        }
+        const P = this.detached ? this.pivot : this.look.set(playerGroup.position.x, 1.6, playerGroup.position.z);
+        const len = CAM_BASE_LEN * this.zoom, ce = Math.cos(this.el), se = Math.sin(this.el);
+        camGoal.set(P.x - fx * ce * len, P.y + se * len, P.z - fz * ce * len);
+        if (camGoal.y < 0.4) camGoal.y = 0.4;
+        camera.position.lerp(camGoal, 0.18);
+        const lx = P.x + fx * 6 * Math.min(this.zoom, 1), lz = P.z + fz * 6 * Math.min(this.zoom, 1);
+        camera.lookAt(lx, P.y, lz);
+      }
+    };
+
+    (function initTouchControls() {
+      const root = document.documentElement;
+      const coarseMq = window.matchMedia ? window.matchMedia('(pointer: coarse)') : null;
+      function enableTouchUI() { root.classList.add('nv-touch-ui'); }
+      function evalTouchUI() {
+        // iPad (controls LOCK, Oct 28, 2026): iPadOS reports a Mac-style
+        // platform with touch points, so treat that as a touch device too.
+        const isIPad = navigator.maxTouchPoints > 0 && navigator.platform === 'MacIntel';
+        if (isIPad || (coarseMq && coarseMq.matches) || (navigator.maxTouchPoints > 0 && window.matchMedia && window.matchMedia('(hover: none)').matches)) enableTouchUI();
+      }
+      evalTouchUI();
+      if (coarseMq && coarseMq.addEventListener) coarseMq.addEventListener('change', evalTouchUI);
+      // Hybrid devices: the first real touch turns the touch UI on.
+      window.addEventListener('pointerdown', (e) => { if (e.pointerType === 'touch') enableTouchUI(); }, true);
+
+      // No page scroll / pinch-zoom / double-tap zoom while playing.
+      ['gesturestart', 'gesturechange', 'gestureend'].forEach((t) => document.addEventListener(t, (e) => e.preventDefault(), { passive: false }));
+      document.addEventListener('touchmove', (e) => {
+        const t = e.target;
+        if (t && t.closest && t.closest('#gridlog-content, #build-list, #chat-messages')) return; // keep panel lists scrollable
+        e.preventDefault();
+      }, { passive: false });
+      let lastTouchEnd = 0;
+      document.addEventListener('touchend', (e) => {
+        const now = Date.now();
+        if (now - lastTouchEnd < 300 && e.target === renderer.domElement) e.preventDefault();
+        lastTouchEnd = now;
+      }, { passive: false });
+      renderer.domElement.addEventListener('contextmenu', (e) => e.preventDefault());
+      renderer.domElement.style.touchAction = 'none';
+
+      // ---- Move stick ----
+      const stick = document.getElementById('nv-stick');
+      const knob = document.getElementById('nv-stick-knob');
+      const STICK_R = 42, DEAD = 0.12;
+      let stickId = null, sx = 0, sy = 0;
+      function stickSet(clientX, clientY) {
+        let ox = clientX - sx, oy = clientY - sy;
+        const d = Math.hypot(ox, oy);
+        if (d > STICK_R) { ox *= STICK_R / d; oy *= STICK_R / d; }
+        knob.style.transform = `translate(${ox}px, ${oy}px)`;
+        let nx = ox / STICK_R, ny = oy / STICK_R;
+        if (Math.hypot(nx, ny) < DEAD) { nx = 0; ny = 0; }
+        window.NVGame.setMove(nx, ny);
+      }
+      function stickEnd(e) {
+        if (e.pointerId !== stickId) return;
+        stickId = null;
+        stick.classList.remove('engaged');
+        knob.style.transform = '';
+        window.NVGame.setMove(0, 0);
+      }
+      stick.addEventListener('pointerdown', (e) => {
+        if (stickId !== null) return;
+        e.preventDefault(); e.stopPropagation();
+        stickId = e.pointerId;
+        try { stick.setPointerCapture(e.pointerId); } catch (_) {}
+        const r = stick.getBoundingClientRect();
+        sx = r.left + r.width / 2; sy = r.top + r.height / 2;
+        stick.classList.add('engaged');
+        stickSet(e.clientX, e.clientY);
+      });
+      stick.addEventListener('pointermove', (e) => { if (e.pointerId === stickId) { e.preventDefault(); stickSet(e.clientX, e.clientY); } });
+      stick.addEventListener('pointerup', stickEnd);
+      stick.addEventListener('pointercancel', stickEnd);
+      stick.addEventListener('lostpointercapture', stickEnd);
+
+      document.getElementById('nv-cam-reset').addEventListener('click', () => touchCam.reset());
+
+      // ---- World gestures (touch pointers on the 3D canvas only) ----
+      const el = renderer.domElement;
+      const pts = new Map();
+      let gesture = null; // { mode, t0, x0, y0, moved, pinchD, midX, midY, panAcc, longTimer }
+      const ORBIT_K = 0.0065, ZOOM_MIN = 0.15, ZOOM_MAX = 2.4;
+      const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+
+      function nodeFromHit(obj) {
+        while (obj) {
+          const n = interactables.find((it) => it.group === obj);
+          if (n) return n;
+          obj = obj.parent;
+        }
+        return null;
+      }
+      function touchObjectAt(x, y) {
+        if (state.viewMode !== 'GARDEN' && state.viewMode !== 'SIDE') return;
+        const r = el.getBoundingClientRect();
+        ndc.set(((x - r.left) / r.width) * 2 - 1, -((y - r.top) / r.height) * 2 + 1);
+        ray.setFromCamera(ndc, camera);
+        const groups = interactables.filter((n) => n.active && n.group && n.group.visible).map((n) => n.group);
+        const hits = ray.intersectObjects(groups, true);
+        for (const h of hits) {
+          const n = nodeFromHit(h.object);
+          if (n && n === findNearestInteractable()) { window.NVGame.interactNearest(); return; }
+        }
+      }
+      function mid() {
+        const a = [...pts.values()];
+        return { x: (a[0].x + a[1].x) / 2, y: (a[0].y + a[1].y) / 2, d: Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y) };
+      }
+      function startGesture() {
+        if (gesture && gesture.longTimer) clearTimeout(gesture.longTimer);
+        if (pts.size === 1) {
+          const p = [...pts.values()][0];
+          gesture = { mode: 'orbit', t0: performance.now(), x0: p.x, y0: p.y, moved: false, lx: p.x, ly: p.y };
+          gesture.longTimer = setTimeout(() => {
+            // Long press = touch, but the finger can still drag to orbit afterwards.
+            if (gesture && gesture.mode === 'orbit' && !gesture.moved) { gesture.longFired = true; touchObjectAt(gesture.x0, gesture.y0); }
+          }, 550);
+        } else if (pts.size >= 2) {
+          const m = mid();
+          gesture = { mode: 'two', midX: m.x, midY: m.y, pinchD: Math.max(m.d, 1), panX: 0, panY: 0 };
+        } else gesture = null;
+      }
+
+      el.addEventListener('pointerdown', (e) => {
+        if (e.pointerType !== 'touch') return; // desktop mouse/pen: unchanged
+        e.preventDefault();
+        enableTouchUI();
+        try { el.setPointerCapture(e.pointerId); } catch (_) {}
+        pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        startGesture();
+      });
+      el.addEventListener('pointermove', (e) => {
+        if (e.pointerType !== 'touch' || !pts.has(e.pointerId) || !gesture) return;
+        e.preventDefault();
+        pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        if (gesture.mode === 'orbit' && pts.size === 1) {
+          if (Math.hypot(e.clientX - gesture.x0, e.clientY - gesture.y0) > 8) gesture.moved = true;
+          const ddx = e.clientX - gesture.lx, ddy = e.clientY - gesture.ly;
+          gesture.lx = e.clientX; gesture.ly = e.clientY;
+          if (gesture.moved && state.viewMode === 'GARDEN') {
+            touchCam.yaw -= ddx * ORBIT_K;
+            touchCam.el = THREE.MathUtils.clamp(touchCam.el + ddy * ORBIT_K, -0.35, 1.35);
+          }
+        } else if (gesture.mode === 'two' && pts.size >= 2 && state.viewMode === 'GARDEN') {
+          const m = mid();
+          // Pinch: zoom (fully in = first person)
+          touchCam.zoom = THREE.MathUtils.clamp(touchCam.zoom * (gesture.pinchD / Math.max(m.d, 1)), ZOOM_MIN, ZOOM_MAX);
+          gesture.pinchD = Math.max(m.d, 1);
+          // Two-finger swipe: detach the camera and move it freely
+          const mdx = m.x - gesture.midX, mdy = m.y - gesture.midY;
+          gesture.midX = m.x; gesture.midY = m.y;
+          gesture.panX += mdx; gesture.panY += mdy; // net swipe (pinch jitter cancels out)
+          if (touchCam.detached || Math.hypot(gesture.panX, gesture.panY) > 18) {
+            touchCam.detach();
+            touchCam.setFirstPerson(false);
+            if (touchCam.zoom < 0.35) touchCam.zoom = 0.35;
+            const s = 0.012 * Math.max(touchCam.zoom, 0.5) * CAM_BASE_LEN / 7;
+            const [rx, rz] = touchCam.right(), [fx, fz] = touchCam.forward();
+            touchCam.pivot.x += -rx * mdx * s + fx * -mdy * s;
+            touchCam.pivot.z += -rz * mdx * s + fz * -mdy * s;
+            touchCam.pivot.x = THREE.MathUtils.clamp(touchCam.pivot.x, -40, 40);
+            touchCam.pivot.z = THREE.MathUtils.clamp(touchCam.pivot.z, -40, 110);
+          }
+        }
+      });
+      function endPointer(e) {
+        if (e.pointerType !== 'touch' || !pts.has(e.pointerId)) return;
+        pts.delete(e.pointerId);
+        if (gesture && gesture.mode === 'orbit' && e.type === 'pointerup' && !gesture.moved && !gesture.longFired && performance.now() - gesture.t0 < 350) {
+          touchObjectAt(gesture.x0, gesture.y0);
+        }
+        if (gesture && gesture.longTimer) clearTimeout(gesture.longTimer);
+        if (pts.size === 0) gesture = null;
+        else { startGesture(); if (gesture) gesture.moved = true; } // lifting one finger of two: carry on orbiting, no tap
+      }
+      el.addEventListener('pointerup', endPointer);
+      el.addEventListener('pointercancel', endPointer);
+
+      // Keep the stick and reset button above the bottom bar / dialogue, hidden behind modals.
+      const touchRoot = document.getElementById('nv-touch');
+      const bar = document.querySelector('.bottom-bar');
+      const dlg = document.getElementById('dialogue-box');
+      let layoutTick = 0;
+      function layoutTouch() {
+        if (++layoutTick % 2 === 0 && root.classList.contains('nv-touch-ui')) {
+          const vh = window.innerHeight, vw = window.innerWidth;
+          const barTop = bar ? bar.getBoundingClientRect().top : vh;
+          const base = vh - barTop + 14;
+          let stickBottom = base, resetBottom = base;
+          if (dlg && getComputedStyle(dlg).display !== 'none') {
+            const dr = dlg.getBoundingClientRect();
+            // Lift a control only when the dialogue sits in its column (portrait); in landscape the
+            // dialogue is centred and the stick / reset button keep their spots at the sides.
+            if (dr.height && dr.left < stick.getBoundingClientRect().right + 6) stickBottom = Math.max(stickBottom, vh - dr.top + 10);
+            if (dr.height && dr.right > document.getElementById('nv-cam-reset').getBoundingClientRect().left - 6) resetBottom = Math.max(resetBottom, vh - dr.top + 10);
+          }
+          // Never push the stick under the top bar on short (landscape) screens.
+          const topBar = document.querySelector('.top-bar');
+          const topLimit = topBar ? topBar.getBoundingClientRect().bottom + 6 : 0;
+          stickBottom = Math.min(stickBottom, Math.max(base, vh - topLimit - 116));
+          resetBottom = Math.min(resetBottom, Math.max(base, vh - topLimit - 44));
+          if (stickId === null) root.style.setProperty('--nv-stick-bottom', Math.round(stickBottom) + 'px'); // never move the stick under a held finger
+          root.style.setProperty('--nv-reset-bottom', Math.round(resetBottom) + 'px');
+          const modalOpen = !!document.querySelector('.modal-card.visible');
+          touchRoot.classList.toggle('nv-hidden', modalOpen);
+          if (modalOpen && stickId !== null) { stickId = null; knob.style.transform = ''; window.NVGame.setMove(0, 0); }
+        }
+        requestAnimationFrame(layoutTouch);
+      }
+      requestAnimationFrame(layoutTouch);
+
+      window.NVGame.touchCam = touchCam;
+    })();
+
+    applyViewMode();
+    animate();
+  </script>
+<script type="module" src="./game-main.ts"></script>
 </body>
 </html>
