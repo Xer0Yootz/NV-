@@ -777,7 +777,7 @@
      palette, dock or wireframe. */
   function initBackOnly() {
     applyA11yPrefs();
-    mountBack();
+    if (!document.documentElement.hasAttribute('data-nv-no-back')) mountBack();
     mountOptions();
     mountGuard();
     mountToastRegion();
